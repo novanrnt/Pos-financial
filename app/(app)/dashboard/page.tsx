@@ -70,27 +70,27 @@ export default async function Dashboard(){
   const topExpenseCategory=expensePie.slice().sort((a,b)=>b.value-a.value)[0];
 
   return <div className="space-y-4 md:space-y-5">
-    <Card className="overflow-hidden relative">
+    <Card className="overflow-hidden relative p-4 md:p-5">
       <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-violet-500/20 blur-3xl" />
-      <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+      <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="badge text-violet-200">Financial Project • POS</p>
-          <h1 className="mt-4 text-3xl md:text-5xl font-black tracking-[-.06em]">Halo, {u.fullName || 'Owner'}.</h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">Track smarter, invest wiser, dan pantau semua cashflow showroom dari satu dashboard mobile responsive.</p>
+          <h1 className="mt-3 text-2xl md:text-4xl font-black tracking-[-.06em]">Halo, {u.fullName || 'Owner'}.</h1>
+          <p className="mt-1 max-w-2xl text-xs md:text-sm text-slate-400">Track smarter, invest wiser, dan pantau semua cashflow showroom dari satu dashboard mobile responsive.</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="relative grid h-24 w-24 place-items-center rounded-full border border-white/10 bg-white/[.04]">
+        <div className="flex items-center gap-3">
+          <div className="relative grid h-20 w-20 md:h-24 md:w-24 place-items-center rounded-full border border-white/10 bg-white/[.04]">
             <div className="absolute inset-2 rounded-full border-4 border-violet-500/35 border-t-emerald-400" />
-            <div className="text-center"><div className="text-2xl font-black text-rose-300">{healthScore}</div><div className="text-[10px] text-slate-500">Health Score</div></div>
+            <div className="text-center"><div className="text-xl md:text-2xl font-black text-rose-300">{healthScore}</div><div className="text-[9px] md:text-[10px] text-slate-500">Health Score</div></div>
           </div>
-          <div className="text-right"><div className="text-xs text-slate-500">Net Worth</div><div className="text-lg md:text-2xl font-black text-violet-200">{rupiah(netWorth)}</div></div>
+          <div className="text-right"><div className="text-[10px] md:text-xs text-slate-500">Net Worth</div><div className="text-base md:text-xl font-black text-violet-200">{rupiah(netWorth)}</div></div>
         </div>
       </div>
     </Card>
 
     <Card className="p-3 md:p-4">
-      <div className="mb-3 flex items-center justify-between px-1"><p className="text-xs font-black text-slate-400 uppercase tracking-wide">Period</p><p className="text-xs font-black text-violet-300">{monthLong[now.getMonth()]} {now.getFullYear()}</p></div>
-      <div className="hide-scroll flex gap-2 overflow-x-auto pb-1">{monthLong.map((m,i)=><div key={m} className={`shrink-0 rounded-2xl px-4 py-3 text-xs font-black ${i===now.getMonth()?'bg-violet-500 text-white shadow-lg shadow-violet-500/20':'bg-white/[.035] text-slate-500'}`}>{m}</div>)}</div>
+      <div className="mb-2 flex items-center justify-between px-1"><p className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Period</p><p className="text-[10px] font-black text-violet-300">{monthLong[now.getMonth()]} {now.getFullYear()}</p></div>
+      <div className="hide-scroll flex gap-2 overflow-x-auto pb-1">{monthLong.map((m,i)=><div key={m} className={`shrink-0 rounded-2xl px-3 py-2 text-[10px] font-black ${i===now.getMonth()?'bg-violet-500 text-white shadow-lg shadow-violet-500/20':'bg-white/[.035] text-slate-500'}`}>{m}</div>)}</div>
     </Card>
 
     <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mobile-card-grid">
@@ -130,26 +130,26 @@ export default async function Dashboard(){
 
     <Card>
       <SectionHeader title="Financial Trend" desc="Income vs expense vs savings tahun berjalan" right={<Link href="/reports" className="btn btn-ghost text-xs">Laporan</Link>} />
-      <div className="overflow-x-auto hide-scroll"><CashflowChart data={chartData}/></div>
+      <div className="overflow-x-auto hide-scroll" style={{minHeight: '200px'}}><CashflowChart data={chartData}/></div>
     </Card>
 
     <Card>
       <SectionHeader title="Pertumbuhan Net Worth" desc="Estimasi perkembangan kekayaan bersih tahun berjalan" right={<span className={`badge text-xs ${netWorthGrowthPct>=0?'text-emerald-300':'text-rose-300'}`}>{netWorthGrowthPct>=0?'+':''}{netWorthGrowthPct.toFixed(1)}%</span>} />
-      <div className="overflow-x-auto hide-scroll"><NetWorthGrowthChart data={netWorthGrowthData}/></div>
+      <div className="overflow-x-auto hide-scroll" style={{minHeight: '200px'}}><NetWorthGrowthChart data={netWorthGrowthData}/></div>
     </Card>
 
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <SectionHeader title="Cashflow Mingguan" desc="Pemasukan vs pengeluaran per hari minggu ini" right={<span className={`badge text-xs ${weeklyNet>=0?'text-emerald-300':'text-rose-300'}`}>{weeklyNet>=0?'+':''}{rupiah(weeklyNet)}</span>} />
-        <div className="overflow-x-auto hide-scroll"><WeeklyCashflowChart data={weeklyCashflowData}/></div>
+        <div className="overflow-x-auto hide-scroll -mx-4 md:-mx-6 px-4 md:px-6"><div style={{minHeight: '200px'}}><WeeklyCashflowChart data={weeklyCashflowData}/></div></div>
       </Card>
       <Card>
         <SectionHeader title="Insight Otomatis" desc="Ringkasan performa keuangan cepat" />
-        <div className="grid gap-3">
-          <InsightBox icon={<TrendingUp size={18}/>} label="Growth Net Worth" value={`${netWorthGrowthPct>=0?'+':''}${netWorthGrowthPct.toFixed(1)}%`} hint="dibanding bulan sebelumnya" tone={netWorthGrowthPct>=0?'green':'red'} />
-          <InsightBox icon={<Activity size={18}/>} label="Cashflow Minggu Ini" value={rupiah(weeklyNet)} hint={`${weeklyCashflowData.filter(d=>d.income||d.expense).length} hari ada transaksi`} tone={weeklyNet>=0?'green':'red'} />
-          <InsightBox icon={<CalendarDays size={18}/>} label="Hari Boros" value={topExpenseDay?.name || '-'} hint={topExpenseDay?.expense?rupiah(topExpenseDay.expense):'belum ada expense'} tone="purple" />
-          <InsightBox icon={<CreditCard size={18}/>} label="Kategori Terbesar" value={topExpenseCategory?.name || '-'} hint={topExpenseCategory?.value?rupiah(topExpenseCategory.value):'belum ada data'} tone="blue" />
+        <div className="grid gap-2">
+          <InsightBox icon={<TrendingUp size={16}/>} label="Growth Net Worth" value={`${netWorthGrowthPct>=0?'+':''}${netWorthGrowthPct.toFixed(1)}%`} hint="dibanding bulan sebelumnya" tone={netWorthGrowthPct>=0?'green':'red'} />
+          <InsightBox icon={<Activity size={16}/>} label="Cashflow Minggu Ini" value={rupiah(weeklyNet)} hint={`${weeklyCashflowData.filter(d=>d.income||d.expense).length} hari ada transaksi`} tone={weeklyNet>=0?'green':'red'} />
+          <InsightBox icon={<CalendarDays size={16}/>} label="Hari Boros" value={topExpenseDay?.name || '-'} hint={topExpenseDay?.expense?rupiah(topExpenseDay.expense):'belum ada expense'} tone="purple" />
+          <InsightBox icon={<CreditCard size={16}/>} label="Kategori Terbesar" value={topExpenseCategory?.name || '-'} hint={topExpenseCategory?.value?rupiah(topExpenseCategory.value):'belum ada data'} tone="blue" />
         </div>
       </Card>
     </div>
@@ -157,14 +157,14 @@ export default async function Dashboard(){
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <SectionHeader title="Spending Breakdown" desc="Distribusi pengeluaran bulan ini" />
-        <CategoryPie data={expensePie}/>
+        <div style={{minHeight: '220px'}}><CategoryPie data={expensePie}/></div>
       </Card>
       <Card>
         <SectionHeader title="Quick Monitor" desc="Hutang, tagihan, dan piutang terdekat" right={<Link href="/transactions" className="btn btn-primary text-xs"><Plus size={15}/> Add</Link>} />
-        <div className="space-y-3">
-          {debts.length===0&&bills.length===0 ? <p className="rounded-2xl bg-white/[.04] p-4 text-sm text-slate-500">Belum ada reminder aktif.</p> : null}
-          {debts.map(d=><div key={d.id} className="rounded-2xl bg-white/[.04] p-4"><div className="flex items-start justify-between gap-3"><div><span className="badge text-[10px]">{d.type==='DEBT'?'Hutang':'Piutang'}</span><h3 className="mt-2 font-black">{d.name}</h3><p className="text-xs text-slate-500">Sisa: {rupiah(d.remainingAmount)}</p></div><div className={d.type==='DEBT'?'text-rose-300':'text-emerald-300'}>{d.type==='DEBT'?<ArrowUpRight/>:<ArrowDownRight/>}</div></div></div>)}
-          {bills.map(b=><div key={b.id} className="rounded-2xl bg-white/[.04] p-4"><div className="flex items-start justify-between gap-3"><div><span className="badge text-[10px]">Tagihan</span><h3 className="mt-2 font-black">{b.name}</h3><p className="text-xs text-slate-500">Due day {b.dueDay} • {b.account.name}</p></div><div className="text-amber-300"><Receipt/></div></div></div>)}
+        <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1 hide-scroll">
+          {debts.length===0&&bills.length===0 ? <p className="rounded-2xl bg-white/[.04] p-3 text-sm text-slate-500">Belum ada reminder aktif.</p> : null}
+          {debts.map(d=><div key={d.id} className="rounded-2xl bg-white/[.04] p-3"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><span className="badge text-[10px]">{d.type==='DEBT'?'Hutang':'Piutang'}</span><h3 className="mt-1 font-black text-sm truncate">{d.name}</h3><p className="text-xs text-slate-500">Sisa: {rupiah(d.remainingAmount)}</p></div><div className={d.type==='DEBT'?'text-rose-300':'text-emerald-300'}>{d.type==='DEBT'?<ArrowUpRight size={16}/>:<ArrowDownRight size={16}/>}</div></div></div>)}
+          {bills.map(b=><div key={b.id} className="rounded-2xl bg-white/[.04] p-3"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><span className="badge text-[10px]">Tagihan</span><h3 className="mt-1 font-black text-sm truncate">{b.name}</h3><p className="text-xs text-slate-500">Due day {b.dueDay} • {b.account.name}</p></div><div className="text-amber-300"><Receipt size={16}/></div></div></div>)}
         </div>
       </Card>
     </div>
@@ -172,22 +172,22 @@ export default async function Dashboard(){
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <SectionHeader title="Income Breakdown" desc="Distribusi pemasukan bulan ini" />
-        <CategoryPie data={incomePie}/>
+        <div style={{minHeight: '220px'}}><CategoryPie data={incomePie}/></div>
       </Card>
       <Card>
         <SectionHeader title="Log Transaksi" desc="Aktivitas terbaru akun dan showroom" right={<Link href="/transactions" className="btn btn-primary text-xs">+ Add Log</Link>} />
-        <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="mb-3 grid grid-cols-2 md:grid-cols-4 gap-2">
           <TinyBox label="Pemasukan" value={income} green />
           <TinyBox label="Pengeluaran" value={expense} red />
           <TinyBox label="Net Cashflow" value={savings} purple />
-          <div className="rounded-2xl bg-white/[.04] p-3"><p className="text-[10px] text-slate-500 font-black uppercase">Aktivitas</p><h4 className="mt-2 font-black">{tx.length}</h4></div>
+          <div className="rounded-2xl bg-white/[.04] p-3 min-h-[80px] md:min-h-[90px] flex flex-col justify-between"><p className="text-[10px] text-slate-500 font-black uppercase">Aktivitas</p><h4 className="text-sm md:text-base font-black">{tx.length}</h4></div>
         </div>
-        <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1 hide-scroll">{tx.map(t=><div key={t.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white/[.04] p-3"><div className="min-w-0"><div className="flex items-center gap-2"><span className={`h-2 w-2 rounded-full ${t.type==='EXPENSE'?'bg-rose-400':t.type==='INCOME'?'bg-emerald-400':'bg-violet-400'}`}/><div className="font-black truncate">{t.description||t.type}</div></div><div className="mt-1 text-[11px] text-slate-500 truncate">{t.account.name} • {t.category?.name||'Transfer'} • {t.date.toLocaleDateString('id-ID')}</div></div><div className={`shrink-0 text-sm font-black ${t.type==='EXPENSE'?'text-rose-300':'text-emerald-300'}`}>{t.type==='EXPENSE'?'- ':'+ '}{rupiah(t.amount)}</div></div>)}</div>
+        <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1 hide-scroll">{tx.map(t=><div key={t.id} className="flex items-center justify-between gap-2 rounded-2xl bg-white/[.04] p-2"><div className="min-w-0"><div className="flex items-center gap-2"><span className={`h-2 w-2 rounded-full ${t.type==='EXPENSE'?'bg-rose-400':t.type==='INCOME'?'bg-emerald-400':'bg-violet-400'}`}/><div className="font-black text-sm truncate">{t.description||t.type}</div></div><div className="mt-1 text-[10px] text-slate-500 truncate">{t.account.name} • {t.category?.name||'Transfer'} • {t.date.toLocaleDateString('id-ID')}</div></div><div className={`shrink-0 text-xs font-black ${t.type==='EXPENSE'?'text-rose-300':'text-emerald-300'}`}>{t.type==='EXPENSE'?'- ':'+ '}{rupiah(t.amount)}</div></div>)}</div>
       </Card>
     </div>
   </div>
 }
 
 function MiniMetric({icon,label,value,danger=false}:{icon:React.ReactNode;label:string;value:number;danger?:boolean}){return <div className="soft-card rounded-[1.25rem] p-3 md:p-4 min-h-[90px] md:min-h-[100px] flex flex-col justify-between"><div className="flex items-start gap-2"><div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${danger?'bg-rose-400/10 text-rose-300':'bg-violet-400/10 text-violet-200'}`}>{icon}</div><div className="min-w-0 flex-1"><p className="text-[10px] text-slate-500 font-black uppercase truncate">{label}</p><h3 className={`mt-1 text-sm md:text-base font-black truncate ${danger?'text-rose-300':'text-slate-100'}`}>{rupiah(value)}</h3></div></div></div>}
-function InsightBox({icon,label,value,hint,tone}:{icon:React.ReactNode;label:string;value:string;hint:string;tone:'green'|'red'|'purple'|'blue'}){const toneClass=tone==='green'?'bg-emerald-400/10 text-emerald-300':tone==='red'?'bg-rose-400/10 text-rose-300':tone==='blue'?'bg-sky-400/10 text-sky-300':'bg-violet-400/10 text-violet-300';return <div className="rounded-[1.25rem] border border-white/10 bg-white/[.035] p-3 md:p-4 min-h-[90px] md:min-h-[100px] flex flex-col justify-between"><div className="flex items-start gap-3"><div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${toneClass}`}>{icon}</div><div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{label}</p><h4 className="mt-1 truncate text-sm md:text-base font-black text-white">{value}</h4><p className="mt-1 truncate text-[10px] text-slate-500">{hint}</p></div></div></div>}
+function InsightBox({icon,label,value,hint,tone}:{icon:React.ReactNode;label:string;value:string;hint:string;tone:'green'|'red'|'purple'|'blue'}){const toneClass=tone==='green'?'bg-emerald-400/10 text-emerald-300':tone==='red'?'bg-rose-400/10 text-rose-300':tone==='blue'?'bg-sky-400/10 text-sky-300':'bg-violet-400/10 text-violet-300';return <div className="rounded-[1.1rem] border border-white/10 bg-white/[.035] p-3 min-h-[75px] md:min-h-[85px] flex flex-col justify-between"><div className="flex items-start gap-2"><div className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${toneClass}`}>{icon}</div><div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-wide text-slate-500">{label}</p><h4 className="mt-1 truncate text-xs md:text-sm font-black text-white">{value}</h4><p className="mt-0.5 truncate text-[9px] text-slate-500">{hint}</p></div></div></div>}
 function TinyBox({label,value,green,red,purple}:{label:string;value:number;green?:boolean;red?:boolean;purple?:boolean}){return <div className={`rounded-2xl p-3 min-h-[80px] md:min-h-[90px] flex flex-col justify-between ${green?'bg-emerald-400/10':red?'bg-rose-400/10':purple?'bg-violet-400/10':'bg-white/[.04]'}`}><p className="text-[10px] text-slate-500 font-black uppercase">{label}</p><h4 className={`text-sm md:text-base font-black ${green?'text-emerald-300':red?'text-rose-300':purple?'text-violet-300':'text-white'}`}>{rupiah(value)}</h4></div>}
