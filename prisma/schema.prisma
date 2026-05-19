@@ -70,8 +70,8 @@ model Account {
   userId           String
   name             String
   type             AccountType   @default(BANK)
-  balance          Decimal       @default(0) @db.Numeric(18, 2)
-  initialBalance   Decimal       @default(0) @db.Numeric(18, 2)
+  balance          Decimal       @default(0) @db.Decimal(18, 2)
+  initialBalance   Decimal       @default(0) @db.Decimal(18, 2)
   color            String        @default("emerald")
   icon             String        @default("Wallet")
   isPrimary        Boolean       @default(false)
@@ -108,7 +108,7 @@ model Transaction {
   accountId           String
   categoryId          String?
   type                TransactionType
-  amount              Decimal     @db.Numeric(18, 2)
+  amount              Decimal     @db.Decimal(18, 2)
   date                DateTime
   description         String?
   transferToAccountId String?
@@ -138,9 +138,9 @@ model Car {
   frameNumber        String?
   engineNumber       String?
   mileage            Int?
-  purchasePrice      Decimal   @default(0) @db.Numeric(18, 2)
-  estimatedSellPrice Decimal   @default(0) @db.Numeric(18, 2)
-  sellPrice          Decimal?  @db.Numeric(18, 2)
+  purchasePrice      Decimal   @default(0) @db.Decimal(18, 2)
+  estimatedSellPrice Decimal   @default(0) @db.Decimal(18, 2)
+  sellPrice          Decimal?  @db.Decimal(18, 2)
   status             CarStatus @default(AVAILABLE)
   soldAt             DateTime?
   notes              String?
@@ -157,7 +157,7 @@ model CarCost {
   userId      String
   carId       String
   accountId   String
-  amount      Decimal  @db.Numeric(18, 2)
+  amount      Decimal  @db.Decimal(18, 2)
   description String
   date        DateTime
   createdAt   DateTime @default(now())
@@ -173,8 +173,8 @@ model Debt {
   userId          String
   type            DebtType
   name            String
-  amount          Decimal    @db.Numeric(18, 2)
-  remainingAmount Decimal    @db.Numeric(18, 2)
+  amount          Decimal    @db.Decimal(18, 2)
+  remainingAmount Decimal    @db.Decimal(18, 2)
   dueDate         DateTime?
   status          DebtStatus @default(ACTIVE)
   notes           String?
@@ -190,7 +190,7 @@ model DebtPayment {
   userId    String
   debtId    String
   accountId String
-  amount    Decimal  @db.Numeric(18, 2)
+  amount    Decimal  @db.Decimal(18, 2)
   date      DateTime
   notes     String?
   createdAt DateTime @default(now())
@@ -206,7 +206,7 @@ model RecurringBill {
   userId     String
   accountId  String
   name       String
-  amount     Decimal    @db.Numeric(18, 2)
+  amount     Decimal    @db.Decimal(18, 2)
   dueDay     Int
   status     BillStatus @default(UNPAID)
   lastPaidAt DateTime?
@@ -223,7 +223,7 @@ model InvestmentSnapshot {
   userId    String
   category  String
   month     String
-  balance   Decimal  @db.Numeric(18, 2)
+  balance   Decimal  @db.Decimal(18, 2)
   notes     String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
