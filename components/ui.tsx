@@ -13,7 +13,7 @@ export function Empty({ text='Belum ada data' }: { text?: string }) { return <di
 
 export function StatCard({ label, value, hint, tone='neutral' }: { label: string; value: number; hint?: string; tone?: 'green'|'red'|'blue'|'purple'|'neutral' }) {
   const tones = {green:'text-emerald-300 bg-emerald-400/10',red:'text-rose-300 bg-rose-400/10',blue:'text-sky-300 bg-sky-400/10',purple:'text-violet-300 bg-violet-400/10',neutral:'text-slate-100 bg-white/5'} as const;
-  return <div className="soft-card rounded-[1.35rem] p-3 md:p-5 min-h-[96px] md:min-h-[112px]"><p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wide">{label}</p><h3 className={cn('mt-2 md:mt-3 text-base md:text-2xl font-black tracking-[-.04em]', tones[tone].split(' ')[0])}>{rupiah(value)}</h3>{hint && <p className="mt-1 text-[10px] md:text-[11px] text-slate-500">{hint}</p>}</div>;
+  return <div className="soft-card rounded-[1.35rem] p-3 md:p-4 min-h-[100px] md:min-h-[110px] flex flex-col justify-between"><div><p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wide">{label}</p><h3 className={cn('mt-2 md:mt-3 text-base md:text-xl font-black tracking-[-.04em] line-clamp-2', tones[tone].split(' ')[0])}>{rupiah(value)}</h3></div>{hint && <p className="mt-1 text-[10px] md:text-[11px] text-slate-500">{hint}</p>}</div>;
 }
 
 export function SectionHeader({ title, desc, right }: { title: string; desc?: string; right?: React.ReactNode }) {

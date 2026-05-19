@@ -108,23 +108,23 @@ export default async function Dashboard(){
     </div>
 
     <Card className="bg-gradient-to-br from-emerald-500/10 via-white/[.04] to-emerald-400/5 border-emerald-400/20">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Saldo Rekening</p>
-          <h3 className="mt-2 text-lg md:text-2xl font-black text-emerald-300">{rupiah(cash)}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+        <div className="min-h-[80px] md:min-h-[90px] flex flex-col justify-between">
+          <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wide">Saldo Rekening</p>
+          <h3 className="text-base md:text-lg font-black text-emerald-300 line-clamp-2">{rupiah(cash)}</h3>
         </div>
-        <div>
-          <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Aset Mobil</p>
-          <h3 className="mt-2 text-lg md:text-2xl font-black text-emerald-300">{rupiah(carAsset)}</h3>
+        <div className="min-h-[80px] md:min-h-[90px] flex flex-col justify-between">
+          <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wide">Aset Mobil</p>
+          <h3 className="text-base md:text-lg font-black text-emerald-300 line-clamp-2">{rupiah(carAsset)}</h3>
         </div>
-        <div>
-          <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Investasi (ex R&D)</p>
-          <h3 className="mt-2 text-lg md:text-2xl font-black text-emerald-300">{rupiah(invExcludeRnd)}</h3>
+        <div className="min-h-[80px] md:min-h-[90px] flex flex-col justify-between">
+          <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wide">Investasi (ex R&D)</p>
+          <h3 className="text-base md:text-lg font-black text-emerald-300 line-clamp-2">{rupiah(invExcludeRnd)}</h3>
         </div>
       </div>
-      <div className="mt-4 pt-4 border-t border-emerald-400/20">
-        <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Total Aset</p>
-        <h2 className="mt-2 text-2xl md:text-4xl font-black text-emerald-200">{rupiah(totalAssets)}</h2>
+      <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-emerald-400/20">
+        <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wide">Total Aset</p>
+        <h2 className="mt-2 text-xl md:text-2xl font-black text-emerald-200">{rupiah(totalAssets)}</h2>
       </div>
     </Card>
 
@@ -188,6 +188,6 @@ export default async function Dashboard(){
   </div>
 }
 
-function MiniMetric({icon,label,value,danger=false}:{icon:React.ReactNode;label:string;value:number;danger?:boolean}){return <div className="soft-card rounded-[1.25rem] p-4 flex items-center gap-3"><div className={`grid h-10 w-10 place-items-center rounded-2xl ${danger?'bg-rose-400/10 text-rose-300':'bg-violet-400/10 text-violet-200'}`}>{icon}</div><div className="min-w-0"><p className="text-[11px] text-slate-500 font-black uppercase truncate">{label}</p><h3 className={`mt-1 text-sm md:text-base font-black truncate ${danger?'text-rose-300':'text-slate-100'}`}>{rupiah(value)}</h3></div></div>}
-function InsightBox({icon,label,value,hint,tone}:{icon:React.ReactNode;label:string;value:string;hint:string;tone:'green'|'red'|'purple'|'blue'}){const toneClass=tone==='green'?'bg-emerald-400/10 text-emerald-300':tone==='red'?'bg-rose-400/10 text-rose-300':tone==='blue'?'bg-sky-400/10 text-sky-300':'bg-violet-400/10 text-violet-300';return <div className="rounded-[1.25rem] border border-white/10 bg-white/[.035] p-4"><div className="flex items-start gap-3"><div className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${toneClass}`}>{icon}</div><div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{label}</p><h4 className="mt-1 truncate text-base font-black text-white">{value}</h4><p className="mt-1 truncate text-xs text-slate-500">{hint}</p></div></div></div>}
-function TinyBox({label,value,green,red,purple}:{label:string;value:number;green?:boolean;red?:boolean;purple?:boolean}){return <div className={`rounded-2xl p-3 ${green?'bg-emerald-400/10':red?'bg-rose-400/10':purple?'bg-violet-400/10':'bg-white/[.04]'}`}><p className="text-[10px] text-slate-500 font-black uppercase">{label}</p><h4 className={`mt-2 text-sm font-black ${green?'text-emerald-300':red?'text-rose-300':purple?'text-violet-300':'text-white'}`}>{rupiah(value)}</h4></div>}
+function MiniMetric({icon,label,value,danger=false}:{icon:React.ReactNode;label:string;value:number;danger?:boolean}){return <div className="soft-card rounded-[1.25rem] p-3 md:p-4 min-h-[90px] md:min-h-[100px] flex flex-col justify-between"><div className="flex items-start gap-2"><div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${danger?'bg-rose-400/10 text-rose-300':'bg-violet-400/10 text-violet-200'}`}>{icon}</div><div className="min-w-0 flex-1"><p className="text-[10px] text-slate-500 font-black uppercase truncate">{label}</p><h3 className={`mt-1 text-sm md:text-base font-black truncate ${danger?'text-rose-300':'text-slate-100'}`}>{rupiah(value)}</h3></div></div></div>}
+function InsightBox({icon,label,value,hint,tone}:{icon:React.ReactNode;label:string;value:string;hint:string;tone:'green'|'red'|'purple'|'blue'}){const toneClass=tone==='green'?'bg-emerald-400/10 text-emerald-300':tone==='red'?'bg-rose-400/10 text-rose-300':tone==='blue'?'bg-sky-400/10 text-sky-300':'bg-violet-400/10 text-violet-300';return <div className="rounded-[1.25rem] border border-white/10 bg-white/[.035] p-3 md:p-4 min-h-[90px] md:min-h-[100px] flex flex-col justify-between"><div className="flex items-start gap-3"><div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${toneClass}`}>{icon}</div><div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{label}</p><h4 className="mt-1 truncate text-sm md:text-base font-black text-white">{value}</h4><p className="mt-1 truncate text-[10px] text-slate-500">{hint}</p></div></div></div>}
+function TinyBox({label,value,green,red,purple}:{label:string;value:number;green?:boolean;red?:boolean;purple?:boolean}){return <div className={`rounded-2xl p-3 min-h-[80px] md:min-h-[90px] flex flex-col justify-between ${green?'bg-emerald-400/10':red?'bg-rose-400/10':purple?'bg-violet-400/10':'bg-white/[.04]'}`}><p className="text-[10px] text-slate-500 font-black uppercase">{label}</p><h4 className={`text-sm md:text-base font-black ${green?'text-emerald-300':red?'text-rose-300':purple?'text-violet-300':'text-white'}`}>{rupiah(value)}</h4></div>}
