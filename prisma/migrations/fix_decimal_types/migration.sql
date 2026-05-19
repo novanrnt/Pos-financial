@@ -1,0 +1,3 @@
+-- Fix decimal types for PostgreSQL compatibility
+-- Changed @db.Numeric to @db.Decimal in schema
+-- PostgreSQL's numeric type is compatible, no schema changes needed
