@@ -96,13 +96,19 @@ export default async function Cars() {
               <input name="estimatedSellPrice" placeholder="Estimasi jual" />
             </div>
             <select name="accountId">
-              <option value="">Stok awal / jangan potong saldo</option>
+              <option value="">Pilih rekening untuk potong saldo</option>
               {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
-            <div className="rounded-2xl border border-white/10 p-3 space-y-2">
-              <p className="text-xs font-black text-slate-400 uppercase">Pinjaman untuk mobil ini (opsional)</p>
+            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-3 space-y-2">
+              <p className="text-xs font-black text-emerald-400 uppercase">Modal Beli Mobil</p>
+              <input name="myMoney" placeholder="Uang saya untuk beli mobil" />
+              <p className="text-[10px] text-slate-500">Nominal ini akan dipotong dari rekening</p>
+            </div>
+            <div className="rounded-2xl border border-rose-400/20 bg-rose-400/5 p-3 space-y-2">
+              <p className="text-xs font-black text-rose-400 uppercase">Pinjaman (Opsional)</p>
               <input name="debtName" placeholder="Nama pemberi pinjaman" />
               <input name="debtAmount" placeholder="Nominal pinjaman" />
+              <p className="text-[10px] text-slate-500">Total modal = Uang saya + Pinjaman</p>
             </div>
             <textarea name="photos" placeholder="URL foto, satu baris satu foto" />
             <textarea name="notes" placeholder="Catatan" />
