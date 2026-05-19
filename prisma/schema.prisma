@@ -148,6 +148,7 @@ model Car {
   createdAt          DateTime  @default(now())
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   costs              CarCost[]
+  debts              Debt[]
 
   @@index([userId, status])
 }
@@ -178,11 +179,14 @@ model Debt {
   dueDate         DateTime?
   status          DebtStatus @default(ACTIVE)
   notes           String?
+  carId           String?
   createdAt       DateTime   @default(now())
   user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car             Car?       @relation(fields: [carId], references: [id], onDelete: SetNull)
   payments        DebtPayment[]
 
   @@index([userId, type, status])
+  @@index([userId, carId])
 }
 
 model DebtPayment {

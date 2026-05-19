@@ -1,2 +1,61 @@
-import { prisma } from '@/lib/prisma';import { requireUser } from '@/lib/auth';import { addCategory, toggleCategory } from '@/lib/actions';import { Card, PageTitle, SubmitButton } from '@/components/ui';
-export default async function Categories(){const u=await requireUser();const rows=await prisma.category.findMany({where:{userId:u!.id},orderBy:[{type:'asc'},{name:'asc'}]});return <><PageTitle title="Kategori" desc="Income & expense category, termasuk Ngopseh."/><div className="grid lg:grid-cols-[1fr_360px] gap-4"><Card><div className="table-wrap"><table className="table"><thead><tr><th>Nama</th><th>Tipe</th><th>Status</th><th></th></tr></thead><tbody>{rows.map(c=><tr key={c.id}><td>{c.name}</td><td>{c.type}</td><td>{c.isActive?'Active':'Inactive'}</td><td><form action={toggleCategory}><input type="hidden" name="id" value={c.id}/><button className="text-emerald-300">Toggle</button></form></td></tr>)}</tbody></table></div></Card><Card><h2 className="font-black mb-4">Tambah Kategori</h2><form action={addCategory} className="space-y-3"><input name="name" placeholder="Ngopseh" required/><select name="type"><option value="INCOME">Income</option><option value="EXPENSE">Expense</option></select><input name="icon" placeholder="Icon"/><input name="color" placeholder="Warna"/><SubmitButton/></form></Card></div></>}
+import { prisma } from '@/lib/prisma';
+import { requireUser } from '@/lib/auth';
+import { addCategory, toggleCategory } from '@/lib/actions';
+import { Card, PageTitle, SubmitButton } from '@/components/ui';
+
+export default async function Categories() {
+  const u = await requireUser();
+  const rows = await prisma.category.findMany({ where: { userId: u!.id }, orderBy: [{ type: 'asc' }, { name: 'asc' }] });
+
+  return (
+    <>
+      <PageTitle title="Kategori" desc="Income & expense category, termasuk Ngopseh." />
+      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+        <Card>
+          {/* Mobile: card list */}
+          <div className="space-y-3 md:hidden">
+            {rows.map(c => (
+              <div key={c.id} className="rounded-2xl bg-white/[.04] p-3 flex items-center justify-between">
+                <div>
+                  <span className="font-black text-sm">{c.name}</span>
+                  <p className="text-[11px] text-slate-500">{c.type} • {c.isActive ? 'Active' : 'Inactive'}</p>
+                </div>
+                <form action={toggleCategory}>
+                  <input type="hidden" name="id" value={c.id} />
+                  <button className="text-xs text-emerald-300">Toggle</button>
+                </form>
+              </div>
+            ))}
+          </div>
+          {/* Desktop: table */}
+          <div className="hidden md:block table-wrap">
+            <table className="table">
+              <thead><tr><th>Nama</th><th>Tipe</th><th>Status</th><th></th></tr></thead>
+              <tbody>{rows.map(c => (
+                <tr key={c.id}>
+                  <td>{c.name}</td>
+                  <td>{c.type}</td>
+                  <td>{c.isActive ? 'Active' : 'Inactive'}</td>
+                  <td><form action={toggleCategory}><input type="hidden" name="id" value={c.id} /><button className="text-emerald-300">Toggle</button></form></td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        </Card>
+        <Card>
+          <h2 className="font-black mb-4">Tambah Kategori</h2>
+          <form action={addCategory} className="space-y-3">
+            <input name="name" placeholder="Ngopseh" required />
+            <select name="type">
+              <option value="INCOME">Income</option>
+              <option value="EXPENSE">Expense</option>
+            </select>
+            <input name="icon" placeholder="Icon" />
+            <input name="color" placeholder="Warna" />
+            <SubmitButton />
+          </form>
+        </Card>
+      </div>
+    </>
+  );
+}
