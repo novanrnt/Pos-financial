@@ -73,7 +73,7 @@ export default async function Dashboard(){
       <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="badge text-violet-200">Financial Project • POS</p>
-          <h1 className="mt-4 text-3xl md:text-5xl font-black tracking-[-.06em]">Halo, {u.name || 'Owner'}.</h1>
+          <h1 className="mt-4 text-3xl md:text-5xl font-black tracking-[-.06em]">Halo, {u.fullName || 'Owner'}.</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-400">Track smarter, invest wiser, dan pantau semua cashflow showroom dari satu dashboard mobile responsive.</p>
         </div>
         <div className="flex items-center gap-4">
