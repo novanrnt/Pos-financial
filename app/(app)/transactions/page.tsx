@@ -16,7 +16,7 @@ export default async function Transactions() {
   return (
     <>
       <PageTitle title="Transaksi" desc="Pemasukan, pengeluaran, transfer, audit log, dan saldo otomatis." />
-      <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_400px]">
         <Card>
           {/* Mobile: card list */}
           <div className="space-y-3 md:hidden">

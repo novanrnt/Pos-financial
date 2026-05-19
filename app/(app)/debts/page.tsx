@@ -15,7 +15,7 @@ export default async function Debts() {
   return (
     <>
       <PageTitle title="Hutang Piutang" desc="Cicilan, pelunasan, status, dan integrasi rekening." />
-      <div className="grid gap-4 xl:grid-cols-[1fr_380px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_400px]">
         <div className="grid gap-4 sm:grid-cols-2">
           {debts.map(d => (
             <Card key={d.id}>

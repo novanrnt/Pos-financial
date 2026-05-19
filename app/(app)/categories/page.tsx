@@ -10,7 +10,7 @@ export default async function Categories() {
   return (
     <>
       <PageTitle title="Kategori" desc="Income & expense category, termasuk Ngopseh." />
-      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_400px]">
         <Card>
           {/* Mobile: card list */}
           <div className="space-y-3 md:hidden">

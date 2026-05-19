@@ -11,7 +11,7 @@ export default async function Reports() {
   return (
     <>
       <PageTitle title="Laporan & Monthly Closing" desc="Kunci bulan, download laporan PDF/print." />
-      <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
         <Card>
           <h2 className="font-black mb-4">Closing Bulan</h2>
           <form action={closeMonth} className="space-y-3">

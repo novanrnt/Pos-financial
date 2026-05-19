@@ -11,7 +11,7 @@ export default async function Accounts() {
   return (
     <>
       <PageTitle title="Rekening" desc="Multi rekening, saldo realtime, dan rekening utama." />
-      <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_400px]">
         <div className="grid gap-4 sm:grid-cols-2">
           {rows.length ? rows.map(a => (
             <Card key={a.id}>

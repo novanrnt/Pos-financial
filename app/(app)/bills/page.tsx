@@ -15,7 +15,7 @@ export default async function Bills() {
   return (
     <>
       <PageTitle title="Tagihan Rutin" desc="Tagihan bulanan, jatuh tempo, dan bayar dari rekening." />
-      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_400px]">
         <Card>
           <div className="space-y-3">
             {bills.map(b => (
