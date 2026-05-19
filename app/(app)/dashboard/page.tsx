@@ -138,7 +138,7 @@ export default async function Dashboard(){
       <div className="overflow-x-auto hide-scroll"><NetWorthGrowthChart data={netWorthGrowthData}/></div>
     </Card>
 
-    <div className="grid gap-4 lg:grid-cols-[1.15fr_.85fr]">
+    <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <SectionHeader title="Cashflow Mingguan" desc="Pemasukan vs pengeluaran per hari minggu ini" right={<span className={`badge text-xs ${weeklyNet>=0?'text-emerald-300':'text-rose-300'}`}>{weeklyNet>=0?'+':''}{rupiah(weeklyNet)}</span>} />
         <div className="overflow-x-auto hide-scroll"><WeeklyCashflowChart data={weeklyCashflowData}/></div>
@@ -154,7 +154,7 @@ export default async function Dashboard(){
       </Card>
     </div>
 
-    <div className="grid gap-4 lg:grid-cols-[1.15fr_.85fr]">
+    <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <SectionHeader title="Spending Breakdown" desc="Distribusi pengeluaran bulan ini" />
         <CategoryPie data={expensePie}/>
@@ -169,7 +169,7 @@ export default async function Dashboard(){
       </Card>
     </div>
 
-    <div className="grid gap-4 lg:grid-cols-[.85fr_1.15fr]">
+    <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <SectionHeader title="Income Breakdown" desc="Distribusi pemasukan bulan ini" />
         <CategoryPie data={incomePie}/>
