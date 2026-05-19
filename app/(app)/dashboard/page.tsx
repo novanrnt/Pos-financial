@@ -141,11 +141,11 @@ export default async function Dashboard(){
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <SectionHeader title="Cashflow Mingguan" desc="Pemasukan vs pengeluaran per hari minggu ini" right={<span className={`badge text-xs ${weeklyNet>=0?'text-emerald-300':'text-rose-300'}`}>{weeklyNet>=0?'+':''}{rupiah(weeklyNet)}</span>} />
-        <div className="overflow-x-auto hide-scroll -mx-4 md:-mx-6 px-4 md:px-6"><div style={{minHeight: '200px'}}><WeeklyCashflowChart data={weeklyCashflowData}/></div></div>
+        <div className="overflow-x-auto hide-scroll" style={{minHeight: '200px'}}><WeeklyCashflowChart data={weeklyCashflowData}/></div>
       </Card>
       <Card>
         <SectionHeader title="Insight Otomatis" desc="Ringkasan performa keuangan cepat" />
-        <div className="grid gap-2">
+        <div className="grid gap-2" style={{minHeight: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'}}>
           <InsightBox icon={<TrendingUp size={16}/>} label="Growth Net Worth" value={`${netWorthGrowthPct>=0?'+':''}${netWorthGrowthPct.toFixed(1)}%`} hint="dibanding bulan sebelumnya" tone={netWorthGrowthPct>=0?'green':'red'} />
           <InsightBox icon={<Activity size={16}/>} label="Cashflow Minggu Ini" value={rupiah(weeklyNet)} hint={`${weeklyCashflowData.filter(d=>d.income||d.expense).length} hari ada transaksi`} tone={weeklyNet>=0?'green':'red'} />
           <InsightBox icon={<CalendarDays size={16}/>} label="Hari Boros" value={topExpenseDay?.name || '-'} hint={topExpenseDay?.expense?rupiah(topExpenseDay.expense):'belum ada expense'} tone="purple" />
