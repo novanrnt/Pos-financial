@@ -81,7 +81,7 @@ export default async function Dashboard(){
             <div className="absolute inset-2 rounded-full border-4 border-violet-500/35 border-t-emerald-400" />
             <div className="text-center"><div className="text-2xl font-black text-rose-300">{healthScore}</div><div className="text-[10px] text-slate-500">Health Score</div></div>
           </div>
-          <div className="hidden md:block text-right"><div className="text-xs text-slate-500">Net Worth</div><div className="text-2xl font-black text-violet-200">{rupiah(netWorth)}</div></div>
+          <div className="text-right"><div className="text-xs text-slate-500">Net Worth</div><div className="text-lg md:text-2xl font-black text-violet-200">{rupiah(netWorth)}</div></div>
         </div>
       </div>
     </Card>
