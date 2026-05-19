@@ -26,5 +26,6 @@ label{font-size:.72rem;color:#94a3b8;font-weight:800;letter-spacing:.02em}
 .hide-scroll::-webkit-scrollbar{display:none}.hide-scroll{-ms-overflow-style:none;scrollbar-width:none}
 
 @media(max-width:768px){.hide-mobile{display:none!important}.btn{padding:.72rem .85rem;border-radius:.9rem}.glass{border-radius:1.35rem}.mobile-card-grid{grid-template-columns:1fr!important}.table{min-width:640px}body:after{background-size:32px 32px}}
+@media(max-width:480px){.mobile-card-grid{grid-template-columns:1fr!important;gap:.65rem!important}}
 @media(min-width:769px){.desktop-only{display:block}.mobile-only{display:none!important}}
 @media(max-width:768px){.desktop-only{display:none!important}.mobile-only{display:block}}

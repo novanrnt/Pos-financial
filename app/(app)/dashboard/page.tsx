@@ -30,7 +30,7 @@ export default async function Dashboard(){
   ]);
 
   const cash=accounts.reduce((a,x)=>a+Number(x.balance),0);
-  const carAsset=cars.reduce((a,c)=>a+Number(c.estimatedSellPrice||c.purchasePrice)+c.costs.reduce((s,k)=>s+Number(k.amount),0),0);
+  const carAsset=cars.reduce((a,c)=>a+Number(c.purchasePrice)+c.costs.reduce((s,k)=>s+Number(k.amount),0),0);
   const debt=debts.filter(d=>d.type==='DEBT').reduce((a,d)=>a+Number(d.remainingAmount),0);
   const rec=debts.filter(d=>d.type==='RECEIVABLE').reduce((a,d)=>a+Number(d.remainingAmount),0);
   const inv=invest.reduce((a,i)=>a+Number(i.balance),0);
