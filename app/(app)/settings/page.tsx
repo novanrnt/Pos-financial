@@ -1,0 +1,2 @@
+import { requireUser } from '@/lib/auth';import { Card, PageTitle } from '@/components/ui';
+export default async function Settings(){const u=await requireUser();return <><PageTitle title="Setting" desc="Akun dan info aplikasi."/><Card><p>Email: <b>{u?.email}</b></p><p className="text-slate-400 mt-2">Untuk tambah user lain, jalankan seed/manual Prisma nanti. Versi ini fokus POS pribadi.</p></Card></>}

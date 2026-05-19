@@ -1,0 +1,6 @@
+import { NextResponse } from 'next/server';
+import jsPDF from 'jspdf';
+import { requireUser } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { rupiah } from '@/lib/utils';
+export async function GET(req:Request){const u=await requireUser();if(!u)return new NextResponse('Unauthorized',{status:401});const month=new URL(req.url).searchParams.get('month')||'';const c=await prisma.monthlyClosing.findUnique({where:{userId_month:{userId:u.id,month}}});if(!c)return new NextResponse('Not found',{status:404});const s=c.summaryJson as any;const doc=new jsPDF();doc.setFontSize(18);doc.text(`Laporan Bulanan POS - ${month}`,14,18);doc.setFontSize(11);let y=32;const lines=[['Total Pemasukan',rupiah(s.income)],['Total Pengeluaran',rupiah(s.expense)],['Profit/Rugi',rupiah(s.profit)],['Aset Mobil',rupiah(s.carAsset)],['Investasi',rupiah(s.investment)],['Hutang',rupiah(s.debt)],['Piutang',rupiah(s.receivable)]];lines.forEach(([a,b])=>{doc.text(a,14,y);doc.text(b,90,y);y+=8});y+=6;doc.text('Saldo Rekening',14,y);y+=8;(s.accounts||[]).forEach((a:any)=>{doc.text(`${a.name}: ${rupiah(a.balance)}`,18,y);y+=7});const buffer=Buffer.from(doc.output('arraybuffer'));return new NextResponse(buffer,{headers:{'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="laporan-${month}.pdf"`}})}

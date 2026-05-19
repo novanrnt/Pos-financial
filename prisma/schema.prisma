@@ -1,0 +1,211 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum AccountType { CASH BANK EWALLET OTHER }
+enum CategoryType { INCOME EXPENSE }
+enum TransactionType { INCOME EXPENSE TRANSFER }
+enum CarStatus { AVAILABLE SOLD }
+enum DebtType { DEBT RECEIVABLE }
+enum DebtStatus { ACTIVE PAID }
+enum BillStatus { UNPAID PAID }
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  passwordHash String
+  fullName String?
+  setupCompleted Boolean @default(false)
+  createdAt DateTime @default(now())
+  accounts Account[]
+  categories Category[]
+  transactions Transaction[]
+  cars Car[]
+  carCosts CarCost[]
+  debts Debt[]
+  debtPayments DebtPayment[]
+  recurringBills RecurringBill[]
+  investments InvestmentSnapshot[]
+  closings MonthlyClosing[]
+  audits TransactionAuditLog[]
+}
+
+model Account {
+  id String @id @default(cuid())
+  userId String
+  name String
+  type AccountType @default(BANK)
+  balance Decimal @default(0) @db.Numeric(18,2)
+  initialBalance Decimal @default(0) @db.Numeric(18,2)
+  color String @default("emerald")
+  icon String @default("Wallet")
+  isPrimary Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  transactions Transaction[] @relation("AccountTransactions")
+  incomingTransfers Transaction[] @relation("TransferToAccount")
+  carCosts CarCost[]
+  debtPayments DebtPayment[]
+  recurringBills RecurringBill[]
+  @@index([userId])
+}
+
+model Category {
+  id String @id @default(cuid())
+  userId String
+  name String
+  type CategoryType
+  icon String @default("Circle")
+  color String @default("emerald")
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  transactions Transaction[]
+  @@unique([userId, name, type])
+  @@index([userId, type])
+}
+
+model Transaction {
+  id String @id @default(cuid())
+  userId String
+  accountId String
+  categoryId String?
+  type TransactionType
+  amount Decimal @db.Numeric(18,2)
+  date DateTime
+  description String?
+  transferToAccountId String?
+  sourceType String?
+  sourceId String?
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  account Account @relation("AccountTransactions", fields:[accountId], references:[id])
+  transferToAccount Account? @relation("TransferToAccount", fields:[transferToAccountId], references:[id])
+  category Category? @relation(fields:[categoryId], references:[id])
+  auditLogs TransactionAuditLog[]
+  @@index([userId, date])
+  @@index([userId, type])
+}
+
+model Car {
+  id String @id @default(cuid())
+  userId String
+  name String
+  brand String?
+  model String?
+  year Int?
+  color String?
+  transmission String?
+  licensePlate String?
+  frameNumber String?
+  engineNumber String?
+  mileage Int?
+  purchasePrice Decimal @default(0) @db.Numeric(18,2)
+  estimatedSellPrice Decimal @default(0) @db.Numeric(18,2)
+  sellPrice Decimal? @db.Numeric(18,2)
+  status CarStatus @default(AVAILABLE)
+  soldAt DateTime?
+  notes String?
+  photos String[] @default([])
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  costs CarCost[]
+  @@index([userId, status])
+}
+
+model CarCost {
+  id String @id @default(cuid())
+  userId String
+  carId String
+  accountId String
+  amount Decimal @db.Numeric(18,2)
+  description String
+  date DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  car Car @relation(fields:[carId], references:[id], onDelete: Cascade)
+  account Account @relation(fields:[accountId], references:[id])
+  @@index([userId, carId])
+}
+
+model Debt {
+  id String @id @default(cuid())
+  userId String
+  type DebtType
+  name String
+  amount Decimal @db.Numeric(18,2)
+  remainingAmount Decimal @db.Numeric(18,2)
+  dueDate DateTime?
+  status DebtStatus @default(ACTIVE)
+  notes String?
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  payments DebtPayment[]
+  @@index([userId, type, status])
+}
+
+model DebtPayment {
+  id String @id @default(cuid())
+  userId String
+  debtId String
+  accountId String
+  amount Decimal @db.Numeric(18,2)
+  date DateTime
+  notes String?
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  debt Debt @relation(fields:[debtId], references:[id], onDelete: Cascade)
+  account Account @relation(fields:[accountId], references:[id])
+  @@index([userId, debtId])
+}
+
+model RecurringBill {
+  id String @id @default(cuid())
+  userId String
+  accountId String
+  name String
+  amount Decimal @db.Numeric(18,2)
+  dueDay Int
+  status BillStatus @default(UNPAID)
+  lastPaidAt DateTime?
+  notes String?
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  account Account @relation(fields:[accountId], references:[id])
+  @@index([userId, status])
+}
+
+model InvestmentSnapshot {
+  id String @id @default(cuid())
+  userId String
+  category String
+  month String
+  balance Decimal @db.Numeric(18,2)
+  notes String?
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  @@unique([userId, category, month])
+  @@index([userId, month])
+}
+
+model MonthlyClosing {
+  id String @id @default(cuid())
+  userId String
+  month String
+  closedAt DateTime @default(now())
+  summaryJson Json
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  @@unique([userId, month])
+}
+
+model TransactionAuditLog {
+  id String @id @default(cuid())
+  userId String
+  transactionId String?
+  action String
+  oldData Json?
+  newData Json?
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  transaction Transaction? @relation(fields:[transactionId], references:[id], onDelete: SetNull)
+  @@index([userId, createdAt])
+}
