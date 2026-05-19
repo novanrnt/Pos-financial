@@ -34,6 +34,8 @@ export default async function Dashboard(){
   const debt=debts.filter(d=>d.type==='DEBT').reduce((a,d)=>a+Number(d.remainingAmount),0);
   const rec=debts.filter(d=>d.type==='RECEIVABLE').reduce((a,d)=>a+Number(d.remainingAmount),0);
   const inv=invest.reduce((a,i)=>a+Number(i.balance),0);
+  const invExcludeRnd=invest.filter(i=>i.category!=='R&D / Eksperimen').reduce((a,i)=>a+Number(i.balance),0);
+  const totalAssets=cash+carAsset+invExcludeRnd;
   const monthTx=allYear.filter(t=>ym(t.date)===month);
   const income=monthTx.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);
   const expense=monthTx.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);
@@ -104,6 +106,27 @@ export default async function Dashboard(){
       <MiniMetric icon={<CreditCard size={18}/>} label="Hutang" value={debt} danger />
       <MiniMetric icon={<ArrowDownRight size={18}/>} label="Piutang" value={rec} />
     </div>
+
+    <Card className="bg-gradient-to-br from-emerald-500/10 via-white/[.04] to-emerald-400/5 border-emerald-400/20">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Saldo Rekening</p>
+          <h3 className="mt-2 text-lg md:text-2xl font-black text-emerald-300">{rupiah(cash)}</h3>
+        </div>
+        <div>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Aset Mobil</p>
+          <h3 className="mt-2 text-lg md:text-2xl font-black text-emerald-300">{rupiah(carAsset)}</h3>
+        </div>
+        <div>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Investasi (ex R&D)</p>
+          <h3 className="mt-2 text-lg md:text-2xl font-black text-emerald-300">{rupiah(invExcludeRnd)}</h3>
+        </div>
+      </div>
+      <div className="mt-4 pt-4 border-t border-emerald-400/20">
+        <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Total Aset</p>
+        <h2 className="mt-2 text-2xl md:text-4xl font-black text-emerald-200">{rupiah(totalAssets)}</h2>
+      </div>
+    </Card>
 
     <Card>
       <SectionHeader title="Financial Trend" desc="Income vs expense vs savings tahun berjalan" right={<Link href="/reports" className="btn btn-ghost text-xs">Laporan</Link>} />
