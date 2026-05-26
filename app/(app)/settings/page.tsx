@@ -2,10 +2,13 @@ import { requireUser } from '@/lib/auth';
 import { Card, PageTitle } from '@/components/ui';
 import { prisma } from '@/lib/prisma';
 
-async function linkTelegram(telegramId: string) {
+async function linkTelegram(formData: FormData) {
   'use server';
   const user = await requireUser();
   if (!user) return;
+  
+  const telegramId = formData.get('telegramId') as string;
+  if (!telegramId) return;
   
   await prisma.user.update({
     where: { id: user.id },
@@ -35,11 +38,29 @@ export default async function Settings(){
           <p className="text-xs text-slate-400 mt-2">Bot sudah terhubung dengan akun kamu.</p>
         </div>
       ) : (
-        <div className="bg-slate-500/10 border border-slate-500/30 p-3 rounded-lg mb-3">
-          <p className="text-sm text-slate-300">Belum terhubung dengan Telegram</p>
-          <p className="text-xs text-slate-400 mt-2">Kirim pesan ke bot: <b>/start</b></p>
-          <p className="text-xs text-slate-400">Bot akan memberikan Telegram ID kamu</p>
-        </div>
+        <form action={linkTelegram} className="space-y-3">
+          <div className="bg-slate-500/10 border border-slate-500/30 p-3 rounded-lg mb-3">
+            <p className="text-sm text-slate-300 mb-2">Belum terhubung dengan Telegram</p>
+            <p className="text-xs text-slate-400">1. Kirim pesan ke bot: <b>/start</b></p>
+            <p className="text-xs text-slate-400">2. Bot akan memberikan Telegram ID kamu</p>
+            <p className="text-xs text-slate-400">3. Copy ID dan paste di bawah</p>
+          </div>
+          
+          <input 
+            type="text" 
+            name="telegramId" 
+            placeholder="Masukkan Telegram ID (contoh: 123456789)"
+            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+            required
+          />
+          
+          <button 
+            type="submit"
+            className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-colors"
+          >
+            Link Telegram
+          </button>
+        </form>
       )}
     </Card>
 
