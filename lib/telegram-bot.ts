@@ -32,33 +32,10 @@ const botCommands: BotCommand[] = [
 ];
 
 async function getUserByTelegramId(telegramId: number) {
-  let user = await prisma.user.findFirst({
-    where: { email: `telegram_${telegramId}@pos.local` },
+  return prisma.user.findFirst({
+    where: { telegramId: String(telegramId) },
     select: { id: true, fullName: true }
   });
-
-  // Jika user tidak ada, buat otomatis dengan default account
-  if (!user) {
-    const passwordHash = await bcrypt.hash(`telegram_${telegramId}`, 10);
-    user = await prisma.user.create({
-      data: {
-        email: `telegram_${telegramId}@pos.local`,
-        fullName: `Telegram User ${telegramId}`,
-        passwordHash,
-        setupCompleted: true,
-        accounts: {
-          create: {
-            name: 'Telegram',
-            type: 'CASH',
-            balance: 0
-          }
-        }
-      },
-      select: { id: true, fullName: true }
-    });
-  }
-
-  return user;
 }
 
 async function sendTelegramMessage(botToken: string, chatId: number, text: string, options?: any) {
@@ -87,8 +64,12 @@ async function handleStartCommand(botToken: string, chatId: number, telegramId: 
   
   if (!user) {
     return sendTelegramMessage(botToken, chatId, 
-      `Halo ${firstName}! 👋\n\nUntuk menggunakan bot ini, Anda perlu melakukan setup terlebih dahulu di aplikasi POS Keuangan.\n\n` +
-      `Silakan buka aplikasi dan pergi ke Settings > Telegram untuk mengaktifkan integrasi.\n\n` +
+      `Halo ${firstName}! 👋\n\n` +
+      `<b>Telegram ID kamu: <code>${telegramId}</code></b>\n\n` +
+      `Untuk menggunakan bot ini:\n` +
+      `1. Login ke dashboard POS Keuangan\n` +
+      `2. Buka Settings\n` +
+      `3. Link Telegram ID: <code>${telegramId}</code>\n\n` +
       `Setelah itu, kirim /help untuk melihat bantuan.`
     );
   }

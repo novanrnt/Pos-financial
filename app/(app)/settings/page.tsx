@@ -1,5 +1,17 @@
 import { requireUser } from '@/lib/auth';
 import { Card, PageTitle } from '@/components/ui';
+import { prisma } from '@/lib/prisma';
+
+async function linkTelegram(telegramId: string) {
+  'use server';
+  const user = await requireUser();
+  if (!user) return;
+  
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { telegramId }
+  });
+}
 
 export default async function Settings(){
   const u=await requireUser();
@@ -14,8 +26,26 @@ export default async function Settings(){
     </Card>
 
     <Card>
-      <h2 className="font-black mb-3">Telegram Bot Integration (Polling Mode)</h2>
-      <p className="text-sm text-slate-300 mb-3">Input transaksi langsung dari Telegram dengan format:</p>
+      <h2 className="font-black mb-3">Link Telegram Bot</h2>
+      <p className="text-sm text-slate-300 mb-3">Link akun Telegram kamu untuk input transaksi langsung dari bot.</p>
+      
+      {u?.telegramId ? (
+        <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-lg mb-3">
+          <p className="text-sm text-emerald-300">✅ Telegram ID: <b>{u.telegramId}</b></p>
+          <p className="text-xs text-slate-400 mt-2">Bot sudah terhubung dengan akun kamu.</p>
+        </div>
+      ) : (
+        <div className="bg-slate-500/10 border border-slate-500/30 p-3 rounded-lg mb-3">
+          <p className="text-sm text-slate-300">Belum terhubung dengan Telegram</p>
+          <p className="text-xs text-slate-400 mt-2">Kirim pesan ke bot: <b>/start</b></p>
+          <p className="text-xs text-slate-400">Bot akan memberikan Telegram ID kamu</p>
+        </div>
+      )}
+    </Card>
+
+    <Card>
+      <h2 className="font-black mb-3">Format Input Transaksi</h2>
+      <p className="text-sm text-slate-300 mb-3">Kirim pesan ke bot dengan format:</p>
       <div className="bg-white/[.04] p-3 rounded-lg mb-3 text-xs font-mono space-y-1">
         <p>📝 Pengeluaran: <span className="text-emerald-300">19 mei 2026 makan 20.000 blue</span></p>
         <p>💰 Pemasukan: <span className="text-emerald-300">19 mei 2026 gaji 500.000 blue income</span></p>
@@ -25,42 +55,14 @@ export default async function Settings(){
       <p className="text-xs text-slate-400">
         Format: <b>tanggal bulan tahun deskripsi nominal rekening [type]</b>
       </p>
-      <p className="text-xs text-slate-400 mt-2">
-        Type: income, expense (default), hutang, piutang
-      </p>
-      <p className="text-xs text-slate-400 mt-2">
-        Rekening: nama rekening (blue, cash, etc)
-      </p>
     </Card>
 
     <Card>
-      <h2 className="font-black mb-3">Setup Step by Step</h2>
-      <div className="space-y-3 text-sm">
-        <div>
-          <p className="font-black text-emerald-300">1. Create Bot di Telegram</p>
-          <p className="text-slate-400 text-xs mt-1">• Chat @BotFather</p>
-          <p className="text-slate-400 text-xs">• Send /newbot</p>
-          <p className="text-slate-400 text-xs">• Follow instructions, copy bot token</p>
-        </div>
-        <div>
-          <p className="font-black text-emerald-300">2. Update .env</p>
-          <p className="text-slate-400 text-xs mt-1">TELEGRAM_BOT_TOKEN=your_token_here</p>
-        </div>
-        <div>
-          <p className="font-black text-emerald-300">3. Deploy aplikasi</p>
-          <p className="text-slate-400 text-xs mt-1">Push ke Vercel atau hosting kamu</p>
-        </div>
-        <div>
-          <p className="font-black text-emerald-300">4. Test Bot</p>
-          <p className="text-slate-400 text-xs mt-1">• Find bot di Telegram (search by name)</p>
-          <p className="text-slate-400 text-xs">• Send: 19 mei 2026 makan 20.000 blue</p>
-          <p className="text-slate-400 text-xs">• Bot akan reply dengan konfirmasi</p>
-        </div>
-        <div>
-          <p className="font-black text-emerald-300">5. Auto Polling (Optional)</p>
-          <p className="text-slate-400 text-xs mt-1">• Setup cron job ke: https://your-domain.com/api/telegram-poll</p>
-          <p className="text-slate-400 text-xs">• Atau polling otomatis setiap 30 detik</p>
-        </div>
+      <h2 className="font-black mb-3">Perintah Bot</h2>
+      <div className="space-y-2 text-xs">
+        <p><b>/start</b> - Mulai dan dapatkan Telegram ID</p>
+        <p><b>/help</b> - Lihat bantuan format transaksi</p>
+        <p><b>/accounts</b> - Lihat daftar rekening kamu</p>
       </div>
     </Card>
   </>
