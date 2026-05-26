@@ -34,18 +34,18 @@ async function parseTransaction(text: string, telegramId: number) {
 
   const [, day, monthName, year, description, amountStr, accountName, typeStr] = match;
   const months: { [key: string]: number } = {
-    januari: 0, jan: 0, 'januari': 0,
-    februari: 1, feb: 1, 'februari': 1,
-    maret: 2, mar: 2, 'maret': 2,
-    april: 3, apr: 3, 'april': 3,
-    mei: 4, 'mei': 4,
-    juni: 5, jun: 5, 'juni': 5,
-    juli: 6, jul: 6, 'juli': 6,
-    agustus: 7, agu: 7, 'agustus': 7,
-    september: 8, sep: 8, 'september': 8,
-    oktober: 9, okt: 9, 'oktober': 9,
-    november: 10, nov: 10, 'november': 10,
-    desember: 11, des: 11, 'desember': 11
+    januari: 0, jan: 0,
+    februari: 1, feb: 1,
+    maret: 2, mar: 2,
+    april: 3, apr: 3,
+    mei: 4,
+    juni: 5, jun: 5,
+    juli: 6, jul: 6,
+    agustus: 7, agu: 7,
+    september: 8, sep: 8,
+    oktober: 9, okt: 9,
+    november: 10, nov: 10,
+    desember: 11, des: 11
   };
 
   const monthIndex = months[monthName.toLowerCase()];
