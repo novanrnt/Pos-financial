@@ -180,32 +180,37 @@ async function parseTransaction(text: string, telegramId: number) {
     }
 
     // Create transaction
-    await prisma.$transaction(async tx => {
-      await tx.transaction.create({
-        data: {
-          userId: user.id,
-          accountId: account.id,
-          categoryId: category.id,
-          type: type === 'income' ? 'INCOME' : 'EXPENSE',
-          amount,
-          date,
-          description: `[Telegram] ${description}`,
-          sourceType: 'telegram'
+    try {
+      await prisma.$transaction(async tx => {
+        await tx.transaction.create({
+          data: {
+            userId: user.id,
+            accountId: account.id,
+            categoryId: category.id,
+            type: type === 'income' ? 'INCOME' : 'EXPENSE',
+            amount,
+            date,
+            description: `[Telegram] ${description}`,
+            sourceType: 'telegram'
+          }
+        });
+
+        if (type === 'income') {
+          await tx.account.update({
+            where: { id: account.id },
+            data: { balance: { increment: amount } }
+          });
+        } else {
+          await tx.account.update({
+            where: { id: account.id },
+            data: { balance: { decrement: amount } }
+          });
         }
       });
-
-      if (type === 'income') {
-        await tx.account.update({
-          where: { id: account.id },
-          data: { balance: { increment: amount } }
-        });
-      } else {
-        await tx.account.update({
-          where: { id: account.id },
-          data: { balance: { decrement: amount } }
-        });
-      }
-    });
+    } catch (error) {
+      console.error('Transaction creation error:', error);
+      return { error: '❌ Error membuat transaksi. Silakan coba lagi.' };
+    }
 
     const emoji = type === 'income' ? '📈' : '📉';
     return { 
