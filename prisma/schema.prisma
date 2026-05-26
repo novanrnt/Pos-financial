@@ -80,6 +80,7 @@ model Account {
   transactions     Transaction[] @relation("AccountTransactions")
   incomingTransfers Transaction[] @relation("TransferToAccount")
   carCosts         CarCost[]
+  debts            Debt[]
   debtPayments     DebtPayment[]
   recurringBills   RecurringBill[]
 
@@ -172,6 +173,7 @@ model CarCost {
 model Debt {
   id              String     @id @default(cuid())
   userId          String
+  accountId       String?
   type            DebtType
   name            String
   amount          Decimal    @db.Decimal(18, 2)
@@ -182,11 +184,13 @@ model Debt {
   carId           String?
   createdAt       DateTime   @default(now())
   user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account         Account?   @relation(fields: [accountId], references: [id], onDelete: SetNull)
   car             Car?       @relation(fields: [carId], references: [id], onDelete: SetNull)
   payments        DebtPayment[]
 
   @@index([userId, type, status])
   @@index([userId, carId])
+  @@index([userId, accountId])
 }
 
 model DebtPayment {

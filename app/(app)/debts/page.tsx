@@ -8,7 +8,7 @@ export default async function Debts() {
   const u = await requireUser();
   const uid = u!.id;
   const [debts, accounts] = await Promise.all([
-    prisma.debt.findMany({ where: { userId: uid }, include: { payments: true }, orderBy: { createdAt: 'desc' } }),
+    prisma.debt.findMany({ where: { userId: uid }, include: { payments: true, account: true }, orderBy: { createdAt: 'desc' } }),
     prisma.account.findMany({ where: { userId: uid } })
   ]);
 
@@ -25,11 +25,15 @@ export default async function Debts() {
               </div>
               <p className="text-slate-400 text-sm mt-1">Sisa {rupiah(d.remainingAmount)} dari {rupiah(d.amount)}</p>
               <p className="text-xs text-slate-500">Jatuh tempo: {d.dueDate?.toISOString().slice(0, 10) || '-'} • {d.status}</p>
+              {d.account && <p className="text-xs text-violet-300 mt-1">Rekening: {d.account.name}</p>}
               <form action={payDebt} className="mt-4 grid gap-2">
                 <input type="hidden" name="debtId" value={d.id} />
-                <select name="accountId">
-                  {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
+                {!d.account && (
+                  <select name="accountId">
+                    <option value="">Pilih Rekening</option>
+                    {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                )}
                 <input name="amount" placeholder="Nominal bayar/terima" />
                 <input name="date" type="date" defaultValue={todayInput()} />
                 <button className="btn btn-primary text-sm">Proses Cicilan</button>
@@ -46,6 +50,10 @@ export default async function Debts() {
             </select>
             <input name="name" placeholder="Nama" required />
             <input name="amount" placeholder="Nominal" required />
+            <select name="accountId" required>
+              <option value="">Pilih Rekening</option>
+              {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
             <input name="dueDate" type="date" />
             <textarea name="notes" placeholder="Catatan" />
             <SubmitButton />
