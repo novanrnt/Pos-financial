@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
     const body: TelegramUpdate = await request.json();
     
     if (!body.message?.text) {
-      return NextResponse.json({ ok: true });
+      return NextResponse.json({ ok: true }, { status: 200 });
     }
 
     const { text, from, chat } = body.message;
@@ -170,20 +170,24 @@ export async function POST(request: NextRequest) {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     if (botToken) {
       const responseText = result.error || result.message || 'Transaksi tercatat';
-      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chat.id,
-          text: responseText,
-          parse_mode: 'HTML'
-        })
-      });
+      try {
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chat.id,
+            text: responseText,
+            parse_mode: 'HTML'
+          })
+        });
+      } catch (err) {
+        console.error('Failed to send Telegram message:', err);
+      }
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
     console.error('Telegram webhook error:', error);
-    return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
+    return NextResponse.json({ ok: true }, { status: 200 });
   }
 }
