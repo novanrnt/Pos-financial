@@ -14,7 +14,7 @@ export default async function Settings(){
     </Card>
 
     <Card>
-      <h2 className="font-black mb-3">Telegram Bot Integration</h2>
+      <h2 className="font-black mb-3">Telegram Bot Integration (Polling Mode)</h2>
       <p className="text-sm text-slate-300 mb-3">Input transaksi langsung dari Telegram dengan format:</p>
       <div className="bg-white/[.04] p-3 rounded-lg mb-3 text-xs font-mono space-y-1">
         <p>📝 Pengeluaran: <span className="text-emerald-300">19 mei 2026 makan 20.000 blue</span></p>
@@ -31,9 +31,37 @@ export default async function Settings(){
       <p className="text-xs text-slate-400 mt-2">
         Rekening: nama rekening (blue, cash, etc)
       </p>
-      <p className="text-xs text-slate-500 mt-3">
-        ⚠️ Setup: Hubungi bot Telegram dengan ID: <b>telegram_{u?.id}@pos.local</b>
-      </p>
+    </Card>
+
+    <Card>
+      <h2 className="font-black mb-3">Setup Step by Step</h2>
+      <div className="space-y-3 text-sm">
+        <div>
+          <p className="font-black text-emerald-300">1. Create Bot di Telegram</p>
+          <p className="text-slate-400 text-xs mt-1">• Chat @BotFather</p>
+          <p className="text-slate-400 text-xs">• Send /newbot</p>
+          <p className="text-slate-400 text-xs">• Follow instructions, copy bot token</p>
+        </div>
+        <div>
+          <p className="font-black text-emerald-300">2. Update .env</p>
+          <p className="text-slate-400 text-xs mt-1">TELEGRAM_BOT_TOKEN=your_token_here</p>
+        </div>
+        <div>
+          <p className="font-black text-emerald-300">3. Deploy aplikasi</p>
+          <p className="text-slate-400 text-xs mt-1">Push ke Vercel atau hosting kamu</p>
+        </div>
+        <div>
+          <p className="font-black text-emerald-300">4. Test Bot</p>
+          <p className="text-slate-400 text-xs mt-1">• Find bot di Telegram (search by name)</p>
+          <p className="text-slate-400 text-xs">• Send: 19 mei 2026 makan 20.000 blue</p>
+          <p className="text-slate-400 text-xs">• Bot akan reply dengan konfirmasi</p>
+        </div>
+        <div>
+          <p className="font-black text-emerald-300">5. Auto Polling (Optional)</p>
+          <p className="text-slate-400 text-xs mt-1">• Setup cron job ke: https://your-domain.com/api/telegram-poll</p>
+          <p className="text-slate-400 text-xs">• Atau polling otomatis setiap 30 detik</p>
+        </div>
+      </div>
     </Card>
   </>
 }
