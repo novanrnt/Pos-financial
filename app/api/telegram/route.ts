@@ -268,7 +268,16 @@ async function parseTransaction(text: string, telegramId: number) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: TelegramUpdate = await request.json();
+    let body: TelegramUpdate;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return new NextResponse(JSON.stringify({ ok: true }), { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     
     if (!body.message?.text) {
       return new NextResponse(JSON.stringify({ ok: true }), { 
