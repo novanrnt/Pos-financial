@@ -155,9 +155,16 @@ async function parseTransaction(text: string, telegramId: number) {
 
     if (!type.includes('hutang') && !type.includes('piutang')) {
       let category = await prisma.category.findFirst({
-        where: { userId: user.id, name: { mode: 'insensitive', contains: description } },
+        where: { userId: user.id, name: { mode: 'insensitive', equals: description } },
         select: { id: true }
       });
+
+      if (!category) {
+        category = await prisma.category.findFirst({
+          where: { userId: user.id, name: { mode: 'insensitive', contains: description } },
+          select: { id: true }
+        });
+      }
 
       if (!category) {
         category = await prisma.category.create({

@@ -160,11 +160,18 @@ async function parseTransaction(text: string, telegramId: number) {
       return { error: `❌ Rekening "<b>${accountName}</b>" tidak ditemukan.\n\nKetik /accounts untuk melihat daftar akun.` };
     }
 
-    // Find or create category
+    // Find or create category - exact match first, then contains
     let category = await prisma.category.findFirst({
-      where: { userId: user.id, name: { mode: 'insensitive', contains: description } },
+      where: { userId: user.id, name: { mode: 'insensitive', equals: description } },
       select: { id: true }
     });
+
+    if (!category) {
+      category = await prisma.category.findFirst({
+        where: { userId: user.id, name: { mode: 'insensitive', contains: description } },
+        select: { id: true }
+      });
+    }
 
     if (!category) {
       category = await prisma.category.create({
