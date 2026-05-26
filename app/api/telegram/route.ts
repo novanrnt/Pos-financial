@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { toNumber } from '@/lib/utils';
+import bcrypt from 'bcryptjs';
 
 interface TelegramUpdate {
   update_id: number;
@@ -36,11 +37,13 @@ async function getUserByTelegramId(telegramId: number) {
 
   // Jika user tidak ada, buat otomatis dengan default account
   if (!user) {
+    const passwordHash = await bcrypt.hash(`telegram_${telegramId}`, 10);
     user = await prisma.user.create({
       data: {
         email: `telegram_${telegramId}@pos.local`,
         fullName: `Telegram User ${telegramId}`,
-        password: 'telegram_user', // dummy password
+        passwordHash,
+        setupCompleted: true,
         accounts: {
           create: {
             name: 'Telegram',
