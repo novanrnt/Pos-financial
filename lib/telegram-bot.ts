@@ -31,10 +31,31 @@ const botCommands: BotCommand[] = [
 ];
 
 async function getUserByTelegramId(telegramId: number) {
-  return prisma.user.findFirst({
+  let user = await prisma.user.findFirst({
     where: { email: `telegram_${telegramId}@pos.local` },
     select: { id: true, fullName: true }
   });
+
+  // Jika user tidak ada, buat otomatis dengan default account
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email: `telegram_${telegramId}@pos.local`,
+        fullName: `Telegram User ${telegramId}`,
+        password: 'telegram_user', // dummy password
+        accounts: {
+          create: {
+            name: 'Telegram',
+            type: 'CASH',
+            balance: 0
+          }
+        }
+      },
+      select: { id: true, fullName: true }
+    });
+  }
+
+  return user;
 }
 
 async function sendTelegramMessage(botToken: string, chatId: number, text: string, options?: any) {
