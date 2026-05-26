@@ -261,13 +261,19 @@ export async function POST(request: NextRequest) {
     // Verify webhook secret if configured
     const secretToken = request.headers.get('X-Telegram-Bot-Api-Secret-Token');
     if (process.env.TELEGRAM_WEBHOOK_SECRET && secretToken !== process.env.TELEGRAM_WEBHOOK_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { 
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     const body: TelegramUpdate = await request.json();
     
     if (!body.message?.text) {
-      return NextResponse.json({ ok: true }, { status: 200 });
+      return new NextResponse(JSON.stringify({ ok: true }), { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     const { text, from, chat } = body.message;
@@ -275,7 +281,10 @@ export async function POST(request: NextRequest) {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
     if (!botToken) {
-      return NextResponse.json({ error: 'Bot token not configured' }, { status: 500 });
+      return new NextResponse(JSON.stringify({ error: 'Bot token not configured' }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Parse command
@@ -295,9 +304,15 @@ export async function POST(request: NextRequest) {
       await sendTelegramMessage(botToken, chat.id, responseText);
     }
 
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return new NextResponse(JSON.stringify({ ok: true }), { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (error) {
     console.error('Telegram webhook error:', error);
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return new NextResponse(JSON.stringify({ ok: true }), { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }

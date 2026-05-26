@@ -263,6 +263,11 @@ export async function processTelegramUpdates() {
         await sendTelegramMessage(botToken, chat.id, helpMessage);
       } else if (command === '/accounts') {
         await handleAccountsCommand(botToken, chat.id, from.id);
+      } else {
+        // Parse transaction
+        const result = await parseTransaction(text, from.id);
+        const responseText = result.error || result.message || '✅ Transaksi tercatat';
+        await sendTelegramMessage(botToken, chat.id, responseText);
       }
 
       lastUpdateId = update.update_id;
