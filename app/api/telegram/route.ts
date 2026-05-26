@@ -258,15 +258,6 @@ async function parseTransaction(text: string, telegramId: number) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify webhook secret if configured
-    const secretToken = request.headers.get('X-Telegram-Bot-Api-Secret-Token');
-    if (process.env.TELEGRAM_WEBHOOK_SECRET && secretToken !== process.env.TELEGRAM_WEBHOOK_SECRET) {
-      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { 
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
     const body: TelegramUpdate = await request.json();
     
     if (!body.message?.text) {
