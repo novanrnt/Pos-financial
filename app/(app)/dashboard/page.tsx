@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowDownRight, ArrowUpRight, Car, CreditCard, Plus, Receipt, WalletCards, TrendingUp, Activity, CalendarDays } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Car, CreditCard, Plus, Receipt, WalletCards, TrendingUp, Activity, CalendarDays, Zap } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { rupiah, ym } from '@/lib/utils';
-import { Card, SectionHeader, StatCard } from '@/components/ui';
+import { Card, SectionHeader, StatCard, PageTitle, Badge } from '@/components/ui';
+import { BalanceCard, PeriodTabs, StatRow, EmptyState, ChartCard } from '@/components/premium';
 import { CashflowChart, CategoryPie, NetWorthGrowthChart, WeeklyCashflowChart } from '@/components/charts';
 
 const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
@@ -69,124 +70,127 @@ export default async function Dashboard(){
   const incomePie=Object.values(monthTx.filter(t=>t.type==='INCOME'&&t.category).reduce((m:any,t)=>{const n=t.category!.name;m[n]={name:n,value:(m[n]?.value||0)+Number(t.amount)};return m},{})) as {name:string;value:number}[];
   const topExpenseCategory=expensePie.slice().sort((a,b)=>b.value-a.value)[0];
 
-  return <div className="space-y-4 md:space-y-5">
-    <Card className="overflow-hidden relative p-4 md:p-5">
-      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-violet-500/20 blur-3xl" />
-      <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="badge text-violet-200">Financial Project • POS</p>
-          <h1 className="mt-3 text-2xl md:text-4xl font-black tracking-[-.06em]">Halo, {u.fullName || 'Owner'}.</h1>
-          <p className="mt-1 max-w-2xl text-xs md:text-sm text-slate-400">Track smarter, invest wiser, dan pantau semua cashflow showroom dari satu dashboard mobile responsive.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="relative grid h-20 w-20 md:h-24 md:w-24 place-items-center rounded-full border border-white/10 bg-white/[.04]">
-            <div className="absolute inset-2 rounded-full border-4 border-violet-500/35 border-t-emerald-400" />
-            <div className="text-center"><div className="text-xl md:text-2xl font-black text-rose-300">{healthScore}</div><div className="text-[9px] md:text-[10px] text-slate-500">Health Score</div></div>
+  return <div className="space-y-5 md:space-y-6">
+    {/* Header */}
+    <div className="glass-premium rounded-3xl p-6 md:p-8 overflow-hidden relative">
+      <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-violet-500/15 blur-3xl pointer-events-none" />
+      <div className="relative z-10">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <Badge variant="default" className="mb-3">Financial • POS Finance</Badge>
+            <h1 className="text-3xl md:text-4xl font-black text-premium-text tracking-tight">~ Hai, {u.fullName || 'Owner'}.</h1>
+            <p className="mt-2 text-sm text-premium-text-muted max-w-2xl">Track smarter, invest wiser, dan pantau semua cashflow dari satu dashboard premium.</p>
           </div>
-          <div className="text-right"><div className="text-[10px] md:text-xs text-slate-500">Net Worth</div><div className="text-base md:text-xl font-black text-violet-200">{rupiah(netWorth)}</div></div>
         </div>
       </div>
-    </Card>
+    </div>
 
-    <Card className="p-3 md:p-4">
-      <div className="mb-2 flex items-center justify-between px-1"><p className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Period</p><p className="text-[10px] font-black text-violet-300">{monthLong[now.getMonth()]} {now.getFullYear()}</p></div>
-      <div className="hide-scroll flex gap-2 overflow-x-auto pb-1">{monthLong.map((m,i)=><div key={m} className={`shrink-0 rounded-2xl px-3 py-2 text-[10px] font-black ${i===now.getMonth()?'bg-violet-500 text-white shadow-lg shadow-violet-500/20':'bg-white/[.035] text-slate-500'}`}>{m}</div>)}</div>
-    </Card>
+    {/* Balance Card */}
+    <BalanceCard 
+      total={netWorth} 
+      income={income} 
+      expense={expense} 
+      profit={savings}
+      hidden={false}
+    />
 
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mobile-card-grid">
-      <StatCard label="Income" value={income} hint={`${monthTx.filter(t=>t.type==='INCOME').length} transaksi`} tone="green" />
-      <StatCard label="Expense" value={expense} hint={`${monthTx.filter(t=>t.type==='EXPENSE').length} transaksi`} tone="red" />
-      <StatCard label="Net Savings" value={savings} hint={savings>=0?'Cashflow positif':'Cashflow negatif'} tone={savings>=0?'purple':'red'} />
+    {/* Period Selector */}
+    <div className="glass-premium rounded-2xl p-4 md:p-5">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs font-black text-premium-text-muted uppercase tracking-wide">Periode</p>
+        <p className="text-xs font-black text-violet-300">{monthLong[now.getMonth()]} {now.getFullYear()}</p>
+      </div>
+      <PeriodTabs 
+        periods={monthLong} 
+        active={monthLong[now.getMonth()]} 
+        onChange={() => {}}
+      />
+    </div>
+
+    {/* Main Stats */}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <StatCard label="Pemasukan" value={income} hint={`${monthTx.filter(t=>t.type==='INCOME').length} transaksi`} tone="green" trend="up" />
+      <StatCard label="Pengeluaran" value={expense} hint={`${monthTx.filter(t=>t.type==='EXPENSE').length} transaksi`} tone="red" trend="down" />
+      <StatCard label="Net Savings" value={savings} hint={savings>=0?'Positif':'Negatif'} tone={savings>=0?'purple':'red'} />
       <StatCard label="Investasi" value={inv} hint="Saldo bulan ini" tone="blue" />
     </div>
 
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mobile-card-grid">
-      <MiniMetric icon={<WalletCards size={18}/>} label="Saldo Rekening" value={cash} />
-      <MiniMetric icon={<Car size={18}/>} label="Aset Mobil" value={carAsset} />
-      <MiniMetric icon={<CreditCard size={18}/>} label="Hutang" value={debt} danger />
-      <MiniMetric icon={<ArrowDownRight size={18}/>} label="Piutang" value={rec} />
-    </div>
-
-    <Card className="bg-gradient-to-br from-emerald-500/10 via-white/[.04] to-emerald-400/5 border-emerald-400/20">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-        <div className="min-h-[80px] md:min-h-[90px] flex flex-col justify-between">
-          <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wide">Saldo Rekening</p>
-          <h3 className="text-base md:text-lg font-black text-emerald-300 line-clamp-2">{rupiah(cash)}</h3>
-        </div>
-        <div className="min-h-[80px] md:min-h-[90px] flex flex-col justify-between">
-          <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wide">Aset Mobil</p>
-          <h3 className="text-base md:text-lg font-black text-emerald-300 line-clamp-2">{rupiah(carAsset)}</h3>
-        </div>
-        <div className="min-h-[80px] md:min-h-[90px] flex flex-col justify-between">
-          <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wide">Investasi (ex R&D)</p>
-          <h3 className="text-base md:text-lg font-black text-emerald-300 line-clamp-2">{rupiah(invExcludeRnd)}</h3>
-        </div>
+    {/* Assets Summary */}
+    <Card variant="accent" className="p-6 md:p-8">
+      <SectionHeader title="Total Aset" desc="Ringkasan semua aset kamu" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mt-6">
+        <StatRow label="Saldo Rekening" value={cash} color="income" />
+        <StatRow label="Aset Mobil" value={carAsset} color="neutral" />
+        <StatRow label="Investasi (ex R&D)" value={invExcludeRnd} color="savings" />
       </div>
-      <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-emerald-400/20">
-        <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wide">Total Aset</p>
-        <h2 className="mt-2 text-xl md:text-2xl font-black text-emerald-200">{rupiah(totalAssets)}</h2>
+      <div className="mt-6 pt-6 border-t border-premium-border-soft">
+        <p className="text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Total</p>
+        <p className="text-3xl md:text-4xl font-black text-premium-income">{rupiah(totalAssets)}</p>
       </div>
     </Card>
 
-    <Card>
-      <SectionHeader title="Financial Trend" desc="Income vs expense vs savings tahun berjalan" right={<Link href="/reports" className="btn btn-ghost text-xs">Laporan</Link>} />
-      <div className="overflow-x-auto hide-scroll" style={{minHeight: '200px'}}><CashflowChart data={chartData}/></div>
-    </Card>
+    {/* Charts Grid */}
+    <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
+      {/* Cashflow Chart */}
+      <ChartCard title="Financial Trend" footer={<Link href="/reports" className="text-xs font-black text-violet-300 hover:text-violet-200">Lihat Laporan →</Link>}>
+        <CashflowChart data={chartData}/>
+      </ChartCard>
 
-    <Card>
-      <SectionHeader title="Pertumbuhan Net Worth" desc="Estimasi perkembangan kekayaan bersih tahun berjalan" right={<span className={`badge text-xs ${netWorthGrowthPct>=0?'text-emerald-300':'text-rose-300'}`}>{netWorthGrowthPct>=0?'+':''}{netWorthGrowthPct.toFixed(1)}%</span>} />
-      <div className="overflow-x-auto hide-scroll" style={{minHeight: '200px'}}><NetWorthGrowthChart data={netWorthGrowthData}/></div>
-    </Card>
+      {/* Net Worth Growth */}
+      <ChartCard title="Pertumbuhan Net Worth" footer={<Badge variant={netWorthGrowthPct>=0?'success':'danger'} className="text-xs">{netWorthGrowthPct>=0?'+':''}{netWorthGrowthPct.toFixed(1)}%</Badge>}>
+        <NetWorthGrowthChart data={netWorthGrowthData}/>
+      </ChartCard>
+    </div>
 
-    <Card>
-      <SectionHeader title="Cashflow Mingguan" desc="Pemasukan vs pengeluaran per hari minggu ini" right={<span className={`badge text-xs ${weeklyNet>=0?'text-emerald-300':'text-rose-300'}`}>{weeklyNet>=0?'+':''}{rupiah(weeklyNet)}</span>} />
-      <div className="overflow-x-auto hide-scroll" style={{minHeight: '200px'}}><WeeklyCashflowChart data={weeklyCashflowData}/></div>
-    </Card>
+    {/* Weekly & Insights */}
+    <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
+      {/* Weekly Cashflow */}
+      <ChartCard title="Cashflow Mingguan" footer={<Badge variant={weeklyNet>=0?'success':'danger'} className="text-xs">{weeklyNet>=0?'+':''}{rupiah(weeklyNet)}</Badge>}>
+        <WeeklyCashflowChart data={weeklyCashflowData}/>
+      </ChartCard>
 
-    <Card>
-      <SectionHeader title="Insight Otomatis" desc="Ringkasan performa keuangan cepat" />
-      <div className="grid gap-2" style={{minHeight: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'}}>
-        <InsightBox icon={<TrendingUp size={16}/>} label="Growth Net Worth" value={`${netWorthGrowthPct>=0?'+':''}${netWorthGrowthPct.toFixed(1)}%`} hint="dibanding bulan sebelumnya" tone={netWorthGrowthPct>=0?'green':'red'} />
-        <InsightBox icon={<Activity size={16}/>} label="Cashflow Minggu Ini" value={rupiah(weeklyNet)} hint={`${weeklyCashflowData.filter(d=>d.income||d.expense).length} hari ada transaksi`} tone={weeklyNet>=0?'green':'red'} />
-        <InsightBox icon={<CalendarDays size={16}/>} label="Hari Boros" value={topExpenseDay?.name || '-'} hint={topExpenseDay?.expense?rupiah(topExpenseDay.expense):'belum ada expense'} tone="purple" />
-        <InsightBox icon={<CreditCard size={16}/>} label="Kategori Terbesar" value={topExpenseCategory?.name || '-'} hint={topExpenseCategory?.value?rupiah(topExpenseCategory.value):'belum ada data'} tone="blue" />
+      {/* Quick Insights */}
+      <div className="glass-premium rounded-3xl p-6 md:p-8">
+        <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Insight Cepat</h3>
+        <div className="space-y-4">
+          <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-black text-premium-text-muted uppercase">Health Score</p>
+                <p className="text-2xl font-black text-violet-300 mt-2">{healthScore}/100</p>
+              </div>
+              <Zap size={20} className="text-violet-300 opacity-50" />
+            </div>
+          </div>
+          
+          <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-black text-premium-text-muted uppercase">Hutang Aktif</p>
+                <p className={`text-2xl font-black mt-2 ${debt > 0 ? 'text-premium-expense' : 'text-premium-income'}`}>{rupiah(debt)}</p>
+              </div>
+              <CreditCard size={20} className={debt > 0 ? 'text-premium-expense opacity-50' : 'text-premium-income opacity-50'} />
+            </div>
+          </div>
+
+          <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-black text-premium-text-muted uppercase">Piutang Aktif</p>
+                <p className="text-2xl font-black text-premium-income mt-2">{rupiah(rec)}</p>
+              </div>
+              <ArrowUpRight size={20} className="text-premium-income opacity-50" />
+            </div>
+          </div>
+        </div>
       </div>
-    </Card>
-
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Card>
-        <SectionHeader title="Spending Breakdown" desc="Distribusi pengeluaran bulan ini" />
-        <div style={{minHeight: '220px'}}><CategoryPie data={expensePie}/></div>
-      </Card>
-      <Card>
-        <SectionHeader title="Quick Monitor" desc="Hutang, tagihan, dan piutang terdekat" right={<Link href="/transactions" className="btn btn-primary text-xs"><Plus size={15}/> Add</Link>} />
-        <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1 hide-scroll">
-          {debts.length===0&&bills.length===0 ? <p className="rounded-2xl bg-white/[.04] p-3 text-sm text-slate-500">Belum ada reminder aktif.</p> : null}
-          {debts.map(d=><div key={d.id} className="rounded-2xl bg-white/[.04] p-3"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><span className="badge text-[10px]">{d.type==='DEBT'?'Hutang':'Piutang'}</span><h3 className="mt-1 font-black text-sm truncate">{d.name}</h3><p className="text-xs text-slate-500">Sisa: {rupiah(d.remainingAmount)}</p></div><div className={d.type==='DEBT'?'text-rose-300':'text-emerald-300'}>{d.type==='DEBT'?<ArrowUpRight size={16}/>:<ArrowDownRight size={16}/>}</div></div></div>)}
-          {bills.map(b=><div key={b.id} className="rounded-2xl bg-white/[.04] p-3"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><span className="badge text-[10px]">Tagihan</span><h3 className="mt-1 font-black text-sm truncate">{b.name}</h3><p className="text-xs text-slate-500">Due day {b.dueDay} • {b.account.name}</p></div><div className="text-amber-300"><Receipt size={16}/></div></div></div>)}
-        </div>
-      </Card>
     </div>
 
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Card>
-        <SectionHeader title="Income Breakdown" desc="Distribusi pemasukan bulan ini" />
-        <div style={{minHeight: '220px'}}><CategoryPie data={incomePie}/></div>
-      </Card>
-      <Card>
-        <SectionHeader title="Log Transaksi" desc="Aktivitas terbaru akun dan showroom" right={<Link href="/transactions" className="btn btn-primary text-xs">+ Add Log</Link>} />
-        <div className="mb-3 grid grid-cols-2 md:grid-cols-4 gap-2">
-          <TinyBox label="Pemasukan" value={income} green />
-          <TinyBox label="Pengeluaran" value={expense} red />
-          <TinyBox label="Net Cashflow" value={savings} purple />
-          <div className="rounded-2xl bg-white/[.04] p-3 min-h-[80px] md:min-h-[90px] flex flex-col justify-between"><p className="text-[10px] text-slate-500 font-black uppercase">Aktivitas</p><h4 className="text-sm md:text-base font-black">{tx.length}</h4></div>
-        </div>
-        <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1 hide-scroll">{tx.map(t=><div key={t.id} className="flex items-center justify-between gap-2 rounded-2xl bg-white/[.04] p-2"><div className="min-w-0"><div className="flex items-center gap-2"><span className={`h-2 w-2 rounded-full ${t.type==='EXPENSE'?'bg-rose-400':t.type==='INCOME'?'bg-emerald-400':'bg-violet-400'}`}/><div className="font-black text-sm truncate">{t.description||t.type}</div></div><div className="mt-1 text-[10px] text-slate-500 truncate">{t.account.name} • {t.category?.name||'Transfer'} • {t.date.toLocaleDateString('id-ID')}</div></div><div className={`shrink-0 text-xs font-black ${t.type==='EXPENSE'?'text-rose-300':'text-emerald-300'}`}>{t.type==='EXPENSE'?'- ':'+ '}{rupiah(t.amount)}</div></div>)}</div>
-      </Card>
-    </div>
-  </div>
+    {/* Category Breakdown */}
+    {expensePie.length > 0 && (
+      <ChartCard title="Pengeluaran per Kategori">
+        <CategoryPie data={expensePie}/>
+      </ChartCard>
+    )}
+  </div>;
 }
-
-function MiniMetric({icon,label,value,danger=false}:{icon:React.ReactNode;label:string;value:number;danger?:boolean}){return <div className="soft-card rounded-[1.25rem] p-3 md:p-4 min-h-[90px] md:min-h-[100px] flex flex-col justify-between"><div className="flex items-start gap-2"><div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${danger?'bg-rose-400/10 text-rose-300':'bg-violet-400/10 text-violet-200'}`}>{icon}</div><div className="min-w-0 flex-1"><p className="text-[10px] text-slate-500 font-black uppercase truncate">{label}</p><h3 className={`mt-1 text-sm md:text-base font-black truncate ${danger?'text-rose-300':'text-slate-100'}`}>{rupiah(value)}</h3></div></div></div>}
-function InsightBox({icon,label,value,hint,tone}:{icon:React.ReactNode;label:string;value:string;hint:string;tone:'green'|'red'|'purple'|'blue'}){const toneClass=tone==='green'?'bg-emerald-400/10 text-emerald-300':tone==='red'?'bg-rose-400/10 text-rose-300':tone==='blue'?'bg-sky-400/10 text-sky-300':'bg-violet-400/10 text-violet-300';return <div className="rounded-[1.1rem] border border-white/10 bg-white/[.035] p-3 min-h-[75px] md:min-h-[85px] flex flex-col justify-between"><div className="flex items-start gap-2"><div className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${toneClass}`}>{icon}</div><div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-wide text-slate-500">{label}</p><h4 className="mt-1 truncate text-xs md:text-sm font-black text-white">{value}</h4><p className="mt-0.5 truncate text-[9px] text-slate-500">{hint}</p></div></div></div>}
-function TinyBox({label,value,green,red,purple}:{label:string;value:number;green?:boolean;red?:boolean;purple?:boolean}){return <div className={`rounded-2xl p-3 min-h-[80px] md:min-h-[90px] flex flex-col justify-between ${green?'bg-emerald-400/10':red?'bg-rose-400/10':purple?'bg-violet-400/10':'bg-white/[.04]'}`}><p className="text-[10px] text-slate-500 font-black uppercase">{label}</p><h4 className={`text-sm md:text-base font-black ${green?'text-emerald-300':red?'text-rose-300':purple?'text-violet-300':'text-white'}`}>{rupiah(value)}</h4></div>}

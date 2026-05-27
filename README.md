@@ -1,6 +1,25 @@
-# POS - Next.js 14 + Prisma + Neon PostgreSQL
+# POS Finance - Next.js 14 + Prisma + Neon PostgreSQL
 
 Aplikasi POS pribadi untuk dashboard keuangan, rekening/saldo, transaksi, stok mobil showroom, hutang piutang, investasi, tagihan rutin, laporan bulanan, dan monthly closing lock.
+
+## 🎨 UI/UX Redesign v2.0 ✨
+
+Aplikasi ini telah di-redesign dengan **premium dark mode** dan **mobile-first responsive design**. Semua fitur tetap sama, hanya tampilan yang lebih modern dan profesional.
+
+### Apa yang Baru?
+- ✨ Premium dark mode dengan glass morphism
+- 📱 Mobile-first responsive design
+- 🎨 Consistent design system (24 color tokens)
+- 💎 Professional appearance
+- 🚀 Better user experience
+- ♿ WCAG AA accessibility compliant
+
+### Dokumentasi Redesign
+- 📖 [REDESIGN_SUMMARY.md](./REDESIGN_SUMMARY.md) - Detail lengkap redesign
+- 🎨 [DESIGN_TOKENS.md](./DESIGN_TOKENS.md) - Color & styling reference
+- 🚀 [REDESIGN_QUICK_START.md](./REDESIGN_QUICK_START.md) - Quick start guide
+- 📝 [CHANGELOG_REDESIGN.md](./CHANGELOG_REDESIGN.md) - Changelog lengkap
+- ✅ [REDESIGN_CHECKLIST.md](./REDESIGN_CHECKLIST.md) - Completion checklist
 
 ## Stack
 

@@ -1,6 +1,7 @@
 import { requireUser } from '@/lib/auth';
-import { Card, PageTitle } from '@/components/ui';
+import { Card, PageTitle, SectionHeader, Badge } from '@/components/ui';
 import { prisma } from '@/lib/prisma';
+import { Mail, MessageCircle, CheckCircle, AlertCircle, Code } from 'lucide-react';
 
 async function linkTelegram(formData: FormData) {
   'use server';
@@ -20,71 +21,162 @@ export default async function Settings(){
   const u=await requireUser();
   
   return <>
-    <PageTitle title="Setting" desc="Akun dan info aplikasi."/>
+    <PageTitle title="Pengaturan" desc="Akun, integrasi, dan informasi aplikasi."/>
     
-    <Card>
-      <h2 className="font-black mb-3">Akun</h2>
-      <p>Email: <b>{u?.email}</b></p>
-      <p className="text-slate-400 mt-2">Untuk tambah user lain, jalankan seed/manual Prisma nanti. Versi ini fokus POS pribadi.</p>
-    </Card>
-
-    <Card>
-      <h2 className="font-black mb-3">Link Telegram Bot</h2>
-      <p className="text-sm text-slate-300 mb-3">Link akun Telegram kamu untuk input transaksi langsung dari bot.</p>
-      
-      {u?.telegramId ? (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-lg mb-3">
-          <p className="text-sm text-emerald-300">✅ Telegram ID: <b>{u.telegramId}</b></p>
-          <p className="text-xs text-slate-400 mt-2">Bot sudah terhubung dengan akun kamu.</p>
-        </div>
-      ) : (
-        <form action={linkTelegram} className="space-y-3">
-          <div className="bg-slate-500/10 border border-slate-500/30 p-3 rounded-lg mb-3">
-            <p className="text-sm text-slate-300 mb-2">Belum terhubung dengan Telegram</p>
-            <p className="text-xs text-slate-400">1. Kirim pesan ke bot: <b>/start</b></p>
-            <p className="text-xs text-slate-400">2. Bot akan memberikan Telegram ID kamu</p>
-            <p className="text-xs text-slate-400">3. Copy ID dan paste di bawah</p>
+    <div className="space-y-6 max-w-2xl">
+      {/* Account Section */}
+      <Card variant="premium" className="p-6">
+        <SectionHeader title="Akun Saya" />
+        <div className="mt-6 space-y-4">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-premium-card-soft border border-premium-border-soft">
+            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center">
+              <Mail size={20} className="text-violet-300" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-black text-premium-text-muted uppercase">Email</p>
+              <p className="text-sm font-black text-premium-text mt-1">{u?.email}</p>
+            </div>
           </div>
-          
-          <input 
-            type="text" 
-            name="telegramId" 
-            placeholder="Masukkan Telegram ID (contoh: 123456789)"
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-            required
-          />
-          
-          <button 
-            type="submit"
-            className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-colors"
-          >
-            Link Telegram
-          </button>
-        </form>
-      )}
-    </Card>
 
-    <Card>
-      <h2 className="font-black mb-3">Format Input Transaksi</h2>
-      <p className="text-sm text-slate-300 mb-3">Kirim pesan ke bot dengan format:</p>
-      <div className="bg-white/[.04] p-3 rounded-lg mb-3 text-xs font-mono space-y-1">
-        <p>📝 Pengeluaran: <span className="text-emerald-300">19 mei 2026 makan 20.000 blue</span></p>
-        <p>💰 Pemasukan: <span className="text-emerald-300">19 mei 2026 gaji 500.000 blue income</span></p>
-        <p>💳 Hutang: <span className="text-rose-300">19 mei 2026 pinjam 100.000 blue hutang</span></p>
-        <p>📊 Piutang: <span className="text-emerald-300">19 mei 2026 pinjamkan 50.000 blue piutang</span></p>
-      </div>
-      <p className="text-xs text-slate-400">
-        Format: <b>tanggal bulan tahun deskripsi nominal rekening [type]</b>
-      </p>
-    </Card>
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-premium-card-soft border border-premium-border-soft">
+            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-premium-text-muted/10 flex items-center justify-center">
+              <Code size={20} className="text-premium-text-muted" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-black text-premium-text-muted uppercase">User ID</p>
+              <p className="text-xs font-mono text-premium-text-secondary mt-1 truncate">{u?.id}</p>
+            </div>
+          </div>
 
-    <Card>
-      <h2 className="font-black mb-3">Perintah Bot</h2>
-      <div className="space-y-2 text-xs">
-        <p><b>/start</b> - Mulai dan dapatkan Telegram ID</p>
-        <p><b>/help</b> - Lihat bantuan format transaksi</p>
-        <p><b>/accounts</b> - Lihat daftar rekening kamu</p>
-      </div>
-    </Card>
+          <p className="text-xs text-premium-text-muted mt-4">
+            💡 Untuk tambah user lain, jalankan seed/manual Prisma. Versi ini fokus POS pribadi.
+          </p>
+        </div>
+      </Card>
+
+      {/* Telegram Integration */}
+      <Card variant="premium" className="p-6">
+        <SectionHeader title="Integrasi Telegram Bot" />
+        <p className="text-sm text-premium-text-muted mt-2">Link akun Telegram kamu untuk input transaksi langsung dari bot.</p>
+        
+        <div className="mt-6">
+          {u?.telegramId ? (
+            <div className="bg-premium-income/10 border border-premium-income/20 rounded-2xl p-5">
+              <div className="flex items-start gap-3">
+                <CheckCircle size={20} className="text-premium-income flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-black text-premium-income">Telegram Terhubung</p>
+                  <p className="text-xs text-premium-text-muted mt-1">Telegram ID: <b className="text-premium-text">{u.telegramId}</b></p>
+                  <p className="text-xs text-premium-text-muted mt-2">Bot sudah siap menerima transaksi dari Telegram kamu.</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="bg-premium-orange/10 border border-premium-orange/20 rounded-2xl p-5 mb-6">
+                <div className="flex items-start gap-3">
+                  <AlertCircle size={20} className="text-premium-orange flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-black text-premium-orange">Belum Terhubung</p>
+                    <p className="text-xs text-premium-text-muted mt-2">Ikuti langkah berikut untuk menghubungkan Telegram:</p>
+                    <ol className="text-xs text-premium-text-muted mt-3 space-y-1 ml-4 list-decimal">
+                      <li>Buka Telegram dan cari bot POS Finance</li>
+                      <li>Kirim pesan <code className="bg-premium-card-dark px-2 py-1 rounded text-premium-text">/start</code></li>
+                      <li>Bot akan memberikan Telegram ID kamu</li>
+                      <li>Copy ID dan paste di form di bawah</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              <form action={linkTelegram} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Telegram ID</label>
+                  <input 
+                    type="text" 
+                    name="telegramId" 
+                    placeholder="Contoh: 123456789"
+                    required
+                    className="w-full"
+                  />
+                </div>
+                
+                <button 
+                  type="submit"
+                  className="w-full px-4 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl text-sm font-black transition-colors"
+                >
+                  Link Telegram
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      </Card>
+
+      {/* Format Guide */}
+      <Card variant="premium" className="p-6">
+        <SectionHeader title="Format Input Transaksi" />
+        <p className="text-sm text-premium-text-muted mt-2">Kirim pesan ke bot dengan format berikut:</p>
+        
+        <div className="mt-6 space-y-3">
+          <div className="bg-premium-card-soft rounded-2xl p-4 border border-premium-border-soft">
+            <p className="text-xs font-black text-premium-text-muted uppercase mb-2">📝 Pengeluaran</p>
+            <code className="text-xs font-mono text-premium-text">19 mei 2026 makan 20.000 blue</code>
+          </div>
+
+          <div className="bg-premium-card-soft rounded-2xl p-4 border border-premium-border-soft">
+            <p className="text-xs font-black text-premium-text-muted uppercase mb-2">💰 Pemasukan</p>
+            <code className="text-xs font-mono text-premium-text">19 mei 2026 gaji 500.000 blue income</code>
+          </div>
+
+          <div className="bg-premium-card-soft rounded-2xl p-4 border border-premium-border-soft">
+            <p className="text-xs font-black text-premium-text-muted uppercase mb-2">💳 Hutang</p>
+            <code className="text-xs font-mono text-premium-text">19 mei 2026 pinjam 100.000 blue hutang</code>
+          </div>
+
+          <div className="bg-premium-card-soft rounded-2xl p-4 border border-premium-border-soft">
+            <p className="text-xs font-black text-premium-text-muted uppercase mb-2">📊 Piutang</p>
+            <code className="text-xs font-mono text-premium-text">19 mei 2026 pinjamkan 50.000 blue piutang</code>
+          </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-premium-border-soft/20 rounded-2xl border border-premium-border-soft">
+          <p className="text-xs font-black text-premium-text-muted uppercase mb-2">Format Umum</p>
+          <p className="text-xs text-premium-text-muted font-mono">
+            tanggal bulan tahun deskripsi nominal rekening [type]
+          </p>
+        </div>
+      </Card>
+
+      {/* Bot Commands */}
+      <Card variant="premium" className="p-6">
+        <SectionHeader title="Perintah Bot" />
+        <div className="mt-6 space-y-3">
+          <div className="flex items-start gap-3 p-4 rounded-2xl bg-premium-card-soft border border-premium-border-soft">
+            <MessageCircle size={18} className="text-violet-300 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-black text-premium-text"><code>/start</code></p>
+              <p className="text-xs text-premium-text-muted mt-1">Mulai bot dan dapatkan Telegram ID kamu</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-4 rounded-2xl bg-premium-card-soft border border-premium-border-soft">
+            <MessageCircle size={18} className="text-violet-300 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-black text-premium-text"><code>/help</code></p>
+              <p className="text-xs text-premium-text-muted mt-1">Lihat bantuan format input transaksi</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-4 rounded-2xl bg-premium-card-soft border border-premium-border-soft">
+            <MessageCircle size={18} className="text-violet-300 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-black text-premium-text"><code>/accounts</code></p>
+              <p className="text-xs text-premium-text-muted mt-1">Lihat daftar rekening kamu</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
   </>
 }
