@@ -50,37 +50,45 @@ export function BalanceCard({
         </div>
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4">
           {/* Income */}
-          <div className="bg-white/[.04] border border-premium-income/20 rounded-2xl p-3 md:p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <ArrowUpRight size={16} className="text-premium-income" />
-              <p className="text-xs font-black text-premium-text-muted uppercase">Pemasukan</p>
+          <div className="bg-white/[.04] border border-premium-income/20 rounded-2xl p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <ArrowUpRight size={13} className="text-premium-income" />
+                  <p className="text-[10px] font-black text-premium-text-muted uppercase tracking-wide">Pemasukan</p>
+                </div>
+                <p className="text-sm md:text-base font-black text-premium-income">
+                  {showBalance ? rupiah(income) : 'Rp••••'}
+                </p>
+              </div>
             </div>
-            <p className="text-base md:text-lg font-black text-premium-income">
-              {showBalance ? rupiah(income) : 'Rp••••'}
-            </p>
           </div>
 
           {/* Expense */}
-          <div className="bg-white/[.04] border border-premium-expense/20 rounded-2xl p-3 md:p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <ArrowDownLeft size={16} className="text-premium-expense" />
-              <p className="text-xs font-black text-premium-text-muted uppercase">Pengeluaran</p>
+          <div className="bg-white/[.04] border border-premium-expense/20 rounded-2xl p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <ArrowDownLeft size={13} className="text-premium-expense" />
+                  <p className="text-[10px] font-black text-premium-text-muted uppercase tracking-wide">Pengeluaran</p>
+                </div>
+                <p className="text-sm md:text-base font-black text-premium-expense">
+                  {showBalance ? rupiah(expense) : 'Rp••••'}
+                </p>
+              </div>
             </div>
-            <p className="text-base md:text-lg font-black text-premium-expense">
-              {showBalance ? rupiah(expense) : 'Rp••••'}
-            </p>
           </div>
 
           {/* Profit */}
           <div className={cn(
-            'bg-white/[.04] border rounded-2xl p-3 md:p-4',
+            'bg-white/[.04] border rounded-2xl p-3',
             profit >= 0 ? 'border-premium-income/20' : 'border-premium-expense/20'
           )}>
-            <p className="text-xs font-black text-premium-text-muted uppercase mb-2">Profit</p>
+            <p className="text-[10px] font-black text-premium-text-muted uppercase tracking-wide mb-1">Profit</p>
             <p className={cn(
-              'text-base md:text-lg font-black',
+              'text-sm md:text-base font-black',
               profit >= 0 ? 'text-premium-income' : 'text-premium-expense'
             )}>
               {showBalance ? rupiah(profit) : 'Rp••••'}
