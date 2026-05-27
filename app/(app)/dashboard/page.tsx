@@ -1,15 +1,39 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowDownRight, ArrowUpRight, Car, CreditCard, Plus, Receipt, WalletCards, TrendingUp, Activity, CalendarDays, Zap } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Car, CreditCard, Plus, Receipt, WalletCards, TrendingUp, Activity, CalendarDays, Zap, Utensils, Fuel, Wrench, Dumbbell, DollarSign, ShoppingCart, Home, Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { rupiah, ym } from '@/lib/utils';
 import { Card, SectionHeader, StatCard, PageTitle, Badge } from '@/components/ui';
-import { BalanceCard, PeriodTabs, StatRow, EmptyState, ChartCard } from '@/components/premium';
+import { BalanceCard, PeriodTabs, StatRow, EmptyState, ChartCard, ProgressBar } from '@/components/premium';
 import { CashflowChart, CategoryPie, NetWorthGrowthChart, WeeklyCashflowChart } from '@/components/charts';
 
 const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const monthLong = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+// Category icon mapping
+const categoryIcons: Record<string, React.ReactNode> = {
+  'Makan': <Utensils size={18} />,
+  'BBM': <Fuel size={18} />,
+  'Servis': <Wrench size={18} />,
+  'Olahraga': <Dumbbell size={18} />,
+  'Investasi': <TrendingUp size={18} />,
+  'Gaji': <DollarSign size={18} />,
+  'Belanja': <ShoppingCart size={18} />,
+  'Rumah': <Home size={18} />,
+  'Gadget': <Smartphone size={18} />,
+  'Gaming': <Gamepad2 size={18} />,
+  'Buku': <BookOpen size={18} />,
+  'Kesehatan': <Heart size={18} />,
+  'Liburan': <Plane size={18} />,
+  'Hadiah': <Gift size={18} />,
+  'Musik': <Music size={18} />,
+  'Kopi': <Coffee size={18} />,
+};
+
+function getCategoryIcon(categoryName: string): React.ReactNode {
+  return categoryIcons[categoryName] || <ShoppingCart size={18} />;
+}
 
 export default async function Dashboard(){
   const u=await requireUser();
@@ -69,6 +93,16 @@ export default async function Dashboard(){
   const expensePie=Object.values(monthTx.filter(t=>t.type==='EXPENSE'&&t.category).reduce((m:any,t)=>{const n=t.category!.name;m[n]={name:n,value:(m[n]?.value||0)+Number(t.amount)};return m},{})) as {name:string;value:number}[];
   const incomePie=Object.values(monthTx.filter(t=>t.type==='INCOME'&&t.category).reduce((m:any,t)=>{const n=t.category!.name;m[n]={name:n,value:(m[n]?.value||0)+Number(t.amount)};return m},{})) as {name:string;value:number}[];
   const topExpenseCategory=expensePie.slice().sort((a,b)=>b.value-a.value)[0];
+  const topIncomeCategory=incomePie.slice().sort((a,b)=>b.value-a.value)[0];
+  
+  // Today's transactions
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const tomorrow=new Date(today);
+  tomorrow.setDate(tomorrow.getDate()+1);
+  const todayTx=allYear.filter(t=>t.date>=today&&t.date<tomorrow);
+  const todayIncome=todayTx.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);
+  const todayExpense=todayTx.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);
 
   return <div className="space-y-5 md:space-y-6">
     {/* Header */}
@@ -93,6 +127,39 @@ export default async function Dashboard(){
       profit={savings}
       hidden={false}
     />
+
+    {/* Today's Summary */}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div className="glass-premium rounded-2xl p-4 md:p-5 border border-premium-income/20">
+        <div className="flex items-center gap-2 mb-2">
+          <ArrowUpRight size={16} className="text-premium-income" />
+          <p className="text-xs font-black text-premium-text-muted uppercase">Hari Ini</p>
+        </div>
+        <p className="text-lg md:text-xl font-black text-premium-income">{rupiah(todayIncome)}</p>
+        <p className="text-xs text-premium-text-muted mt-1">{todayTx.filter(t=>t.type==='INCOME').length} transaksi</p>
+      </div>
+      
+      <div className="glass-premium rounded-2xl p-4 md:p-5 border border-premium-expense/20">
+        <div className="flex items-center gap-2 mb-2">
+          <ArrowDownRight size={16} className="text-premium-expense" />
+          <p className="text-xs font-black text-premium-text-muted uppercase">Hari Ini</p>
+        </div>
+        <p className="text-lg md:text-xl font-black text-premium-expense">{rupiah(todayExpense)}</p>
+        <p className="text-xs text-premium-text-muted mt-1">{todayTx.filter(t=>t.type==='EXPENSE').length} transaksi</p>
+      </div>
+
+      <div className="glass-premium rounded-2xl p-4 md:p-5 border border-violet-500/20">
+        <p className="text-xs font-black text-premium-text-muted uppercase mb-2">Bulan Ini</p>
+        <p className="text-lg md:text-xl font-black text-violet-300">{rupiah(income)}</p>
+        <p className="text-xs text-premium-text-muted mt-1">{monthTx.filter(t=>t.type==='INCOME').length} transaksi</p>
+      </div>
+
+      <div className="glass-premium rounded-2xl p-4 md:p-5 border border-rose-500/20">
+        <p className="text-xs font-black text-premium-text-muted uppercase mb-2">Bulan Ini</p>
+        <p className="text-lg md:text-xl font-black text-rose-300">{rupiah(expense)}</p>
+        <p className="text-xs text-premium-text-muted mt-1">{monthTx.filter(t=>t.type==='EXPENSE').length} transaksi</p>
+      </div>
+    </div>
 
     {/* Period Selector */}
     <div className="glass-premium rounded-2xl p-4 md:p-5">
@@ -181,15 +248,74 @@ export default async function Dashboard(){
               <ArrowUpRight size={20} className="text-premium-income opacity-50" />
             </div>
           </div>
+
+          {topExpenseCategory && (
+            <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-xs font-black text-premium-text-muted uppercase">Top Pengeluaran</p>
+                  <p className="text-lg font-black text-premium-expense mt-2">{topExpenseCategory.name}</p>
+                </div>
+                <div className="text-premium-expense opacity-50">{getCategoryIcon(topExpenseCategory.name)}</div>
+              </div>
+              <p className="text-sm font-black text-premium-text">{rupiah(topExpenseCategory.value)}</p>
+            </div>
+          )}
+
+          {topIncomeCategory && (
+            <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-xs font-black text-premium-text-muted uppercase">Top Pemasukan</p>
+                  <p className="text-lg font-black text-premium-income mt-2">{topIncomeCategory.name}</p>
+                </div>
+                <div className="text-premium-income opacity-50">{getCategoryIcon(topIncomeCategory.name)}</div>
+              </div>
+              <p className="text-sm font-black text-premium-text">{rupiah(topIncomeCategory.value)}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
 
     {/* Category Breakdown */}
-    {expensePie.length > 0 && (
-      <ChartCard title="Pengeluaran per Kategori">
-        <CategoryPie data={expensePie}/>
-      </ChartCard>
-    )}
+    <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
+      {/* Income by Category */}
+      {incomePie.length > 0 && (
+        <ChartCard title="Pemasukan per Kategori">
+          <CategoryPie data={incomePie}/>
+        </ChartCard>
+      )}
+
+      {/* Expense by Category - Table Format */}
+      {expensePie.length > 0 && (
+        <div className="glass-premium rounded-3xl p-6 md:p-8">
+          <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Pengeluaran per Kategori</h3>
+          <div className="space-y-3">
+            {expensePie.slice().sort((a,b)=>b.value-a.value).map((cat, idx) => {
+              const percent = (cat.value / expense) * 100;
+              return (
+                <div key={idx} className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-premium-expense opacity-70">{getCategoryIcon(cat.name)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-black text-premium-text truncate">{cat.name}</p>
+                      <p className="text-xs text-premium-text-muted">{rupiah(cat.value)}</p>
+                    </div>
+                    <p className="text-xs font-black text-premium-text-muted shrink-0">{Math.round(percent)}%</p>
+                  </div>
+                  <div className="h-2 bg-white/[.04] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-premium-expense rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(percent, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   </div>;
 }
