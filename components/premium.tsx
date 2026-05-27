@@ -233,10 +233,10 @@ export function PeriodTabs({
 }: {
   periods: string[]
   active: string
-}) {
+}): React.ReactElement {
   return (
     <div className="flex gap-2 overflow-x-auto pb-2">
-      {periods.map((period) => (
+      {periods.map((period: string) => (
         <div
           key={period}
           className={cn(
