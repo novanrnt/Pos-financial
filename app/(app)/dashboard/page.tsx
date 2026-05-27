@@ -102,8 +102,7 @@ export default async function Dashboard(){
       </div>
       <PeriodTabs 
         periods={monthLong} 
-        active={monthLong[now.getMonth()]} 
-        onChange={() => {}}
+        active={monthLong[now.getMonth()]}
       />
     </div>
 
