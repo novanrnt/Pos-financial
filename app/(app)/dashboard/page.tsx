@@ -191,7 +191,7 @@ export default async function Dashboard(){
       </div>
       <div className="mt-6 pt-6 border-t border-premium-border-soft">
         <p className="text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Total</p>
-        <p className="text-3xl md:text-4xl font-black text-premium-income">{rupiah(totalAssets)}</p>
+        <p className="text-2xl md:text-3xl font-black text-premium-income">{rupiah(totalAssets)}</p>
       </div>
     </Card>
 
@@ -282,9 +282,32 @@ export default async function Dashboard(){
     <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
       {/* Income by Category */}
       {incomePie.length > 0 && (
-        <ChartCard title="Pemasukan per Kategori">
-          <CategoryPie data={incomePie}/>
-        </ChartCard>
+        <div className="glass-premium rounded-3xl p-6 md:p-8">
+          <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Pemasukan per Kategori</h3>
+          <div className="space-y-3">
+            {incomePie.slice().sort((a,b)=>b.value-a.value).map((cat, idx) => {
+              const percent = (cat.value / income) * 100;
+              return (
+                <div key={idx} className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-premium-income opacity-70">{getCategoryIcon(cat.name)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-black text-premium-text truncate">{cat.name}</p>
+                      <p className="text-xs text-premium-text-muted">{rupiah(cat.value)}</p>
+                    </div>
+                    <p className="text-xs font-black text-premium-text-muted shrink-0">{Math.round(percent)}%</p>
+                  </div>
+                  <div className="h-2 bg-white/[.04] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-premium-income rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(percent, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       {/* Expense by Category - Table Format */}

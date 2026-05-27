@@ -73,9 +73,9 @@ export function BottomNav(){
     {/* Floating Action Button */}
     <Link 
       href="/transactions" 
-      className="md:hidden fixed bottom-6 right-4 z-40 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-premium shadow-violet-500/30 hover:scale-110 transition-transform duration-300 active:scale-95"
+      className="md:hidden fixed bottom-24 right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-lg shadow-violet-500/30 hover:scale-105 transition-transform duration-300 active:scale-95"
     >
-      <Plus size={28}/>
+      <Plus size={24}/>
     </Link>
     
     {/* Mobile Menu Button */}
