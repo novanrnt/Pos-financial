@@ -64,6 +64,8 @@ model User {
   investments    InvestmentSnapshot[]
   closings       MonthlyClosing[]
   audits         TransactionAuditLog[]
+  savingsGoals   SavingsGoal[]
+  savingsDeposits SavingsDeposit[]
 }
 
 model Account {
@@ -84,6 +86,7 @@ model Account {
   debts            Debt[]
   debtPayments     DebtPayment[]
   recurringBills   RecurringBill[]
+  savingsDeposits  SavingsDeposit[]
 
   @@index([userId])
 }
@@ -264,4 +267,36 @@ model TransactionAuditLog {
   transaction   Transaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
+}
+
+model SavingsGoal {
+  id            String         @id @default(cuid())
+  userId        String
+  name          String
+  targetAmount  Decimal        @db.Decimal(18, 2)
+  savedAmount   Decimal        @default(0) @db.Decimal(18, 2)
+  deadline      DateTime?
+  notes         String?
+  isCompleted   Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deposits      SavingsDeposit[]
+
+  @@index([userId])
+}
+
+model SavingsDeposit {
+  id           String      @id @default(cuid())
+  userId       String
+  goalId       String
+  accountId    String
+  amount       Decimal     @db.Decimal(18, 2)
+  date         DateTime
+  notes        String?
+  createdAt    DateTime    @default(now())
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal         SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  account      Account     @relation(fields: [accountId], references: [id])
+
+  @@index([userId, goalId])
 }

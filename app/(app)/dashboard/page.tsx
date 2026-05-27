@@ -46,13 +46,14 @@ export default async function Dashboard(){
   const month=ym(now);
   const startYear=new Date(now.getFullYear(),0,1);
   const endYear=new Date(now.getFullYear(),11,31,23,59,59);
-  const [accounts,cars,debts,invest,allYear,bills]=await Promise.all([
+  const [accounts,cars,debts,invest,allYear,bills,savingsGoals]=await Promise.all([
     prisma.account.findMany({where:{userId:uid},orderBy:{isPrimary:'desc'}}),
     prisma.car.findMany({where:{userId:uid,status:'AVAILABLE'},include:{costs:true},orderBy:{createdAt:'desc'}}),
     prisma.debt.findMany({where:{userId:uid,status:'ACTIVE'},orderBy:{dueDate:'asc'},take:6}),
     prisma.investmentSnapshot.findMany({where:{userId:uid,month}}),
     prisma.transaction.findMany({where:{userId:uid,date:{gte:startYear,lte:endYear}},include:{category:true},orderBy:{date:'asc'}}),
-    prisma.recurringBill.findMany({where:{userId:uid,status:'UNPAID'},include:{account:true},orderBy:{dueDay:'asc'},take:5})
+    prisma.recurringBill.findMany({where:{userId:uid,status:'UNPAID'},include:{account:true},orderBy:{dueDay:'asc'},take:5}),
+    prisma.savingsGoal.findMany({where:{userId:uid}})
   ]);
 
   const cash=accounts.reduce((a,x)=>a+Number(x.balance),0);
@@ -61,12 +62,13 @@ export default async function Dashboard(){
   const rec=debts.filter(d=>d.type==='RECEIVABLE').reduce((a,d)=>a+Number(d.remainingAmount),0);
   const inv=invest.reduce((a,i)=>a+Number(i.balance),0);
   const invExcludeRnd=invest.filter(i=>i.category!=='R&D / Eksperimen').reduce((a,i)=>a+Number(i.balance),0);
-  const totalAssets=cash+carAsset+invExcludeRnd;
+  const savings_total=savingsGoals.reduce((a,g)=>a+Number(g.savedAmount),0);
+  const totalAssets=cash+carAsset+invExcludeRnd+savings_total;
   const monthTx=allYear.filter(t=>ym(t.date)===month);
   const income=monthTx.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);
   const expense=monthTx.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);
   const savings=income-expense;
-  const netWorth=cash+carAsset+inv+rec-debt;
+  const netWorth=cash+carAsset+inv+rec+savings_total-debt;
   const healthScore=Math.max(0,Math.min(100,Math.round((cash+inv+rec)/(Math.max(1,debt+expense))*25)));
   const chartData=months.map((m,i)=>{const list=allYear.filter(t=>t.date.getMonth()===i);const inc=list.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);const exp=list.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);return {name:m,income:inc,expense:exp,savings:inc-exp};});
   const netWorthGrowthData=months.slice(0,now.getMonth()+1).map((m,i)=>{
@@ -194,6 +196,7 @@ export default async function Dashboard(){
         <StatRow label="Saldo Rekening" value={cash} color="income" />
         <StatRow label="Aset Mobil" value={carAsset} color="neutral" />
         <StatRow label="Investasi (ex R&D)" value={invExcludeRnd} color="savings" />
+        <StatRow label="Tabungan" value={savings_total} color="savings" />
       </div>
       <div className="mt-6 pt-6 border-t border-premium-border-soft">
         <p className="text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Total</p>

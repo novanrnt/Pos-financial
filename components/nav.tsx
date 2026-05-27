@@ -9,6 +9,7 @@ const items = [
   ['Dashboard','/dashboard',Home],
   ['Rekening','/accounts',WalletCards],
   ['Transaksi','/transactions',Repeat],
+  ['Tabungan','/savings',PiggyBank],
   ['Mobil','/cars',Car],
   ['Hutang','/debts',CreditCard],
   ['Investasi','/investments',PiggyBank],
