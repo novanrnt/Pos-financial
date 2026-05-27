@@ -32,7 +32,7 @@ export function BalanceCard({
           <div>
             <p className="text-xs md:text-sm font-black text-premium-text-muted uppercase tracking-wide">Total Saldo</p>
             <div className="flex items-center gap-3 mt-2">
-              <h2 className="text-3xl md:text-4xl font-black text-premium-text tracking-tight">
+              <h2 className="text-2xl md:text-3xl font-black text-premium-text tracking-tight">
                 {showBalance ? rupiah(total) : 'Rp••••••••'}
               </h2>
               <button
@@ -57,7 +57,7 @@ export function BalanceCard({
               <ArrowUpRight size={16} className="text-premium-income" />
               <p className="text-xs font-black text-premium-text-muted uppercase">Pemasukan</p>
             </div>
-            <p className="text-lg md:text-xl font-black text-premium-income">
+            <p className="text-base md:text-lg font-black text-premium-income">
               {showBalance ? rupiah(income) : 'Rp••••'}
             </p>
           </div>
@@ -68,7 +68,7 @@ export function BalanceCard({
               <ArrowDownLeft size={16} className="text-premium-expense" />
               <p className="text-xs font-black text-premium-text-muted uppercase">Pengeluaran</p>
             </div>
-            <p className="text-lg md:text-xl font-black text-premium-expense">
+            <p className="text-base md:text-lg font-black text-premium-expense">
               {showBalance ? rupiah(expense) : 'Rp••••'}
             </p>
           </div>
@@ -80,7 +80,7 @@ export function BalanceCard({
           )}>
             <p className="text-xs font-black text-premium-text-muted uppercase mb-2">Profit</p>
             <p className={cn(
-              'text-lg md:text-xl font-black',
+              'text-base md:text-lg font-black',
               profit >= 0 ? 'text-premium-income' : 'text-premium-expense'
             )}>
               {showBalance ? rupiah(profit) : 'Rp••••'}

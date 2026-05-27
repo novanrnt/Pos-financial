@@ -103,6 +103,22 @@ export default async function Dashboard(){
   const todayTx=allYear.filter(t=>t.date>=today&&t.date<tomorrow);
   const todayIncome=todayTx.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);
   const todayExpense=todayTx.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);
+  
+  // Daily transaction history grouped by date
+  const dailyHistory = Object.entries(
+    monthTx.reduce((acc: any, tx) => {
+      const dateKey = tx.date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long' });
+      if (!acc[dateKey]) {
+        acc[dateKey] = { income: 0, expense: 0, date: tx.date };
+      }
+      if (tx.type === 'INCOME') {
+        acc[dateKey].income += Number(tx.amount);
+      } else {
+        acc[dateKey].expense += Number(tx.amount);
+      }
+      return acc;
+    }, {})
+  ).sort((a, b) => b[1].date.getTime() - a[1].date.getTime());
 
   return <div className="space-y-5 md:space-y-6">
     {/* Header */}
@@ -277,6 +293,38 @@ export default async function Dashboard(){
         </div>
       </div>
     </div>
+
+    {/* Daily Transaction History */}
+    {dailyHistory.length > 0 && (
+      <div className="glass-premium rounded-3xl p-6 md:p-8">
+        <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Riwayat Transaksi Harian</h3>
+        <div className="space-y-3">
+          {dailyHistory.map(([dateKey, data]) => (
+            <div key={dateKey} className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-black text-premium-text">{dateKey}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  {data.income > 0 && (
+                    <div className="text-right">
+                      <p className="text-xs text-premium-text-muted">Pemasukan</p>
+                      <p className="text-sm font-black text-premium-income">{rupiah(data.income)}</p>
+                    </div>
+                  )}
+                  {data.expense > 0 && (
+                    <div className="text-right">
+                      <p className="text-xs text-premium-text-muted">Pengeluaran</p>
+                      <p className="text-sm font-black text-premium-expense">{rupiah(data.expense)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
 
     {/* Category Breakdown */}
     <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
