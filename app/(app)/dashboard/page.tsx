@@ -436,29 +436,6 @@ export default async function Dashboard(){
       )}
     </div>
 
-    {/* Quick Menu */}
-    <div>
-      <h3 className="text-base font-black text-premium-text mb-4">Menu</h3>
-      <div className="flex gap-4 overflow-x-auto pb-2 hide-scroll">
-        {[
-          { label: 'Transaksi', href: '/transactions', icon: Repeat, color: 'bg-violet-500/20 text-violet-300' },
-          { label: 'Tabungan', href: '/savings', icon: PiggyBank, color: 'bg-emerald-500/20 text-emerald-400' },
-          { label: 'Tagihan', href: '/bills', icon: Receipt, color: 'bg-rose-500/20 text-rose-400' },
-          { label: 'Hutang', href: '/debts', icon: CreditCard, color: 'bg-orange-500/20 text-orange-400' },
-          { label: 'Mobil', href: '/cars', icon: Car, color: 'bg-blue-500/20 text-blue-400' },
-          { label: 'Investasi', href: '/investments', icon: TrendingUp, color: 'bg-cyan-500/20 text-cyan-400' },
-          { label: 'Laporan', href: '/reports', icon: LayoutGrid, color: 'bg-purple-500/20 text-purple-400' },
-        ].map(item => (
-          <Link key={item.href} href={item.href} className="flex flex-col items-center gap-2 shrink-0 group">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${item.color} border border-white/[.08] group-hover:scale-105 transition-transform duration-200`}>
-              <item.icon size={22} />
-            </div>
-            <span className="text-xs font-black text-premium-text-muted group-hover:text-premium-text transition-colors">{item.label}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
-
     {/* Recent Transactions - grouped by date like screenshot */}
     <div>
       <div className="flex items-center justify-between mb-4">
