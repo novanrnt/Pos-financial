@@ -54,7 +54,7 @@ export function Modal({
               exit={{ opacity: 0, y: 40, scale: 0.97 }}
               transition={{ type: 'spring', damping: 28, stiffness: 380 }}
               className={cn(
-                'relative w-full glass-premium rounded-t-3xl sm:rounded-3xl p-6 md:p-8 max-h-[92vh] overflow-y-auto',
+                'relative w-full bg-[#13171f] border border-white/[.12] shadow-2xl rounded-t-3xl sm:rounded-3xl p-6 md:p-8 max-h-[92vh] overflow-y-auto',
                 sizes[size]
               )}
               onClick={e => e.stopPropagation()}

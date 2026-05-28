@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowDownRight, ArrowUpRight, CreditCard, TrendingUp, Zap, Utensils, Fuel, Wrench, Dumbbell, DollarSign, ShoppingCart, Home, Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee, ArrowRightLeft, Repeat, PiggyBank, Receipt, Car, LayoutGrid } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, CreditCard, TrendingUp, Zap, Utensils, Fuel, Wrench, Dumbbell, DollarSign, ShoppingCart, Home, Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee, ArrowRightLeft, Repeat, PiggyBank, Receipt, Car, LayoutGrid, AlertCircle, CalendarClock } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { rupiah, ym } from '@/lib/utils';
@@ -161,7 +161,30 @@ export default async function Dashboard(){
       </div>
     </div>
 
-    {/* Period Selector - pure server HTML, no client component */}
+    {/* Quick Menu - di atas periode */}
+    <div>
+      <h3 className="text-base font-black text-premium-text mb-4">Menu</h3>
+      <div className="flex gap-4 overflow-x-auto pb-2 hide-scroll">
+        {[
+          { label: 'Transaksi', href: '/transactions', icon: Repeat, color: 'bg-violet-500/20 text-violet-300' },
+          { label: 'Tabungan', href: '/savings', icon: PiggyBank, color: 'bg-emerald-500/20 text-emerald-400' },
+          { label: 'Tagihan', href: '/bills', icon: Receipt, color: 'bg-rose-500/20 text-rose-400' },
+          { label: 'Hutang', href: '/debts', icon: CreditCard, color: 'bg-orange-500/20 text-orange-400' },
+          { label: 'Mobil', href: '/cars', icon: Car, color: 'bg-blue-500/20 text-blue-400' },
+          { label: 'Investasi', href: '/investments', icon: TrendingUp, color: 'bg-cyan-500/20 text-cyan-400' },
+          { label: 'Laporan', href: '/reports', icon: LayoutGrid, color: 'bg-purple-500/20 text-purple-400' },
+        ].map(item => (
+          <Link key={item.href} href={item.href} className="flex flex-col items-center gap-2 shrink-0 group">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${item.color} border border-white/[.08] group-hover:scale-105 transition-transform duration-200`}>
+              <item.icon size={22} />
+            </div>
+            <span className="text-xs font-black text-premium-text-muted group-hover:text-premium-text transition-colors">{item.label}</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+
+    {/* Period Selector */}
     <div className="glass-premium rounded-2xl p-4 md:p-5">
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs font-black text-premium-text-muted uppercase tracking-wide">Periode</p>
@@ -272,33 +295,92 @@ export default async function Dashboard(){
       </div>
     </div>
 
-    {/* Daily Transaction History */}
-    {dailyHistory.length > 0 && (
+    {/* Tagihan Mendatang + Hutang Piutang */}
+    <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
+      {/* Tagihan Mendatang */}
       <div className="glass-premium rounded-3xl p-6 md:p-8">
-        <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Riwayat Harian</h3>
-        <div className="space-y-3">
-          {dailyHistory.map(([dateKey, data]) => (
-            <div key={dateKey} className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
-              <p className="text-sm font-black text-premium-text">{dateKey}</p>
-              <div className="flex items-center gap-4">
-                {data.income > 0 && (
-                  <div className="text-right">
-                    <p className="text-xs text-premium-text-muted">Masuk</p>
-                    <p className="text-sm font-black text-premium-income">{rupiah(data.income)}</p>
-                  </div>
-                )}
-                {data.expense > 0 && (
-                  <div className="text-right">
-                    <p className="text-xs text-premium-text-muted">Keluar</p>
-                    <p className="text-sm font-black text-premium-expense">{rupiah(data.expense)}</p>
-                  </div>
-                )}
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-base font-black text-premium-text flex items-center gap-2">
+            <Receipt size={18} className="text-rose-400" /> Tagihan Mendatang
+          </h3>
+          <Link href="/bills" className="text-xs font-black text-violet-300 hover:text-violet-200 transition">Semua →</Link>
+        </div>
+        {bills.length === 0 ? (
+          <p className="text-sm text-premium-text-muted text-center py-4">Tidak ada tagihan</p>
+        ) : (
+          <div className="space-y-2">
+            {bills.map(b => (
+              <div key={b.id} className="soft-card rounded-2xl p-3.5 border border-rose-500/20 flex items-center gap-3">
+                <div className="shrink-0 w-9 h-9 rounded-xl bg-rose-500/15 flex items-center justify-center">
+                  <Receipt size={16} className="text-rose-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-black text-premium-text truncate">{b.name}</p>
+                  <p className="text-xs text-premium-text-muted mt-0.5 flex items-center gap-1">
+                    <CalendarClock size={10} /> Tgl {b.dueDay} setiap bulan
+                  </p>
+                </div>
+                <p className="text-sm font-black text-rose-400 shrink-0">{rupiah(Number(b.amount))}</p>
+              </div>
+            ))}
+            <div className="pt-2 border-t border-premium-border-soft flex items-center justify-between">
+              <p className="text-xs text-premium-text-muted">Total tagihan</p>
+              <p className="text-sm font-black text-rose-400">{rupiah(bills.reduce((a,b)=>a+Number(b.amount),0))}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Hutang & Piutang */}
+      <div className="glass-premium rounded-3xl p-6 md:p-8">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-base font-black text-premium-text flex items-center gap-2">
+            <CreditCard size={18} className="text-orange-400" /> Hutang & Piutang
+          </h3>
+          <Link href="/debts" className="text-xs font-black text-violet-300 hover:text-violet-200 transition">Semua →</Link>
+        </div>
+        {debts.length === 0 ? (
+          <p className="text-sm text-premium-text-muted text-center py-4">Tidak ada hutang/piutang aktif</p>
+        ) : (
+          <div className="space-y-2">
+            {debts.filter(d=>d.type==='DEBT').slice(0,3).map(d => (
+              <div key={d.id} className="soft-card rounded-2xl p-3.5 border border-rose-500/20 flex items-center gap-3">
+                <div className="shrink-0 w-9 h-9 rounded-xl bg-rose-500/15 flex items-center justify-center">
+                  <ArrowDownRight size={16} className="text-rose-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-black text-premium-text truncate">{d.name}</p>
+                  <p className="text-xs text-rose-400/70 mt-0.5">Hutang</p>
+                </div>
+                <p className="text-sm font-black text-rose-400 shrink-0">{rupiah(Number(d.remainingAmount))}</p>
+              </div>
+            ))}
+            {debts.filter(d=>d.type==='RECEIVABLE').slice(0,3).map(d => (
+              <div key={d.id} className="soft-card rounded-2xl p-3.5 border border-emerald-500/20 flex items-center gap-3">
+                <div className="shrink-0 w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+                  <ArrowUpRight size={16} className="text-emerald-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-black text-premium-text truncate">{d.name}</p>
+                  <p className="text-xs text-emerald-400/70 mt-0.5">Piutang</p>
+                </div>
+                <p className="text-sm font-black text-emerald-400 shrink-0">{rupiah(Number(d.remainingAmount))}</p>
+              </div>
+            ))}
+            <div className="pt-2 border-t border-premium-border-soft grid grid-cols-2 gap-2">
+              <div>
+                <p className="text-xs text-premium-text-muted">Total Hutang</p>
+                <p className="text-sm font-black text-rose-400">{rupiah(debt)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-premium-text-muted">Total Piutang</p>
+                <p className="text-sm font-black text-emerald-400">{rupiah(rec)}</p>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
-    )}
+    </div>
 
     {/* Category Breakdown */}
     <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
