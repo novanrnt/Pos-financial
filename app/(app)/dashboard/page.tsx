@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowDownRight, ArrowUpRight, CreditCard, TrendingUp, Zap, Utensils, Fuel, Wrench, Dumbbell, DollarSign, ShoppingCart, Home, Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, CreditCard, TrendingUp, Zap, Utensils, Fuel, Wrench, Dumbbell, DollarSign, ShoppingCart, Home, Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee, ArrowRightLeft, Repeat, PiggyBank, Receipt, Car, LayoutGrid } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { rupiah, ym } from '@/lib/utils';
 import { Card, SectionHeader, StatCard, Badge } from '@/components/ui';
 import { BalanceCard, StatRow, ChartCard } from '@/components/premium';
 import { CashflowChart, NetWorthGrowthChart, WeeklyCashflowChart } from '@/components/charts';
+import { TransactionFormButton } from '@/components/transaction-form';
 
 const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const monthLong = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -46,14 +47,16 @@ export default async function Dashboard(){
   const month=ym(now);
   const startYear=new Date(now.getFullYear(),0,1);
   const endYear=new Date(now.getFullYear(),11,31,23,59,59);
-  const [accounts,cars,debts,invest,allYear,bills,savingsGoals]=await Promise.all([
+  const [accounts,cars,debts,invest,allYear,bills,savingsGoals,recentTx,categories]=await Promise.all([
     prisma.account.findMany({where:{userId:uid},orderBy:{isPrimary:'desc'}}),
     prisma.car.findMany({where:{userId:uid,status:'AVAILABLE'},include:{costs:true},orderBy:{createdAt:'desc'}}),
     prisma.debt.findMany({where:{userId:uid,status:'ACTIVE'},orderBy:{dueDate:'asc'},take:6}),
     prisma.investmentSnapshot.findMany({where:{userId:uid,month}}),
     prisma.transaction.findMany({where:{userId:uid,date:{gte:startYear,lte:endYear}},include:{category:true},orderBy:{date:'asc'}}),
     prisma.recurringBill.findMany({where:{userId:uid,status:'UNPAID'},include:{account:true},orderBy:{dueDay:'asc'},take:5}),
-    prisma.savingsGoal.findMany({where:{userId:uid}})
+    prisma.savingsGoal.findMany({where:{userId:uid}}),
+    prisma.transaction.findMany({where:{userId:uid},include:{category:true,account:true,transferToAccount:true},orderBy:{date:'desc'},take:8}),
+    prisma.category.findMany({where:{userId:uid,isActive:true},orderBy:{name:'asc'}}),
   ]);
 
   const cash=accounts.reduce((a,x)=>a+Number(x.balance),0);
@@ -350,5 +353,129 @@ export default async function Dashboard(){
         </div>
       )}
     </div>
+
+    {/* Quick Menu */}
+    <div>
+      <h3 className="text-base font-black text-premium-text mb-4">Menu</h3>
+      <div className="flex gap-4 overflow-x-auto pb-2 hide-scroll">
+        {[
+          { label: 'Transaksi', href: '/transactions', icon: Repeat, color: 'bg-violet-500/20 text-violet-300' },
+          { label: 'Tabungan', href: '/savings', icon: PiggyBank, color: 'bg-emerald-500/20 text-emerald-400' },
+          { label: 'Tagihan', href: '/bills', icon: Receipt, color: 'bg-rose-500/20 text-rose-400' },
+          { label: 'Hutang', href: '/debts', icon: CreditCard, color: 'bg-orange-500/20 text-orange-400' },
+          { label: 'Mobil', href: '/cars', icon: Car, color: 'bg-blue-500/20 text-blue-400' },
+          { label: 'Investasi', href: '/investments', icon: TrendingUp, color: 'bg-cyan-500/20 text-cyan-400' },
+          { label: 'Laporan', href: '/reports', icon: LayoutGrid, color: 'bg-purple-500/20 text-purple-400' },
+        ].map(item => (
+          <Link key={item.href} href={item.href} className="flex flex-col items-center gap-2 shrink-0 group">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${item.color} border border-white/[.08] group-hover:scale-105 transition-transform duration-200`}>
+              <item.icon size={22} />
+            </div>
+            <span className="text-xs font-black text-premium-text-muted group-hover:text-premium-text transition-colors">{item.label}</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+
+    {/* Recent Transactions - grouped by date like screenshot */}
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-black text-premium-text">Transaksi Terakhir</h3>
+        <div className="flex items-center gap-3">
+          <TransactionFormButton accounts={accounts} categories={categories} label="+ Tambah" />
+          <Link href="/transactions" className="text-xs font-black text-violet-300 hover:text-violet-200 transition">Semua →</Link>
+        </div>
+      </div>
+
+      {recentTx.length === 0 ? (
+        <div className="glass-premium rounded-2xl p-8 text-center">
+          <p className="text-premium-text-muted text-sm">Belum ada transaksi</p>
+        </div>
+      ) : (() => {
+        // Group by date
+        const grouped = recentTx.reduce((acc: Record<string, typeof recentTx>, t) => {
+          const dk = t.date.toISOString().slice(0, 10);
+          if (!acc[dk]) acc[dk] = [];
+          acc[dk].push(t);
+          return acc;
+        }, {});
+
+        return (
+          <div className="space-y-4">
+            {Object.entries(grouped).map(([dateKey, txs]) => {
+              const dayIncome = txs.filter(t => t.type === 'INCOME').reduce((a, t) => a + Number(t.amount), 0);
+              const dayExpense = txs.filter(t => t.type === 'EXPENSE').reduce((a, t) => a + Number(t.amount), 0);
+              const dayNet = dayIncome - dayExpense;
+              const dateLabel = new Date(dateKey + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+              return (
+                <div key={dateKey}>
+                  {/* Date header */}
+                  <div className="flex items-center justify-between px-1 mb-2">
+                    <p className="text-xs font-black text-premium-text-muted">{dateLabel}</p>
+                    <p className={`text-xs font-black ${dayNet >= 0 ? 'text-premium-income' : 'text-premium-expense'}`}>
+                      {dayNet >= 0 ? '+' : ''}{rupiah(dayNet)}
+                    </p>
+                  </div>
+                  {/* Transactions */}
+                  <div className="glass-premium rounded-2xl overflow-hidden">
+                    {txs.map((t, idx) => {
+                      const isExpense = t.type === 'EXPENSE';
+                      const isIncome = t.type === 'INCOME';
+                      const catName = t.category?.name || '';
+                      const timeStr = t.date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                      // Icon color based on category
+                      const iconColors = [
+                        'bg-orange-500/20 text-orange-400',
+                        'bg-violet-500/20 text-violet-400',
+                        'bg-emerald-500/20 text-emerald-400',
+                        'bg-blue-500/20 text-blue-400',
+                        'bg-rose-500/20 text-rose-400',
+                        'bg-cyan-500/20 text-cyan-400',
+                        'bg-amber-500/20 text-amber-400',
+                      ];
+                      const colorIdx = catName.length % iconColors.length;
+                      const iconColor = isExpense ? iconColors[colorIdx] : 'bg-emerald-500/20 text-emerald-400';
+
+                      return (
+                        <div key={t.id} className={`flex items-center gap-3 px-4 py-3.5 ${idx < txs.length - 1 ? 'border-b border-white/[.05]' : ''} hover:bg-white/[.03] transition-colors`}>
+                          {/* Icon */}
+                          <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${iconColor}`}>
+                            {isExpense
+                              ? getCategoryIcon(catName)
+                              : isIncome
+                              ? getCategoryIcon(catName)
+                              : <ArrowRightLeft size={16} className="text-violet-300" />}
+                          </div>
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-black text-premium-text truncate">{t.description || catName || t.type}</p>
+                              <span className="text-[10px] text-premium-text-muted shrink-0">{timeStr}</span>
+                            </div>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className="text-[10px] text-premium-text-muted">{t.account.name}</span>
+                              {catName && <><span className="text-[10px] text-premium-text-muted">•</span><span className="text-[10px] text-premium-text-muted">{catName}</span></>}
+                            </div>
+                          </div>
+                          {/* Amount */}
+                          <p className={`text-sm font-black shrink-0 ${isExpense ? 'text-premium-expense' : 'text-premium-income'}`}>
+                            {isExpense ? '−' : '+'}{rupiah(Number(t.amount))}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+    </div>
+
+    {/* FAB - Mobile floating button */}
+    <TransactionFormButton accounts={accounts} categories={categories} variant="fab" />
   </div>;
 }
