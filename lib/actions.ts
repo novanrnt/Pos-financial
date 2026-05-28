@@ -31,7 +31,124 @@ export async function payDebt(fd:FormData){const uid=await userId(); const debt=
 export async function addInvestment(fd:FormData){const uid=await userId(); await prisma.investmentSnapshot.upsert({where:{userId_category_month:{userId:uid,category:String(fd.get('category')),month:String(fd.get('month'))}},create:{userId:uid,category:String(fd.get('category')),month:String(fd.get('month')),balance:toNumber(fd.get('balance')),notes:String(fd.get('notes')||'')},update:{balance:toNumber(fd.get('balance')),notes:String(fd.get('notes')||'')}}); revalidatePath('/investments'); revalidatePath('/dashboard');}
 export async function addBill(fd:FormData){const uid=await userId(); await prisma.recurringBill.create({data:{userId:uid,accountId:String(fd.get('accountId')),name:String(fd.get('name')),amount:toNumber(fd.get('amount')),dueDay:Number(fd.get('dueDay')||1),notes:String(fd.get('notes')||'')}}); revalidatePath('/bills');}
 export async function payBill(fd:FormData){const uid=await userId(); const bill=await prisma.recurringBill.findFirst({where:{id:String(fd.get('id')),userId:uid}}); if(!bill)return; const date=new Date(); await assertOpen(uid,date); await prisma.$transaction(async tx=>{await tx.recurringBill.update({where:{id:bill.id},data:{status:'PAID',lastPaidAt:date}}); await tx.account.update({where:{id:bill.accountId},data:{balance:{decrement:bill.amount}}}); await tx.transaction.create({data:{userId:uid,accountId:bill.accountId,type:'EXPENSE',amount:bill.amount,date,description:`Bayar tagihan ${bill.name}`,sourceType:'bill',sourceId:bill.id}});}); revalidatePath('/bills'); revalidatePath('/dashboard');}
-export async function closeMonth(fd:FormData){const uid=await userId(); const month=String(fd.get('month')); const [accounts,transactions,cars,debts,investments]=await Promise.all([prisma.account.findMany({where:{userId:uid}}),prisma.transaction.findMany({where:{userId:uid,date:{gte:new Date(month+'-01'),lt:new Date(new Date(month+'-01').getFullYear(),new Date(month+'-01').getMonth()+1,1)}}}),prisma.car.findMany({where:{userId:uid,status:'AVAILABLE'}}),prisma.debt.findMany({where:{userId:uid,status:'ACTIVE'}}),prisma.investmentSnapshot.findMany({where:{userId:uid,month}})]); const income=transactions.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0); const expense=transactions.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0); const summary={income,expense,profit:income-expense,accounts:accounts.map(a=>({name:a.name,balance:String(a.balance)})),carAsset:cars.reduce((a,c)=>a+Number(c.estimatedSellPrice||c.purchasePrice),0),debt:debts.filter(d=>d.type==='DEBT').reduce((a,d)=>a+Number(d.remainingAmount),0),receivable:debts.filter(d=>d.type==='RECEIVABLE').reduce((a,d)=>a+Number(d.remainingAmount),0),investment:investments.reduce((a,i)=>a+Number(i.balance),0)}; await prisma.monthlyClosing.upsert({where:{userId_month:{userId:uid,month}},create:{userId:uid,month,summaryJson:summary},update:{summaryJson:summary}}); revalidatePath('/reports');}
+export async function closeMonth(fd:FormData){
+  const uid=await userId();
+  const month=String(fd.get('month'));
+  const monthStart=new Date(month+'-01');
+  const monthEnd=new Date(monthStart.getFullYear(),monthStart.getMonth()+1,1);
+
+  const [accounts,transactions,cars,debts,investments,savings,categories]=await Promise.all([
+    prisma.account.findMany({where:{userId:uid}}),
+    prisma.transaction.findMany({where:{userId:uid,date:{gte:monthStart,lt:monthEnd}},include:{category:true}}),
+    prisma.car.findMany({where:{userId:uid,status:'AVAILABLE'},include:{costs:true}}),
+    prisma.debt.findMany({where:{userId:uid,status:'ACTIVE'}}),
+    prisma.investmentSnapshot.findMany({where:{userId:uid,month}}),
+    prisma.savingsGoal.findMany({where:{userId:uid}}),
+    prisma.category.findMany({where:{userId:uid}}),
+  ]);
+
+  const income=transactions.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);
+  const expense=transactions.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);
+
+  // Breakdown per kategori
+  const incomeByCategory=categories.filter(c=>c.type==='INCOME').map(c=>({
+    name:c.name,
+    total:transactions.filter(t=>t.type==='INCOME'&&t.categoryId===c.id).reduce((a,t)=>a+Number(t.amount),0)
+  })).filter(c=>c.total>0);
+
+  const expenseByCategory=categories.filter(c=>c.type==='EXPENSE').map(c=>({
+    name:c.name,
+    total:transactions.filter(t=>t.type==='EXPENSE'&&t.categoryId===c.id).reduce((a,t)=>a+Number(t.amount),0)
+  })).filter(c=>c.total>0);
+
+  // Aset mobil = total modal (purchasePrice + semua biaya)
+  const carDetails=cars.map(c=>({
+    name:c.name,
+    purchasePrice:Number(c.purchasePrice),
+    totalCosts:c.costs.reduce((a,k)=>a+Number(k.amount),0),
+    totalModal:Number(c.purchasePrice)+c.costs.reduce((a,k)=>a+Number(k.amount),0),
+  }));
+  const totalCarModal=carDetails.reduce((a,c)=>a+c.totalModal,0);
+
+  // Hutang detail
+  const debtDetails=debts.filter(d=>d.type==='DEBT').map(d=>({
+    name:d.name,
+    remaining:Number(d.remainingAmount),
+    dueDate:d.dueDate?.toISOString().slice(0,10)||null,
+  }));
+  const receivableDetails=debts.filter(d=>d.type==='RECEIVABLE').map(d=>({
+    name:d.name,
+    remaining:Number(d.remainingAmount),
+    dueDate:d.dueDate?.toISOString().slice(0,10)||null,
+  }));
+
+  // Investasi detail
+  const investmentDetails=investments.map(i=>({
+    category:i.category,
+    balance:Number(i.balance),
+    notes:i.notes||'',
+  }));
+
+  // Tabungan detail
+  const savingsDetails=savings.map(g=>({
+    name:g.name,
+    savedAmount:Number(g.savedAmount),
+    targetAmount:Number(g.targetAmount),
+    isCompleted:g.isCompleted,
+  }));
+
+  const summary={
+    // Cashflow
+    income,
+    expense,
+    profit:income-expense,
+    totalTransactions:transactions.length,
+
+    // Breakdown kategori
+    incomeByCategory,
+    expenseByCategory,
+
+    // Rekening snapshot
+    accounts:accounts.map(a=>({name:a.name,type:a.type,balance:Number(a.balance)})),
+    totalCash:accounts.reduce((a,x)=>a+Number(x.balance),0),
+
+    // Aset mobil (total modal)
+    cars:carDetails,
+    totalCarModal,
+
+    // Hutang & piutang
+    debts:debtDetails,
+    receivables:receivableDetails,
+    totalDebt:debtDetails.reduce((a,d)=>a+d.remaining,0),
+    totalReceivable:receivableDetails.reduce((a,d)=>a+d.remaining,0),
+
+    // Investasi
+    investments:investmentDetails,
+    totalInvestment:investmentDetails.reduce((a,i)=>a+i.balance,0),
+
+    // Tabungan
+    savings:savingsDetails,
+    totalSavings:savingsDetails.reduce((a,g)=>a+g.savedAmount,0),
+
+    // Net Worth snapshot
+    netWorth:
+      accounts.reduce((a,x)=>a+Number(x.balance),0)+
+      totalCarModal+
+      investmentDetails.reduce((a,i)=>a+i.balance,0)+
+      savingsDetails.reduce((a,g)=>a+g.savedAmount,0)+
+      receivableDetails.reduce((a,d)=>a+d.remaining,0)-
+      debtDetails.reduce((a,d)=>a+d.remaining,0),
+
+    closedAt:new Date().toISOString(),
+  };
+
+  await prisma.monthlyClosing.upsert({
+    where:{userId_month:{userId:uid,month}},
+    create:{userId:uid,month,summaryJson:summary},
+    update:{summaryJson:summary}
+  });
+  revalidatePath('/reports');
+}
 
 export async function addSavingsGoal(fd:FormData){const uid=await userId(); await prisma.savingsGoal.create({data:{userId:uid,name:String(fd.get('name')),targetAmount:toNumber(fd.get('targetAmount')),deadline:fd.get('deadline')?new Date(String(fd.get('deadline'))):null,notes:String(fd.get('notes')||'')}}); revalidatePath('/savings'); revalidatePath('/dashboard');}
 export async function deleteSavingsGoal(fd:FormData){const uid=await userId(); await prisma.savingsGoal.delete({where:{id:String(fd.get('id')),userId:uid} as any}); revalidatePath('/savings'); revalidatePath('/dashboard');}
