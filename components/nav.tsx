@@ -26,9 +26,9 @@ const items = [
 export function Sidebar(){
   const p=usePathname();
   return (
-    <aside className="hide-mobile fixed inset-y-0 left-0 z-30 w-[276px] border-r border-premium-border-soft bg-premium-bg-dark p-4">
+    <aside className="hide-mobile fixed inset-y-0 left-0 z-30 w-[276px] border-r border-white/10 bg-[#070d19] p-4">
       {/* Logo Card */}
-      <div className="mb-6 rounded-2xl border border-premium-border-medium bg-gradient-to-br from-violet-500/20 via-white/[.04] to-emerald-400/10 p-4 shadow-lg">
+      <div className="mb-6 rounded-2xl border border-white/15 bg-gradient-to-br from-cyan-500/15 via-white/[.03] to-emerald-400/10 p-4 shadow-lg">
         <Logo className="w-full" />
       </div>
 
@@ -41,13 +41,13 @@ export function Sidebar(){
             className={cn(
               'group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-black transition-all duration-300',
               p.startsWith(h)
-                ? 'bg-violet-500/15 text-violet-200 ring-1 ring-violet-400/30 shadow-lg shadow-violet-500/10'
-                : 'text-premium-text-muted hover:bg-white/[.06] hover:text-premium-text'
+                ? 'bg-white/10 text-[#ecf3ff] ring-1 ring-white/15 shadow-lg shadow-cyan-500/10'
+                : 'text-[#94a4c0] hover:bg-white/[.06] hover:text-[#ecf3ff]'
             )}
           >
             <I size={18} className={cn(
               'transition-colors',
-              p.startsWith(h) ? 'text-violet-300' : 'text-premium-text-muted group-hover:text-violet-300'
+              p.startsWith(h) ? 'text-cyan-300' : 'text-[#94a4c0] group-hover:text-cyan-300'
             )}/>
             {n}
           </Link>
@@ -73,7 +73,7 @@ export function BottomNav(){
     <div className="md:hidden fixed top-4 left-4 z-40">
       <button 
         onClick={()=>setOpen(!open)} 
-        className="grid h-12 w-12 place-items-center rounded-xl bg-premium-card border border-premium-border-soft text-violet-200 hover:bg-premium-card-soft transition-all duration-300"
+        className="grid h-12 w-12 place-items-center rounded-xl bg-[#111a2c] border border-white/10 text-cyan-200 hover:bg-[#152239] transition-all duration-300"
       >
         <Menu size={22}/>
       </button>
@@ -86,7 +86,7 @@ export function BottomNav(){
     />}
     
     {/* Mobile Menu Drawer */}
-    {open&&<div className="md:hidden fixed inset-y-0 left-0 z-50 w-[280px] rounded-r-2xl border-r border-premium-border-soft bg-premium-bg-dark p-4 shadow-premium overflow-y-auto animate-in slide-in-from-left">
+    {open&&<div className="md:hidden fixed inset-y-0 left-0 z-50 w-[280px] rounded-r-2xl border-r border-white/10 bg-[#070d19] p-4 shadow-premium overflow-y-auto animate-in slide-in-from-left">
       <div className="flex items-center justify-between mb-6">
         <Logo className="flex-1" />
         <button 
@@ -107,13 +107,13 @@ export function BottomNav(){
             className={cn(
               'group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-black transition-all duration-300',
               p.startsWith(h)
-                ? 'bg-violet-500/15 text-violet-200 ring-1 ring-violet-400/30'
-                : 'text-premium-text-muted hover:bg-white/[.06] hover:text-premium-text'
+                ? 'bg-white/10 text-[#ecf3ff] ring-1 ring-white/15'
+                : 'text-[#94a4c0] hover:bg-white/[.06] hover:text-[#ecf3ff]'
             )}
           >
             <I size={18} className={cn(
               'transition-colors',
-              p.startsWith(h) ? 'text-violet-300' : 'text-premium-text-muted group-hover:text-violet-300'
+              p.startsWith(h) ? 'text-cyan-300' : 'text-[#94a4c0] group-hover:text-cyan-300'
             )}/>
             {n}
           </Link>

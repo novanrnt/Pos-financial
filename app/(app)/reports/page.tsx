@@ -47,18 +47,18 @@ export default async function Reports() {
                 </div>
 
                 {/* Cashflow Summary */}
-                <div className="grid grid-cols-3 gap-3 mb-5">
-                  <div className="soft-card rounded-2xl p-4 border border-premium-income/20">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+                  <div className="soft-card rounded-2xl p-4 border border-premium-income/20 min-w-0">
                     <p className="text-[10px] font-black text-premium-text-muted uppercase">Pemasukan</p>
-                    <p className="text-base font-black text-premium-income mt-1">{rupiah(s.income || 0)}</p>
+                    <p className="text-sm md:text-base font-black text-premium-income mt-1 break-words leading-tight">{rupiah(s.income || 0)}</p>
                   </div>
-                  <div className="soft-card rounded-2xl p-4 border border-premium-expense/20">
+                  <div className="soft-card rounded-2xl p-4 border border-premium-expense/20 min-w-0">
                     <p className="text-[10px] font-black text-premium-text-muted uppercase">Pengeluaran</p>
-                    <p className="text-base font-black text-premium-expense mt-1">{rupiah(s.expense || 0)}</p>
+                    <p className="text-sm md:text-base font-black text-premium-expense mt-1 break-words leading-tight">{rupiah(s.expense || 0)}</p>
                   </div>
-                  <div className="soft-card rounded-2xl p-4 border border-violet-500/20">
-                    <p className="text-[10px] font-black text-premium-text-muted uppercase">Profit</p>
-                    <p className={`text-base font-black mt-1 ${(s.profit||0)>=0?'text-premium-income':'text-premium-expense'}`}>{rupiah(s.profit || 0)}</p>
+                  <div className="soft-card rounded-2xl p-4 border border-violet-500/20 min-w-0">
+                    <p className="text-[10px] font-black text-premium-text-muted uppercase">Cashflow</p>
+                    <p className={`text-sm md:text-base font-black mt-1 break-words leading-tight ${(s.profit||0)>=0?'text-premium-income':'text-premium-expense'}`}>{rupiah(s.profit || 0)}</p>
                   </div>
                 </div>
 

@@ -8,7 +8,15 @@ import { toNumber, ym } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
 
 async function userId(){const u=await requireUser(); if(!u) redirect('/login'); return u.id;}
-async function assertOpen(uid:string,date:Date){const m=ym(date); const c=await prisma.monthlyClosing.findUnique({where:{userId_month:{userId:uid,month:m}}}); if(c) throw new Error(`Bulan ${m} sudah closing`);}
+async function assertOpen(uid:string,date:Date){
+  const m=ym(date);
+  const [monthly, annual] = await Promise.all([
+    prisma.monthlyClosing.findUnique({where:{userId_month:{userId:uid,month:m}}}),
+    prisma.annualClosing.findUnique({where:{userId_year:{userId:uid,year:date.getUTCFullYear()}}}),
+  ]);
+  if(monthly) throw new Error(`Bulan ${m} sudah closing`);
+  if(annual) throw new Error(`Tahun ${date.getUTCFullYear()} sudah closing`);
+}
 const defaultIncome=['Jual Mobil','Profit Mobil','Ngopseh','Fee Makelar','Komisi','Titip Jual','Gaji','Bonus','Investasi','Freelance','Lainnya'];
 const defaultExpense=['Operasional','Makan','BBM','Servis Mobil','Pajak','Cicilan','Tagihan','Belanja','Marketing','Transfer Keluarga','Investasi','Lainnya'];
 export async function createAdmin(fd:FormData){const count=await prisma.user.count(); if(count>0) redirect('/login'); const email=String(fd.get('email')); const password=String(fd.get('password')); const fullName=String(fd.get('fullName')||'Admin'); const user=await prisma.user.create({data:{email,fullName,passwordHash:await bcrypt.hash(password,10)}}); await createDefaultCategories(user.id); redirect('/login');}

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowDownRight, ArrowUpRight, CreditCard, TrendingUp, Zap, Utensils, Fuel, Wrench, Dumbbell, DollarSign, ShoppingCart, Home, Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee, ArrowRightLeft, Repeat, PiggyBank, Receipt, Car, LayoutGrid, AlertCircle, CalendarClock } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, CreditCard, TrendingUp, Utensils, Fuel, Wrench, Dumbbell, DollarSign, ShoppingCart, Home, Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee, ArrowRightLeft, Repeat, PiggyBank, Receipt, Car, LayoutGrid, AlertCircle, CalendarClock } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { rupiah, ym } from '@/lib/utils';
@@ -44,10 +44,12 @@ export default async function Dashboard(){
   if(!u.setupCompleted)redirect('/setup');
   const uid=u.id;
   const now=new Date();
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const compareStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
   const month=ym(now);
   const startYear=new Date(now.getFullYear(),0,1);
   const endYear=new Date(now.getFullYear(),11,31,23,59,59);
-  const [accounts,cars,debts,invest,allYear,bills,savingsGoals,recentTx,categories]=await Promise.all([
+  const [accounts,cars,debts,invest,allYear,bills,savingsGoals,recentTx,categories,compareTx]=await Promise.all([
     prisma.account.findMany({where:{userId:uid},orderBy:{isPrimary:'desc'}}),
     prisma.car.findMany({where:{userId:uid,status:'AVAILABLE'},include:{costs:true},orderBy:{createdAt:'desc'}}),
     prisma.debt.findMany({where:{userId:uid,status:'ACTIVE'},orderBy:{dueDate:'asc'},take:6}),
@@ -57,6 +59,7 @@ export default async function Dashboard(){
     prisma.savingsGoal.findMany({where:{userId:uid}}),
     prisma.transaction.findMany({where:{userId:uid},include:{category:true,account:true,transferToAccount:true},orderBy:{date:'desc'},take:8}),
     prisma.category.findMany({where:{userId:uid,isActive:true},orderBy:{name:'asc'}}),
+    prisma.transaction.findMany({where:{userId:uid,date:{gte:compareStart,lte:now}}}),
   ]);
 
   const cash=accounts.reduce((a,x)=>a+Number(x.balance),0);
@@ -72,7 +75,6 @@ export default async function Dashboard(){
   const expense=monthTx.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);
   const savings=income-expense;
   const netWorth=cash+carAsset+inv+rec+savings_total-debt;
-  const healthScore=Math.max(0,Math.min(100,Math.round((cash+inv+rec)/(Math.max(1,debt+expense))*25)));
   const chartData=months.map((m,i)=>{const list=allYear.filter(t=>t.date.getMonth()===i);const inc=list.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);const exp=list.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);return {name:m,income:inc,expense:exp,savings:inc-exp};});
   const netWorthGrowthData=months.slice(0,now.getMonth()+1).map((m,i)=>{
     const futureTx=allYear.filter(t=>t.date.getMonth()>i);
@@ -93,16 +95,34 @@ export default async function Dashboard(){
   const weeklyIncome=weeklyCashflowData.reduce((a,d)=>a+d.income,0);
   const weeklyExpense=weeklyCashflowData.reduce((a,d)=>a+d.expense,0);
   const weeklyNet=weeklyIncome-weeklyExpense;
+  const startOfToday = new Date(now); startOfToday.setHours(0,0,0,0);
+  const startLast7 = new Date(startOfToday); startLast7.setDate(startLast7.getDate() - 6);
+  const startPrev7 = new Date(startLast7); startPrev7.setDate(startPrev7.getDate() - 7);
+  const endPrev7 = new Date(startLast7); endPrev7.setMilliseconds(-1);
+  const last7Expense = compareTx.filter(t=>t.type==='EXPENSE'&&t.date>=startLast7&&t.date<=now).reduce((a,t)=>a+Number(t.amount),0);
+  const prev7Expense = compareTx.filter(t=>t.type==='EXPENSE'&&t.date>=startPrev7&&t.date<=endPrev7).reduce((a,t)=>a+Number(t.amount),0);
+  const dayOfMonth = now.getDate();
+  const monthStartNow = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthStartLast = new Date(lastMonthDate.getFullYear(), lastMonthDate.getMonth(), 1);
+  const lastMonthComparableEnd = new Date(lastMonthDate.getFullYear(), lastMonthDate.getMonth(), dayOfMonth, 23, 59, 59, 999);
+  const monthNowExpense = compareTx.filter(t=>t.type==='EXPENSE'&&t.date>=monthStartNow&&t.date<=now).reduce((a,t)=>a+Number(t.amount),0);
+  const monthLastExpense = compareTx.filter(t=>t.type==='EXPENSE'&&t.date>=monthStartLast&&t.date<=lastMonthComparableEnd).reduce((a,t)=>a+Number(t.amount),0);
+  const pct = (current:number, previous:number) => previous > 0 ? ((current - previous) / previous) * 100 : (current > 0 ? 100 : 0);
+  const last7Pct = pct(last7Expense, prev7Expense);
+  const monthPct = pct(monthNowExpense, monthLastExpense);
+  const todayDate = now.getDate();
+  const dueSoonBills = bills.filter(b => {
+    const delta = b.dueDay - todayDate;
+    return delta >= 0 && delta <= 3;
+  });
+  const criticalAccounts = accounts.filter(a => Number(a.balance) <= 0);
+  const cashCritical = cash < Math.max(1, expense * 0.2);
   const lastNetWorthPoint=netWorthGrowthData.length > 1 ? netWorthGrowthData[netWorthGrowthData.length - 2].netWorth : netWorth;
   const netWorthGrowthPct=lastNetWorthPoint?((netWorth-lastNetWorthPoint)/lastNetWorthPoint)*100:0;
   const expensePie=Object.values(monthTx.filter(t=>t.type==='EXPENSE'&&t.category).reduce((m:Record<string,{name:string;value:number}>,t)=>{const n=t.category!.name;m[n]={name:n,value:(m[n]?.value||0)+Number(t.amount)};return m},{}));
   const incomePie=Object.values(monthTx.filter(t=>t.type==='INCOME'&&t.category).reduce((m:Record<string,{name:string;value:number}>,t)=>{const n=t.category!.name;m[n]={name:n,value:(m[n]?.value||0)+Number(t.amount)};return m},{}));
   const topExpenseCategory=expensePie.slice().sort((a,b)=>b.value-a.value)[0];
   const topIncomeCategory=incomePie.slice().sort((a,b)=>b.value-a.value)[0];
-
-  // Get largest single expense and income transactions
-  const largestExpense = monthTx.filter(t => t.type === 'EXPENSE').sort((a, b) => Number(b.amount) - Number(a.amount))[0];
-  const largestIncome = monthTx.filter(t => t.type === 'INCOME').sort((a, b) => Number(b.amount) - Number(a.amount))[0];
 
   // Today's transactions
   const today=new Date(); today.setHours(0,0,0,0);
@@ -129,6 +149,40 @@ export default async function Dashboard(){
         <Badge variant="default" className="mb-3">Financial • POS Finance</Badge>
         <h1 className="text-3xl md:text-4xl font-black text-premium-text tracking-tight">~ Hai, {u.fullName || 'Owner'}.</h1>
         <p className="mt-2 text-sm text-premium-text-muted">Track smarter, invest wiser, dan pantau semua cashflow dari satu dashboard premium.</p>
+      </div>
+    </div>
+
+    {/* Prioritas Hari Ini */}
+    <div className="glass-premium rounded-3xl p-6 md:p-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg md:text-xl font-black text-premium-text">Prioritas Hari Ini</h2>
+        <Badge variant="default" className="text-xs">Maks 3 Fokus</Badge>
+      </div>
+      <div className="grid md:grid-cols-3 gap-3">
+        <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+          <p className="text-xs font-black text-premium-text-muted uppercase">Pengeluaran 7 Hari</p>
+          <p className={`text-base font-black mt-1 flex items-center gap-1 ${last7Pct > 0 ? 'text-premium-expense' : 'text-premium-income'}`}>
+            {last7Pct > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+            {last7Pct > 0 ? '+' : ''}{last7Pct.toFixed(1)}%
+          </p>
+          <p className="text-xs text-premium-text-muted mt-1">{rupiah(last7Expense)} vs {rupiah(prev7Expense)}</p>
+        </div>
+        <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+          <p className="text-xs font-black text-premium-text-muted uppercase">Tagihan Dekat Jatuh Tempo</p>
+          <p className={`text-base font-black mt-1 flex items-center gap-1 ${dueSoonBills.length > 0 ? 'text-premium-expense' : 'text-premium-income'}`}>
+            {dueSoonBills.length > 0 ? <AlertCircle size={14} /> : <ArrowDownRight size={14} />}
+            {dueSoonBills.length} tagihan
+          </p>
+          <p className="text-xs text-premium-text-muted mt-1">{dueSoonBills.length > 0 ? 'Jatuh tempo <= 3 hari' : 'Aman untuk 3 hari ke depan'}</p>
+        </div>
+        <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+          <p className="text-xs font-black text-premium-text-muted uppercase">Saldo Kritis</p>
+          <p className={`text-base font-black mt-1 flex items-center gap-1 ${(criticalAccounts.length > 0 || cashCritical) ? 'text-premium-expense' : 'text-premium-income'}`}>
+            {(criticalAccounts.length > 0 || cashCritical) ? <AlertCircle size={14} /> : <ArrowDownRight size={14} />}
+            {criticalAccounts.length} akun kritis
+          </p>
+          <p className="text-xs text-premium-text-muted mt-1">{cashCritical ? 'Kas relatif tipis terhadap pengeluaran bulan ini' : 'Kas masih sehat'}</p>
+        </div>
       </div>
     </div>
 
@@ -311,68 +365,39 @@ export default async function Dashboard(){
       {/* Quick Insights */}
       <div className="glass-premium rounded-3xl p-6 md:p-8">
         <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Insight Cepat</h3>
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
             <div>
-              <p className="text-xs font-black text-premium-text-muted uppercase">Health Score</p>
-              <p className="text-xl font-black text-violet-300 mt-1">{healthScore}/100</p>
+              <p className="text-xs font-black text-premium-text-muted uppercase">Top Expense</p>
+              <p className="text-base font-black text-premium-expense mt-1">{topExpenseCategory?.name || '-'}</p>
+              <p className="text-xs text-premium-text-muted">{rupiah(topExpenseCategory?.value || 0)}</p>
             </div>
-            <Zap size={20} className="text-violet-300 opacity-50" />
+            <div className="text-premium-expense opacity-50">{topExpenseCategory ? getCategoryIcon(topExpenseCategory.name) : <ArrowDownRight size={18} />}</div>
           </div>
           <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
             <div>
-              <p className="text-xs font-black text-premium-text-muted uppercase">Hutang Aktif</p>
-              <p className={`text-xl font-black mt-1 ${debt > 0 ? 'text-premium-expense' : 'text-premium-income'}`}>{rupiah(debt)}</p>
+              <p className="text-xs font-black text-premium-text-muted uppercase">Top Income</p>
+              <p className="text-base font-black text-premium-income mt-1">{topIncomeCategory?.name || '-'}</p>
+              <p className="text-xs text-premium-text-muted">{rupiah(topIncomeCategory?.value || 0)}</p>
             </div>
-            <CreditCard size={20} className={debt > 0 ? 'text-premium-expense opacity-50' : 'text-premium-income opacity-50'} />
+            <div className="text-premium-income opacity-50">{topIncomeCategory ? getCategoryIcon(topIncomeCategory.name) : <ArrowUpRight size={18} />}</div>
           </div>
-          <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black text-premium-text-muted uppercase">Piutang Aktif</p>
-              <p className="text-xl font-black text-premium-income mt-1">{rupiah(rec)}</p>
-            </div>
-            <ArrowUpRight size={20} className="text-premium-income opacity-50" />
+          <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+            <p className="text-xs font-black text-premium-text-muted uppercase">7D vs Prev 7D</p>
+            <p className={`text-base font-black mt-1 flex items-center gap-1 ${last7Pct > 0 ? 'text-premium-expense' : 'text-premium-income'}`}>
+              {last7Pct > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+              {last7Pct > 0 ? '+' : ''}{last7Pct.toFixed(1)}%
+            </p>
+            <p className="text-xs text-premium-text-muted mt-1">{rupiah(last7Expense)} vs {rupiah(prev7Expense)}</p>
           </div>
-          {topExpenseCategory && (
-            <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
-              <div>
-                <p className="text-xs font-black text-premium-text-muted uppercase">Top Pengeluaran</p>
-                <p className="text-base font-black text-premium-expense mt-1">{topExpenseCategory.name}</p>
-                <p className="text-xs text-premium-text-muted">{rupiah(topExpenseCategory.value)}</p>
-              </div>
-              <div className="text-premium-expense opacity-50">{getCategoryIcon(topExpenseCategory.name)}</div>
-            </div>
-          )}
-          {topIncomeCategory && (
-            <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
-              <div>
-                <p className="text-xs font-black text-premium-text-muted uppercase">Top Pemasukan</p>
-                <p className="text-base font-black text-premium-income mt-1">{topIncomeCategory.name}</p>
-                <p className="text-xs text-premium-text-muted">{rupiah(topIncomeCategory.value)}</p>
-              </div>
-              <div className="text-premium-income opacity-50">{getCategoryIcon(topIncomeCategory.name)}</div>
-            </div>
-          )}
-          {largestExpense && (
-            <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
-              <div>
-                <p className="text-xs font-black text-premium-text-muted uppercase">Pengeluaran Terbesar</p>
-                <p className="text-base font-black text-premium-expense mt-1">{largestExpense.category?.name || 'Lainnya'}</p>
-                <p className="text-xs text-premium-text-muted">{rupiah(Number(largestExpense.amount))}</p>
-              </div>
-              <div className="text-premium-expense opacity-50">{getCategoryIcon(largestExpense.category?.name || '')}</div>
-            </div>
-          )}
-          {largestIncome && (
-            <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
-              <div>
-                <p className="text-xs font-black text-premium-text-muted uppercase">Pemasukan Terbesar</p>
-                <p className="text-base font-black text-premium-income mt-1">{largestIncome.category?.name || 'Lainnya'}</p>
-                <p className="text-xs text-premium-text-muted">{rupiah(Number(largestIncome.amount))}</p>
-              </div>
-              <div className="text-premium-income opacity-50">{getCategoryIcon(largestIncome.category?.name || '')}</div>
-            </div>
-          )}
+          <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+            <p className="text-xs font-black text-premium-text-muted uppercase">MTD vs Last Month</p>
+            <p className={`text-base font-black mt-1 flex items-center gap-1 ${monthPct > 0 ? 'text-premium-expense' : 'text-premium-income'}`}>
+              {monthPct > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+              {monthPct > 0 ? '+' : ''}{monthPct.toFixed(1)}%
+            </p>
+            <p className="text-xs text-premium-text-muted mt-1">{rupiah(monthNowExpense)} vs {rupiah(monthLastExpense)}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -380,11 +405,14 @@ export default async function Dashboard(){
     {/* Tagihan Mendatang + Hutang Piutang */}
     <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
       {/* Tagihan Mendatang */}
-      <div className="glass-premium rounded-3xl p-6 md:p-8">
-        <div className="flex items-center justify-between mb-5">
+      <details open className="glass-premium rounded-3xl p-6 md:p-8 group">
+        <summary className="list-none cursor-pointer flex items-center justify-between mb-5">
           <h3 className="text-base font-black text-premium-text flex items-center gap-2">
             <Receipt size={18} className="text-rose-400" /> Tagihan Mendatang
           </h3>
+          <p className="text-xs font-black text-rose-300">{bills.length} item</p>
+        </summary>
+        <div className="mb-4 -mt-2">
           <Link href="/bills" className="text-xs font-black text-violet-300 hover:text-violet-200 transition">Semua →</Link>
         </div>
         {bills.length === 0 ? (
@@ -411,14 +439,17 @@ export default async function Dashboard(){
             </div>
           </div>
         )}
-      </div>
+      </details>
 
       {/* Hutang & Piutang */}
-      <div className="glass-premium rounded-3xl p-6 md:p-8">
-        <div className="flex items-center justify-between mb-5">
+      <details open className="glass-premium rounded-3xl p-6 md:p-8 group">
+        <summary className="list-none cursor-pointer flex items-center justify-between mb-5">
           <h3 className="text-base font-black text-premium-text flex items-center gap-2">
             <CreditCard size={18} className="text-orange-400" /> Hutang & Piutang
           </h3>
+          <p className="text-xs font-black text-orange-300">{debts.length} item</p>
+        </summary>
+        <div className="mb-4 -mt-2">
           <Link href="/debts" className="text-xs font-black text-violet-300 hover:text-violet-200 transition">Semua →</Link>
         </div>
         {debts.length === 0 ? (
@@ -461,17 +492,20 @@ export default async function Dashboard(){
             </div>
           </div>
         )}
-      </div>
+      </details>
     </div>
 
     {/* Recent Transactions - grouped by date like screenshot */}
-    <div>
-      <div className="flex items-center justify-between mb-4">
+    <details open className="group">
+      <summary className="list-none cursor-pointer flex items-center justify-between mb-4">
         <h3 className="text-base font-black text-premium-text">Transaksi Terakhir</h3>
         <div className="flex items-center gap-3">
-          <TransactionFormButton accounts={accounts} categories={categories} label="+ Tambah" />
-          <Link href="/transactions" className="text-xs font-black text-violet-300 hover:text-violet-200 transition">Semua →</Link>
+          <p className="text-xs font-black text-violet-300">{recentTx.length} transaksi</p>
         </div>
+      </summary>
+      <div className="flex items-center justify-between mb-4 -mt-2">
+        <TransactionFormButton accounts={accounts} categories={categories} label="+ Tambah" />
+        <Link href="/transactions" className="text-xs font-black text-violet-300 hover:text-violet-200 transition">Semua →</Link>
       </div>
 
       {recentTx.length === 0 ? (
@@ -560,7 +594,7 @@ export default async function Dashboard(){
           </div>
         );
       })()}
-    </div>
+    </details>
 
     {/* FAB - Mobile floating button */}
     <TransactionFormButton accounts={accounts} categories={categories} variant="fab" />
