@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { Car, CreditCard, FileText, Home, Layers, LogOut, PiggyBank, Receipt, Repeat, Settings, WalletCards, Plus, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { Logo } from './logo';
 
 const items = [
   ['Dashboard','/dashboard',Home],
@@ -25,13 +26,7 @@ export function Sidebar(){
     <aside className="hide-mobile fixed inset-y-0 left-0 z-30 w-[276px] border-r border-premium-border-soft bg-premium-bg-dark p-4">
       {/* Logo Card */}
       <div className="mb-6 rounded-2xl border border-premium-border-medium bg-gradient-to-br from-violet-500/20 via-white/[.04] to-emerald-400/10 p-4 shadow-lg">
-        <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-xl bg-violet-500/20 text-violet-200 font-black text-lg">P</div>
-          <div>
-            <div className="text-xl font-black tracking-tight text-premium-text">POS</div>
-            <div className="text-[11px] text-premium-text-muted">Finance OS</div>
-          </div>
-        </div>
+        <Logo className="w-full" />
       </div>
 
       {/* Navigation */}
@@ -90,13 +85,10 @@ export function BottomNav(){
     {/* Mobile Menu Drawer */}
     {open&&<div className="md:hidden fixed inset-y-0 left-0 z-50 w-[280px] rounded-r-2xl border-r border-premium-border-soft bg-premium-bg-dark p-4 shadow-premium overflow-y-auto animate-in slide-in-from-left">
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <div className="text-xl font-black tracking-tight text-premium-text">Menu</div>
-          <div className="text-[11px] text-premium-text-muted">Navigasi</div>
-        </div>
+        <Logo className="flex-1" />
         <button 
           onClick={()=>setOpen(false)} 
-          className="grid h-10 w-10 place-items-center rounded-lg hover:bg-white/[.06] transition"
+          className="grid h-10 w-10 place-items-center rounded-lg hover:bg-white/[.06] transition shrink-0"
         >
           <X size={20}/>
         </button>
