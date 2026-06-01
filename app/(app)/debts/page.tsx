@@ -86,7 +86,7 @@ export default async function Debts() {
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-sm font-black text-rose-400">{rupiah(Number(debt.remainingAmount))}</p>
-                    <p className="text-xs text-premium-text-muted">dari {rupiah(Number(debt.originalAmount))}</p>
+                    <p className="text-xs text-premium-text-muted">dari {rupiah(Number(debt.amount))}</p>
                   </div>
                   <form action={deleteDebt}>
                     <input type="hidden" name="id" value={debt.id} />
@@ -129,7 +129,7 @@ export default async function Debts() {
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-sm font-black text-emerald-400">{rupiah(Number(receivable.remainingAmount))}</p>
-                    <p className="text-xs text-premium-text-muted">dari {rupiah(Number(receivable.originalAmount))}</p>
+                    <p className="text-xs text-premium-text-muted">dari {rupiah(Number(receivable.amount))}</p>
                   </div>
                   <form action={deleteDebt}>
                     <input type="hidden" name="id" value={receivable.id} />
