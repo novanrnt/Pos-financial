@@ -45,7 +45,7 @@ export function TransactionFormButton({
           onClick={() => setOpen(true)}
           className="floating-action-button md:hidden fixed z-40 grid h-[70px] w-[70px] place-items-center rounded-full bg-[#E9EDF5] text-[#11151C] shadow-[0_18px_40px_rgba(0,0,0,0.45)] hover:scale-105 transition-transform duration-200 active:scale-95"
           style={{
-            bottom: 'calc(24px + env(safe-area-inset-bottom))',
+            bottom: 'calc(96px + env(safe-area-inset-bottom))',
             right: '18px',
           }}
         >

@@ -70,7 +70,7 @@ export function BottomNav(){
   
   return <>
     {/* Mobile Menu Button */}
-    <div className="md:hidden fixed top-4 left-4 z-40">
+    <div className="md:hidden fixed z-40" style={{ top: 'calc(12px + env(safe-area-inset-top))', left: '16px' }}>
       <button 
         onClick={()=>setOpen(!open)} 
         className="grid h-12 w-12 place-items-center rounded-xl bg-[#111a2c] border border-white/10 text-cyan-200 hover:bg-[#152239] transition-all duration-300"
