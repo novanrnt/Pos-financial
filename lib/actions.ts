@@ -261,10 +261,36 @@ export async function closeAnnual(fd:FormData){
     closedAt:new Date().toISOString(),
   };
 
+  const totalAssets=
+    accounts.reduce((a,x)=>a+Number(x.balance),0)+
+    totalCarModal+
+    investmentDetails.reduce((a,i)=>a+i.balance,0)+
+    savingsDetails.reduce((a,g)=>a+g.savedAmount,0)+
+    receivableDetails.reduce((a,d)=>a+d.remaining,0);
+  const totalLiabilities=debtDetails.reduce((a,d)=>a+d.remaining,0);
+
   await prisma.annualClosing.upsert({
     where:{userId_year:{userId:uid,year}},
-    create:{userId:uid,year,summaryJson:summary},
-    update:{summaryJson:summary}
+    create:{
+      userId:uid,
+      year,
+      totalIncome:income,
+      totalExpense:expense,
+      netIncome:income-expense,
+      totalAssets,
+      totalLiabilities,
+      taxPaid:0,
+      summaryJson:summary
+    },
+    update:{
+      totalIncome:income,
+      totalExpense:expense,
+      netIncome:income-expense,
+      totalAssets,
+      totalLiabilities,
+      taxPaid:0,
+      summaryJson:summary
+    }
   });
 
   revalidatePath('/reports/annual');
