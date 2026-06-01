@@ -11,14 +11,24 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
 body{
   min-height:100vh;
+  min-height:100dvh;
   background:#090C12;
   color:#F1F3F7;
   font-feature-settings:'cv02','cv03','cv04','cv11';
   font-family:'Plus Jakarta Sans','Inter',system-ui,sans-serif;
   letter-spacing:-0.01em;
   padding-bottom:var(--safe-area-inset-bottom);
+  overflow-x:hidden;
 }
 
 body:before{
@@ -55,9 +65,23 @@ input,select,textarea{
   outline:none;
   color:#F1F3F7;
   transition:all 0.3s ease;
-  font-size:0.95rem;
+  font-size:16px;
   font-family:inherit;
 }
+
+button, a { -webkit-tap-highlight-color: transparent; }
+
+.app-shell {
+  min-height: 100dvh;
+  background: #090C12;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(110px + env(safe-area-inset-bottom));
+}
+
+.ios-safe-top { padding-top: env(safe-area-inset-top); }
+.ios-safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
+.floating-action-button { bottom: calc(24px + env(safe-area-inset-bottom)); }
 
 input::placeholder,textarea::placeholder{
   color:#7F8490;
@@ -342,6 +366,17 @@ label{
 /* Utilities */
 .hide-scroll::-webkit-scrollbar{display:none}
 .hide-scroll{-ms-overflow-style:none;scrollbar-width:none}
+
+/* Safer defaults for mobile overflow */
+.glass-premium,
+.soft-card{
+  min-width:0;
+}
+
+.text-guard{
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
 
 /* Premium Animations */
 @keyframes slideInFromLeft{

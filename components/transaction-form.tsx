@@ -43,13 +43,13 @@ export function TransactionFormButton({
       {variant === 'fab' ? (
         <button
           onClick={() => setOpen(true)}
-          className="md:hidden fixed z-40 grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-lg shadow-violet-500/30 hover:scale-105 transition-transform duration-300 active:scale-95"
+          className="floating-action-button md:hidden fixed z-40 grid h-[70px] w-[70px] place-items-center rounded-full bg-[#E9EDF5] text-[#11151C] shadow-[0_18px_40px_rgba(0,0,0,0.45)] hover:scale-105 transition-transform duration-200 active:scale-95"
           style={{
-            bottom: 'calc(1rem + var(--safe-area-inset-bottom) + 5rem)',
-            right: '1rem',
+            bottom: 'calc(24px + env(safe-area-inset-bottom))',
+            right: '18px',
           }}
         >
-          <Plus size={24} />
+          <Plus size={28} />
         </button>
       ) : (
         <button onClick={() => setOpen(true)} className="btn btn-primary gap-2">
