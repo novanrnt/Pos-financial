@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
-import { addAccount, deleteAccount } from '@/lib/actions';
+import { deleteAccount } from '@/lib/actions';
 import { Badge, SubmitButton } from '@/components/ui';
 import { rupiah } from '@/lib/utils';
 import { Wallet, Building2, Smartphone, Banknote, Package, Star, Trash2, Plus, ArrowDownRight, PiggyBank, CreditCard, Receipt } from 'lucide-react';
+import { AccountFormModal } from '@/components/account-form-modal';
 
 const typeConfig = {
   BANK:    { label: 'Akun Bank',        icon: Building2,   color: 'bg-blue-500/20 text-blue-400',    border: 'border-blue-500/20' },
@@ -36,11 +37,7 @@ export default async function Accounts() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-black text-premium-text">Dompet Saya</h1>
-        <form action={addAccount}>
-          <button type="submit" className="grid h-10 w-10 place-items-center rounded-xl bg-white/[.06] hover:bg-white/[.10] transition text-premium-text">
-            <Plus size={20} />
-          </button>
-        </form>
+        <AccountFormModal />
       </div>
 
       {/* Hero Summary Card */}
@@ -161,37 +158,7 @@ export default async function Accounts() {
       )}
 
       {/* Add Account Form */}
-      <div className="glass-premium rounded-3xl p-6">
-        <h2 className="text-base font-black text-premium-text mb-5 flex items-center gap-2">
-          <Plus size={18} className="text-violet-300" /> Tambah Rekening
-        </h2>
-        <form action={addAccount} className="space-y-4">
-          <div>
-            <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">Nama Rekening</label>
-            <input name="name" placeholder="BCA Utama, GoPay, dll..." required className="input w-full" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">Tipe</label>
-              <select name="type" className="input w-full">
-                <option value="BANK">Bank</option>
-                <option value="EWALLET">E-Wallet</option>
-                <option value="CASH">Cash</option>
-                <option value="OTHER">Lainnya</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">Saldo Awal</label>
-              <input name="initialBalance" placeholder="0" type="number" required className="input w-full" />
-            </div>
-          </div>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" name="isPrimary" className="w-4 h-4 rounded" />
-            <span className="text-sm font-black text-premium-text-muted">Jadikan rekening utama</span>
-          </label>
-          <SubmitButton>Tambah Rekening</SubmitButton>
-        </form>
-      </div>
+      {/* Removed - now using modal */}
     </div>
   );
 }

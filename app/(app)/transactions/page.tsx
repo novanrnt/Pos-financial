@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
-import { addTransaction, deleteTransaction } from '@/lib/actions';
+import { deleteTransaction } from '@/lib/actions';
 import { Card, PageTitle, SubmitButton, Badge, SectionHeader } from '@/components/ui';
 import { rupiah, todayInput } from '@/lib/utils';
 import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Trash2 } from 'lucide-react';
+import { TransactionFormButton } from '@/components/transaction-form';
 
 export default async function Transactions() {
   const u = await requireUser();
@@ -33,8 +34,11 @@ export default async function Transactions() {
 
   return (
     <>
-      <PageTitle title="Transaksi" desc="Pemasukan, pengeluaran, transfer, hutang/piutang, dan saldo otomatis." />
-      <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="flex items-center justify-between mb-6">
+        <PageTitle title="Transaksi" desc="Pemasukan, pengeluaran, transfer, hutang/piutang, dan saldo otomatis." />
+        <TransactionFormButton accounts={accounts} categories={cats} label="+ Tambah" />
+      </div>
+      <div className="grid gap-6 lg:grid-cols-1">
         {/* Transactions List */}
         <div className="space-y-6">
           {Object.entries(groupedEntries).length === 0 ? (
@@ -141,73 +145,6 @@ export default async function Transactions() {
               </div>
             ))
           )}
-        </div>
-
-        {/* Form Sidebar */}
-        <div className="lg:sticky lg:top-24 h-fit">
-          <Card variant="premium" className="p-6">
-            <SectionHeader title="Tambah Transaksi" />
-            <form action={addTransaction} className="space-y-4 mt-4">
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Tipe</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="type" value="INCOME" defaultChecked className="w-4 h-4" />
-                    <span className="text-xs font-black">Masuk</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="type" value="EXPENSE" className="w-4 h-4" />
-                    <span className="text-xs font-black">Keluar</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="type" value="TRANSFER" className="w-4 h-4" />
-                    <span className="text-xs font-black">Transfer</span>
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Dari Rekening</label>
-                <select name="accountId" required className="w-full">
-                  <option value="">Pilih rekening</option>
-                  {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Ke Rekening (Transfer)</label>
-                <select name="transferToAccountId" className="w-full">
-                  <option value="">Tujuan transfer</option>
-                  {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Kategori</label>
-                <select name="categoryId" className="w-full">
-                  <option value="">Pilih kategori</option>
-                  {cats.map(c => <option key={c.id} value={c.id}>{c.type} - {c.name}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Nominal</label>
-                <input name="amount" placeholder="0" type="number" required className="w-full" />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Tanggal</label>
-                <input name="date" type="date" defaultValue={todayInput()} required className="w-full" />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Catatan</label>
-                <textarea name="description" placeholder="Opsional" className="w-full" />
-              </div>
-
-              <SubmitButton>Simpan Transaksi</SubmitButton>
-            </form>
-          </Card>
         </div>
       </div>
     </>

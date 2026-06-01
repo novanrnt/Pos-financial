@@ -4,7 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { rupiah } from '@/lib/utils';
 import { Card, Badge, SubmitButton } from '@/components/ui';
-import { addSavingsGoal, depositSavings, withdrawSavings, deleteSavingsGoal } from '@/lib/actions';
+import { depositSavings, withdrawSavings, deleteSavingsGoal } from '@/lib/actions';
+import { SavingsGoalModal } from '@/components/savings-goal-modal';
 
 export default async function SavingsPage() {
   const u = await requireUser();
@@ -37,6 +38,11 @@ export default async function SavingsPage() {
         </div>
       </div>
 
+      {/* Action Button */}
+      <div className="flex justify-end">
+        <SavingsGoalModal />
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <div className="glass-premium rounded-2xl p-4 border border-violet-500/20">
@@ -57,33 +63,7 @@ export default async function SavingsPage() {
         </div>
       </div>
 
-      {/* Add Goal Form */}
-      <div className="glass-premium rounded-3xl p-6 md:p-8">
-        <h2 className="text-lg font-black text-premium-text mb-6 flex items-center gap-2">
-          <Plus size={20} className="text-violet-300" /> Buat Goal Tabungan
-        </h2>
-        <form action={addSavingsGoal} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">Nama Goal</label>
-            <input name="name" required placeholder="Contoh: DP Rumah, Liburan Bali..." className="input w-full" />
-          </div>
-          <div>
-            <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">Target Nominal</label>
-            <input name="targetAmount" type="number" required placeholder="0" className="input w-full" />
-          </div>
-          <div>
-            <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">Deadline (opsional)</label>
-            <input name="deadline" type="date" className="input w-full" />
-          </div>
-          <div>
-            <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">Catatan</label>
-            <input name="notes" placeholder="Catatan..." className="input w-full" />
-          </div>
-          <div className="sm:col-span-2">
-            <SubmitButton>Buat Goal</SubmitButton>
-          </div>
-        </form>
-      </div>
+
 
       {/* Active Goals */}
       {activeGoals.length > 0 && (

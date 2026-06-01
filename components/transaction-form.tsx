@@ -43,7 +43,11 @@ export function TransactionFormButton({
       {variant === 'fab' ? (
         <button
           onClick={() => setOpen(true)}
-          className="md:hidden fixed bottom-24 right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-lg shadow-violet-500/30 hover:scale-105 transition-transform duration-300 active:scale-95"
+          className="md:hidden fixed z-40 grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-lg shadow-violet-500/30 hover:scale-105 transition-transform duration-300 active:scale-95"
+          style={{
+            bottom: 'calc(1rem + var(--safe-area-inset-bottom) + 5rem)',
+            right: '1rem',
+          }}
         >
           <Plus size={24} />
         </button>

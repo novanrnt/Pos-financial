@@ -1,10 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
-import { addCar, addCarCost, sellCar } from '@/lib/actions';
+import { addCarCost, sellCar } from '@/lib/actions';
 import { Card, PageTitle, SubmitButton, SectionHeader, Badge } from '@/components/ui';
 import { DeleteCarButton } from '@/components/delete-car-button';
 import { rupiah, todayInput } from '@/lib/utils';
-import { Car, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { Car, TrendingUp, TrendingDown, AlertCircle, Plus } from 'lucide-react';
+import { CarFormModal } from '@/components/car-form-modal';
 
 export default async function Cars() {
   const u = await requireUser();
@@ -19,9 +20,12 @@ export default async function Cars() {
 
   return (
     <>
-      <PageTitle title="Stok Mobil" desc="Modal, biaya, foto URL, profit/rugi, dan jual mobil otomatis masuk rekening." />
+      <div className="flex items-center justify-between mb-6">
+        <PageTitle title="Stok Mobil" desc="Modal, biaya, foto URL, profit/rugi, dan jual mobil otomatis masuk rekening." />
+        <CarFormModal accounts={accounts} />
+      </div>
       
-      <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="grid gap-6 lg:grid-cols-1">
         {/* Cars List */}
         <div className="space-y-6">
           {/* Available Cars */}
@@ -183,66 +187,6 @@ export default async function Cars() {
               <p className="text-xs text-premium-text-muted mt-2">Tambahkan mobil pertama kamu untuk mulai tracking stok.</p>
             </Card>
           )}
-        </div>
-
-        {/* Add Car Form */}
-        <div className="lg:sticky lg:top-24 h-fit">
-          <Card variant="premium" className="p-6">
-            <SectionHeader title="Tambah Mobil" />
-            <form action={addCar} className="space-y-4 mt-4">
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Nama Mobil</label>
-                <input name="name" placeholder="Honda CR-V 2.4 AT 2010" required className="w-full" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <input name="brand" placeholder="Merek" className="w-full" />
-                <input name="model" placeholder="Tipe" className="w-full" />
-                <input name="year" placeholder="Tahun" type="number" className="w-full" />
-                <input name="color" placeholder="Warna" className="w-full" />
-                <input name="transmission" placeholder="Transmisi" className="w-full" />
-                <input name="licensePlate" placeholder="Nopol" className="w-full" />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Harga Beli</label>
-                <input name="purchasePrice" placeholder="0" type="number" required className="w-full" />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Est. Harga Jual</label>
-                <input name="estimatedSellPrice" placeholder="0" type="number" className="w-full" />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Rekening Pembayaran</label>
-                <select name="accountId" className="w-full">
-                  <option value="">Pilih rekening</option>
-                  {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
-              </div>
-
-              <div className="bg-premium-income/10 border border-premium-income/20 rounded-2xl p-4">
-                <p className="text-xs font-black text-premium-income uppercase mb-2">💰 Modal Saya</p>
-                <input name="myMoney" placeholder="Uang saya untuk beli mobil" type="number" className="w-full" />
-                <p className="text-[10px] text-premium-text-muted mt-2">Nominal ini akan dipotong dari rekening</p>
-              </div>
-
-              <div className="bg-premium-expense/10 border border-premium-expense/20 rounded-2xl p-4">
-                <p className="text-xs font-black text-premium-expense uppercase mb-2">🏦 Pinjaman (Opsional)</p>
-                <input name="debtName" placeholder="Nama pemberi pinjaman" className="w-full" />
-                <input name="debtAmount" placeholder="Nominal pinjaman" type="number" className="w-full mt-2" />
-                <p className="text-[10px] text-premium-text-muted mt-2">Total modal = Uang saya + Pinjaman</p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Catatan</label>
-                <textarea name="notes" placeholder="Catatan tambahan" className="w-full" />
-              </div>
-
-              <SubmitButton>Tambah Mobil</SubmitButton>
-            </form>
-          </Card>
         </div>
       </div>
     </>

@@ -164,7 +164,7 @@ export default async function Dashboard(){
     {/* Quick Menu - di atas periode */}
     <div>
       <h3 className="text-base font-black text-premium-text mb-4">Menu</h3>
-      <div className="flex gap-4 overflow-x-auto pb-2 hide-scroll">
+      <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-7 gap-3 md:gap-4">
         {[
           { label: 'Transaksi', href: '/transactions', icon: Repeat, color: 'bg-violet-500/20 text-violet-300' },
           { label: 'Tabungan', href: '/savings', icon: PiggyBank, color: 'bg-emerald-500/20 text-emerald-400' },
@@ -174,11 +174,11 @@ export default async function Dashboard(){
           { label: 'Investasi', href: '/investments', icon: TrendingUp, color: 'bg-cyan-500/20 text-cyan-400' },
           { label: 'Laporan', href: '/reports', icon: LayoutGrid, color: 'bg-purple-500/20 text-purple-400' },
         ].map(item => (
-          <Link key={item.href} href={item.href} className="flex flex-col items-center gap-2 shrink-0 group">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${item.color} border border-white/[.08] group-hover:scale-105 transition-transform duration-200`}>
-              <item.icon size={22} />
+          <Link key={item.href} href={item.href} className="flex flex-col items-center gap-2 group">
+            <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center ${item.color} border border-white/[.08] group-hover:scale-105 transition-transform duration-200`}>
+              <item.icon size={28} className="md:w-8 md:h-8" />
             </div>
-            <span className="text-xs font-black text-premium-text-muted group-hover:text-premium-text transition-colors">{item.label}</span>
+            <span className="text-xs font-black text-premium-text-muted group-hover:text-premium-text transition-colors text-center">{item.label}</span>
           </Link>
         ))}
       </div>
@@ -229,6 +229,64 @@ export default async function Dashboard(){
         <p className="text-2xl md:text-3xl font-black text-premium-income">{rupiah(totalAssets)}</p>
       </div>
     </Card>
+
+    {/* Category Breakdown */}
+    <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
+      <div className="glass-premium rounded-3xl p-6 md:p-8">
+        <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Pemasukan per Kategori</h3>
+        {incomePie.length > 0 ? (
+          <div className="space-y-3">
+            {incomePie.slice().sort((a,b)=>b.value-a.value).map((cat, idx) => {
+              const percent = income > 0 ? (cat.value / income) * 100 : 0;
+              return (
+                <div key={idx} className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="text-premium-income opacity-70">{getCategoryIcon(cat.name)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-black text-premium-text truncate">{cat.name}</p>
+                      <p className="text-xs text-premium-text-muted">{rupiah(cat.value)}</p>
+                    </div>
+                    <p className="text-xs font-black text-premium-text-muted shrink-0">{Math.round(percent)}%</p>
+                  </div>
+                  <div className="h-1.5 bg-white/[.04] rounded-full overflow-hidden">
+                    <div className="h-full bg-premium-income rounded-full" style={{ width: `${Math.min(percent, 100)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-premium-text-muted text-center py-8">Belum ada pemasukan bulan ini</p>
+        )}
+      </div>
+      <div className="glass-premium rounded-3xl p-6 md:p-8">
+        <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Pengeluaran per Kategori</h3>
+        {expensePie.length > 0 ? (
+          <div className="space-y-3">
+            {expensePie.slice().sort((a,b)=>b.value-a.value).map((cat, idx) => {
+              const percent = expense > 0 ? (cat.value / expense) * 100 : 0;
+              return (
+                <div key={idx} className="soft-card rounded-2xl p-4 border border-premium-border-soft">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="text-premium-expense opacity-70">{getCategoryIcon(cat.name)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-black text-premium-text truncate">{cat.name}</p>
+                      <p className="text-xs text-premium-text-muted">{rupiah(cat.value)}</p>
+                    </div>
+                    <p className="text-xs font-black text-premium-text-muted shrink-0">{Math.round(percent)}%</p>
+                  </div>
+                  <div className="h-1.5 bg-white/[.04] rounded-full overflow-hidden">
+                    <div className="h-full bg-premium-expense rounded-full" style={{ width: `${Math.min(percent, 100)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-premium-text-muted text-center py-8">Belum ada pengeluaran bulan ini</p>
+        )}
+      </div>
+    </div>
 
     {/* Charts Grid */}
     <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
@@ -380,60 +438,6 @@ export default async function Dashboard(){
           </div>
         )}
       </div>
-    </div>
-
-    {/* Category Breakdown */}
-    <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
-      {incomePie.length > 0 && (
-        <div className="glass-premium rounded-3xl p-6 md:p-8">
-          <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Pemasukan per Kategori</h3>
-          <div className="space-y-3">
-            {incomePie.slice().sort((a,b)=>b.value-a.value).map((cat, idx) => {
-              const percent = income > 0 ? (cat.value / income) * 100 : 0;
-              return (
-                <div key={idx} className="soft-card rounded-2xl p-4 border border-premium-border-soft">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="text-premium-income opacity-70">{getCategoryIcon(cat.name)}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black text-premium-text truncate">{cat.name}</p>
-                      <p className="text-xs text-premium-text-muted">{rupiah(cat.value)}</p>
-                    </div>
-                    <p className="text-xs font-black text-premium-text-muted shrink-0">{Math.round(percent)}%</p>
-                  </div>
-                  <div className="h-1.5 bg-white/[.04] rounded-full overflow-hidden">
-                    <div className="h-full bg-premium-income rounded-full" style={{ width: `${Math.min(percent, 100)}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-      {expensePie.length > 0 && (
-        <div className="glass-premium rounded-3xl p-6 md:p-8">
-          <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Pengeluaran per Kategori</h3>
-          <div className="space-y-3">
-            {expensePie.slice().sort((a,b)=>b.value-a.value).map((cat, idx) => {
-              const percent = expense > 0 ? (cat.value / expense) * 100 : 0;
-              return (
-                <div key={idx} className="soft-card rounded-2xl p-4 border border-premium-border-soft">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="text-premium-expense opacity-70">{getCategoryIcon(cat.name)}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black text-premium-text truncate">{cat.name}</p>
-                      <p className="text-xs text-premium-text-muted">{rupiah(cat.value)}</p>
-                    </div>
-                    <p className="text-xs font-black text-premium-text-muted shrink-0">{Math.round(percent)}%</p>
-                  </div>
-                  <div className="h-1.5 bg-white/[.04] rounded-full overflow-hidden">
-                    <div className="h-full bg-premium-expense rounded-full" style={{ width: `${Math.min(percent, 100)}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
 
     {/* Recent Transactions - grouped by date like screenshot */}
