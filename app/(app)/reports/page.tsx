@@ -8,6 +8,12 @@ import { Lock, Download, AlertCircle, TrendingUp, TrendingDown, Wallet, Car, Pig
 export default async function Reports() {
   const u = await requireUser();
   const closings = await prisma.monthlyClosing.findMany({ where: { userId: u!.id }, orderBy: { month: 'desc' } });
+
+  // Annual closing cards/section UI belum dibuat.
+  // Report tahunan PDF sudah tersedia via: /api/export/annual?year=YYYY
+
+
+
   const currentMonthStr = ym();
 
   return (

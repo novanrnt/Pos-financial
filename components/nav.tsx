@@ -16,7 +16,9 @@ const items = [
   ['Investasi','/investments',PiggyBank],
   ['Tagihan','/bills',Receipt],
   ['Kategori','/categories',Layers],
-  ['Laporan','/reports',FileText],
+  ['Laporan Bulanan','/reports',FileText],
+  ['Laporan Tahunan','/reports/annual',FileText],
+
   ['Pajak','/tax',DollarSign],
   ['Setting','/settings',Settings]
 ] as const;

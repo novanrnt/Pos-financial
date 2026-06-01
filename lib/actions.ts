@@ -150,6 +150,126 @@ export async function closeMonth(fd:FormData){
   revalidatePath('/reports');
 }
 
+export async function closeAnnual(fd:FormData){
+  const uid=await userId();
+  const yearRaw=fd.get('year');
+  const year=Number(yearRaw);
+  if(!yearRaw || Number.isNaN(year)) throw new Error('Invalid year');
+
+  const yearStart=new Date(year+'-01-01T00:00:00.000Z');
+  const yearEnd=new Date(year+1+'-01-01T00:00:00.000Z');
+
+  const [accounts,transactions,cars,debts,invesSnapshots,savings,categories]=await Promise.all([
+    prisma.account.findMany({where:{userId:uid}}),
+    prisma.transaction.findMany({where:{userId:uid,date:{gte:yearStart,lt:yearEnd}},include:{category:true}}),
+    prisma.car.findMany({where:{userId:uid,status:'AVAILABLE'},include:{costs:true}}),
+    prisma.debt.findMany({where:{userId:uid,status:'ACTIVE'}}),
+    prisma.investmentSnapshot.findMany({where:{userId:uid,month:{gte:`${year}-01`, lt:`${year+1}-01`}}}),
+    prisma.savingsGoal.findMany({where:{userId:uid}}),
+    prisma.category.findMany({where:{userId:uid}}),
+  ]);
+
+  const income=transactions.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);
+  const expense=transactions.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);
+
+  const incomeByCategory=categories.filter(c=>c.type==='INCOME').map(c=>({
+    name:c.name,
+    total:transactions.filter(t=>t.type==='INCOME'&&t.categoryId===c.id).reduce((a,t)=>a+Number(t.amount),0)
+  })).filter(c=>c.total>0);
+
+  const expenseByCategory=categories.filter(c=>c.type==='EXPENSE').map(c=>({
+    name:c.name,
+    total:transactions.filter(t=>t.type==='EXPENSE'&&t.categoryId===c.id).reduce((a,t)=>a+Number(t.amount),0)
+  })).filter(c=>c.total>0);
+
+  const carDetails=cars.map(c=>({
+    name:c.name,
+    purchasePrice:Number(c.purchasePrice),
+    totalCosts:c.costs.reduce((a,k)=>a+Number(k.amount),0),
+    totalModal:Number(c.purchasePrice)+c.costs.reduce((a,k)=>a+Number(k.amount),0),
+  }));
+  const totalCarModal=carDetails.reduce((a,c)=>a+c.totalModal,0);
+
+  const debtDetails=debts.filter(d=>d.type==='DEBT').map(d=>({
+    name:d.name,
+    remaining:Number(d.remainingAmount),
+    dueDate:d.dueDate?.toISOString().slice(0,10)||null,
+  }));
+  const receivableDetails=debts.filter(d=>d.type==='RECEIVABLE').map(d=>({
+    name:d.name,
+    remaining:Number(d.remainingAmount),
+    dueDate:d.dueDate?.toISOString().slice(0,10)||null,
+  }));
+
+  // Untuk annual, ambil snapshot investasi bulan terakhir di tahun tsb per kategori
+  const latestMonthByCategory: Record<string,string> = {};
+  for(const row of invesSnapshots as any[]){
+    if(!latestMonthByCategory[row.category] || String(row.month) > latestMonthByCategory[row.category]){
+      latestMonthByCategory[row.category]=String(row.month);
+    }
+  }
+  const investmentDetails=Object.entries(latestMonthByCategory).map(([category,month])=>{
+    const row=(invesSnapshots as any[]).find(r=>r.category===category && String(r.month)===month);
+    return {
+      category,
+      balance:Number(row?.balance ?? 0),
+      notes: row?.notes || '',
+    };
+  });
+
+  const savingsDetails=savings.map(g=>({
+    name:g.name,
+    savedAmount:Number(g.savedAmount),
+    targetAmount:Number(g.targetAmount),
+    isCompleted:g.isCompleted,
+  }));
+
+  const summary={
+    income,
+    expense,
+    profit:income-expense,
+    totalTransactions:transactions.length,
+
+    incomeByCategory,
+    expenseByCategory,
+
+    accounts:accounts.map(a=>({name:a.name,type:a.type,balance:Number(a.balance)})),
+    totalCash:accounts.reduce((a,x)=>a+Number(x.balance),0),
+
+    cars:carDetails,
+    totalCarModal,
+
+    debts:debtDetails,
+    receivables:receivableDetails,
+    totalDebt:debtDetails.reduce((a,d)=>a+d.remaining,0),
+    totalReceivable:receivableDetails.reduce((a,d)=>a+d.remaining,0),
+
+    investments:investmentDetails,
+    totalInvestment:investmentDetails.reduce((a,i)=>a+i.balance,0),
+
+    savings:savingsDetails,
+    totalSavings:savingsDetails.reduce((a,g)=>a+g.savedAmount,0),
+
+    netWorth:
+      accounts.reduce((a,x)=>a+Number(x.balance),0)+
+      totalCarModal+
+      investmentDetails.reduce((a,i)=>a+i.balance,0)+
+      savingsDetails.reduce((a,g)=>a+g.savedAmount,0)+
+      receivableDetails.reduce((a,d)=>a+d.remaining,0)-
+      debtDetails.reduce((a,d)=>a+d.remaining,0),
+
+    closedAt:new Date().toISOString(),
+  };
+
+  await prisma.annualClosing.upsert({
+    where:{userId_year:{userId:uid,year}},
+    create:{userId:uid,year,summaryJson:summary},
+    update:{summaryJson:summary}
+  });
+
+  revalidatePath('/reports/annual');
+}
+
 export async function addSavingsGoal(fd:FormData){const uid=await userId(); await prisma.savingsGoal.create({data:{userId:uid,name:String(fd.get('name')),targetAmount:toNumber(fd.get('targetAmount')),deadline:fd.get('deadline')?new Date(String(fd.get('deadline'))):null,notes:String(fd.get('notes')||'')}}); revalidatePath('/savings'); revalidatePath('/dashboard');}
 export async function deleteSavingsGoal(fd:FormData){const uid=await userId(); await prisma.savingsGoal.delete({where:{id:String(fd.get('id')),userId:uid} as any}); revalidatePath('/savings'); revalidatePath('/dashboard');}
 export async function depositSavings(fd:FormData){const uid=await userId(); const goalId=String(fd.get('goalId')); const accountId=String(fd.get('accountId')); const amount=toNumber(fd.get('amount')); const date=new Date(String(fd.get('date'))); await assertOpen(uid,date); const goal=await prisma.savingsGoal.findFirst({where:{id:goalId,userId:uid}}); if(!goal)return; await prisma.$transaction(async tx=>{await tx.savingsDeposit.create({data:{userId:uid,goalId,accountId,amount,date,notes:String(fd.get('notes')||'')}}); const newSaved=Number(goal.savedAmount)+amount; const isCompleted=newSaved>=Number(goal.targetAmount); await tx.savingsGoal.update({where:{id:goalId},data:{savedAmount:newSaved,isCompleted}}); await tx.account.update({where:{id:accountId},data:{balance:{decrement:amount}}}); await tx.transaction.create({data:{userId:uid,accountId,type:'EXPENSE',amount,date,description:`Tabungan: ${goal.name}`,sourceType:'savings',sourceId:goalId}});}); revalidatePath('/savings'); revalidatePath('/dashboard');}
