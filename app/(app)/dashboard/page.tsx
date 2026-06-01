@@ -100,6 +100,10 @@ export default async function Dashboard(){
   const topExpenseCategory=expensePie.slice().sort((a,b)=>b.value-a.value)[0];
   const topIncomeCategory=incomePie.slice().sort((a,b)=>b.value-a.value)[0];
 
+  // Get largest single expense and income transactions
+  const largestExpense = monthTx.filter(t => t.type === 'EXPENSE').sort((a, b) => Number(b.amount) - Number(a.amount))[0];
+  const largestIncome = monthTx.filter(t => t.type === 'INCOME').sort((a, b) => Number(b.amount) - Number(a.amount))[0];
+
   // Today's transactions
   const today=new Date(); today.setHours(0,0,0,0);
   const tomorrow=new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
@@ -347,6 +351,26 @@ export default async function Dashboard(){
                 <p className="text-xs text-premium-text-muted">{rupiah(topIncomeCategory.value)}</p>
               </div>
               <div className="text-premium-income opacity-50">{getCategoryIcon(topIncomeCategory.name)}</div>
+            </div>
+          )}
+          {largestExpense && (
+            <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
+              <div>
+                <p className="text-xs font-black text-premium-text-muted uppercase">Pengeluaran Terbesar</p>
+                <p className="text-base font-black text-premium-expense mt-1">{largestExpense.category?.name || 'Lainnya'}</p>
+                <p className="text-xs text-premium-text-muted">{rupiah(Number(largestExpense.amount))}</p>
+              </div>
+              <div className="text-premium-expense opacity-50">{getCategoryIcon(largestExpense.category?.name || '')}</div>
+            </div>
+          )}
+          {largestIncome && (
+            <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
+              <div>
+                <p className="text-xs font-black text-premium-text-muted uppercase">Pemasukan Terbesar</p>
+                <p className="text-base font-black text-premium-income mt-1">{largestIncome.category?.name || 'Lainnya'}</p>
+                <p className="text-xs text-premium-text-muted">{rupiah(Number(largestIncome.amount))}</p>
+              </div>
+              <div className="text-premium-income opacity-50">{getCategoryIcon(largestIncome.category?.name || '')}</div>
             </div>
           )}
         </div>

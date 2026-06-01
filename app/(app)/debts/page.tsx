@@ -68,16 +68,16 @@ export default async function Debts() {
             {activeDebts.map(debt => {
               const isOverdue = debt.dueDate && debt.dueDate < new Date();
               return (
-                <div key={debt.id} className={`glass-premium rounded-2xl p-4 border ${isOverdue ? 'border-rose-500/30' : 'border-rose-500/20'} flex items-center gap-4`}>
+                <div key={debt.id} className={`glass-premium rounded-2xl p-4 border ${isOverdue ? 'border-rose-500/30' : 'border-rose-500/20'} flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4`}>
                   <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${isOverdue ? 'bg-rose-500/30' : 'bg-rose-500/20'}`}>
                     {isOverdue ? <AlertCircle size={20} className="text-rose-400" /> : <ArrowDownRight size={20} className="text-rose-400" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-black text-premium-text truncate">{debt.name}</p>
                       {isOverdue && <Badge variant="danger" className="text-xs">Overdue</Badge>}
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <p className="text-xs text-premium-text-muted">
                         {debt.dueDate ? debt.dueDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Tanpa jatuh tempo'}
                       </p>
@@ -111,16 +111,16 @@ export default async function Debts() {
             {activeReceivables.map(receivable => {
               const isOverdue = receivable.dueDate && receivable.dueDate < new Date();
               return (
-                <div key={receivable.id} className={`glass-premium rounded-2xl p-4 border ${isOverdue ? 'border-amber-500/30' : 'border-emerald-500/20'} flex items-center gap-4`}>
+                <div key={receivable.id} className={`glass-premium rounded-2xl p-4 border ${isOverdue ? 'border-amber-500/30' : 'border-emerald-500/20'} flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4`}>
                   <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${isOverdue ? 'bg-amber-500/20' : 'bg-emerald-500/20'}`}>
                     {isOverdue ? <AlertCircle size={20} className="text-amber-400" /> : <ArrowUpRight size={20} className="text-emerald-400" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-black text-premium-text truncate">{receivable.name}</p>
                       {isOverdue && <Badge variant="warning" className="text-xs">Overdue</Badge>}
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <p className="text-xs text-premium-text-muted">
                         {receivable.dueDate ? receivable.dueDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Tanpa jatuh tempo'}
                       </p>
