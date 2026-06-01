@@ -66,6 +66,8 @@ model User {
   audits         TransactionAuditLog[]
   savingsGoals   SavingsGoal[]
   savingsDeposits SavingsDeposit[]
+  taxSettings    TaxSettings[]
+  taxReports     TaxReportSnapshot[]
 }
 
 model Account {
@@ -299,4 +301,55 @@ model SavingsDeposit {
   account      Account     @relation(fields: [accountId], references: [id])
 
   @@index([userId, goalId])
+}
+
+model TaxSettings {
+  id                          String   @id @default(cuid())
+  userId                      String
+  taxYear                     Int
+  ptkpStatus                  String
+  calculationMethod           String
+  manualPph21Withheld         Decimal  @default(0) @db.Decimal(18, 2)
+  manualCommissionTaxWithheld Decimal  @default(0) @db.Decimal(18, 2)
+  manualTaxPaid               Decimal  @default(0) @db.Decimal(18, 2)
+  notes                       String?
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+  user                        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taxYear])
+  @@index([userId])
+}
+
+model TaxReportSnapshot {
+  id        String   @id @default(cuid())
+  userId    String
+  taxYear   Int
+  reportJson Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taxYear])
+  @@index([userId])
+}
+
+model AnnualClosing {
+  id                 String   @id @default(cuid())
+  userId             String
+  year               Int
+  totalIncome        Decimal  @db.Decimal(18, 2)
+  totalExpense       Decimal  @db.Decimal(18, 2)
+  netIncome          Decimal  @db.Decimal(18, 2)
+  totalAssets        Decimal  @db.Decimal(18, 2)
+  totalLiabilities   Decimal  @db.Decimal(18, 2)
+  taxPaid            Decimal  @db.Decimal(18, 2)
+  summaryJson        Json
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, year])
+  @@index([userId])
+  @@index([year])
 }

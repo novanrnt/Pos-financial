@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Car, CreditCard, FileText, Home, Layers, LogOut, PiggyBank, Receipt, Repeat, Settings, WalletCards, Plus, Menu, X } from 'lucide-react';
+import { Car, CreditCard, FileText, Home, Layers, LogOut, PiggyBank, Receipt, Repeat, Settings, WalletCards, Plus, Menu, X, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Logo } from './logo';
@@ -17,6 +17,7 @@ const items = [
   ['Tagihan','/bills',Receipt],
   ['Kategori','/categories',Layers],
   ['Laporan','/reports',FileText],
+  ['Pajak','/tax',DollarSign],
   ['Setting','/settings',Settings]
 ] as const;
 
