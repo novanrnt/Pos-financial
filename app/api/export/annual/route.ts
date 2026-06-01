@@ -84,18 +84,18 @@ export async function GET(req: Request) {
 
     // Cashflow
     addSection('CASHFLOW');
-    addRow('Total Pemasukan', rupiah(s.income || 0));
-    addRow('Total Pengeluaran', rupiah(s.expense || 0));
-    addRow('Net Profit', rupiah(s.profit || 0));
-    if (s.totalTransactions) {
-      addRow('Jumlah Transaksi', `${s.totalTransactions} transaksi`);
+    addRow('Total Pemasukan', rupiah(Number(s.income ?? 0)));
+    addRow('Total Pengeluaran', rupiah(Number(s.expense ?? 0)));
+    addRow('Net Profit', rupiah(Number(s.profit ?? 0)));
+    if (s.totalTransactions !== undefined && s.totalTransactions !== null) {
+      addRow('Jumlah Transaksi', `${Number(s.totalTransactions)} transaksi`);
     }
 
     // Pemasukan per Kategori
     if (Array.isArray(s.incomeByCategory) && s.incomeByCategory.length > 0) {
       addSection('PEMASUKAN PER KATEGORI');
       s.incomeByCategory.forEach((c: any) => {
-        addRow(c.name, rupiah(c.total));
+        addRow(c.name, rupiah(Number(c.total ?? 0)));
       });
     }
 
@@ -103,7 +103,7 @@ export async function GET(req: Request) {
     if (Array.isArray(s.expenseByCategory) && s.expenseByCategory.length > 0) {
       addSection('PENGELUARAN PER KATEGORI');
       s.expenseByCategory.forEach((c: any) => {
-        addRow(c.name, rupiah(c.total));
+        addRow(c.name, rupiah(Number(c.total ?? 0)));
       });
     }
 
@@ -113,7 +113,7 @@ export async function GET(req: Request) {
       s.accounts.forEach((a: any) => {
         addRow(`${a.name} (${a.type || '-'})`, rupiah(Number(a.balance)));
       });
-      addRow('TOTAL SALDO', rupiah(s.totalCash || 0));
+      addRow('TOTAL SALDO', rupiah(Number(s.totalCash ?? 0)));
     }
 
     // Aset Mobil
@@ -130,7 +130,7 @@ export async function GET(req: Request) {
         y += 6;
         doc.setFontSize(10);
       });
-      addRow('TOTAL MODAL MOBIL', rupiah(s.totalCarModal || 0));
+      addRow('TOTAL MODAL MOBIL', rupiah(Number(s.totalCarModal ?? 0)));
     }
 
     // Hutang
@@ -139,7 +139,7 @@ export async function GET(req: Request) {
       s.debts.forEach((d: any) => {
         addRow(d.name + (d.dueDate ? ` (jatuh tempo: ${d.dueDate})` : ''), rupiah(d.remaining));
       });
-      addRow('TOTAL HUTANG', rupiah(s.totalDebt || 0));
+      addRow('TOTAL HUTANG', rupiah(Number(s.totalDebt ?? 0)));
     }
 
     // Piutang
@@ -148,7 +148,7 @@ export async function GET(req: Request) {
       s.receivables.forEach((d: any) => {
         addRow(d.name + (d.dueDate ? ` (jatuh tempo: ${d.dueDate})` : ''), rupiah(d.remaining));
       });
-      addRow('TOTAL PIUTANG', rupiah(s.totalReceivable || 0));
+      addRow('TOTAL PIUTANG', rupiah(Number(s.totalReceivable ?? 0)));
     }
 
     // Investasi
@@ -157,7 +157,7 @@ export async function GET(req: Request) {
       s.investments.forEach((inv: any) => {
         addRow(inv.category + (inv.notes ? ` - ${inv.notes}` : ''), rupiah(inv.balance));
       });
-      addRow('TOTAL INVESTASI', rupiah(s.totalInvestment || 0));
+      addRow('TOTAL INVESTASI', rupiah(Number(s.totalInvestment ?? 0)));
     }
 
     // Tabungan
@@ -167,7 +167,7 @@ export async function GET(req: Request) {
         const status = g.isCompleted ? ' [TERCAPAI]' : '';
         addRow(`${g.name}${status}`, `${rupiah(g.savedAmount)} / ${rupiah(g.targetAmount)}`);
       });
-      addRow('TOTAL TABUNGAN', rupiah(s.totalSavings || 0));
+      addRow('TOTAL TABUNGAN', rupiah(Number(s.totalSavings ?? 0)));
     }
 
     // Net Worth
