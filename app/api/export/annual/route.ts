@@ -3,6 +3,8 @@ import { requireUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rupiah } from '@/lib/utils';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request) {
   const u = await requireUser();
   if (!u) return new NextResponse('Unauthorized', { status: 401 });
