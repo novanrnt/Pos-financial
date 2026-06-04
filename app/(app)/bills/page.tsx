@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
-import { payBill } from '@/lib/actions';
+
 import { rupiah } from '@/lib/utils';
 import { Receipt, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { BillFormModal } from '@/components/bill-form-modal';
+import { BillPaymentModal } from '@/components/bill-payment-modal';
 
 export default async function Bills() {
   const u = await requireUser();
@@ -85,12 +86,10 @@ export default async function Bills() {
                     <p className="text-[15px] font-semibold" style={{ color: '#FF9F0A' }}>{rupiah(Number(bill.amount))}</p>
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <form action={payBill}>
-                      <input type="hidden" name="id" value={bill.id} />
-                      <button type="submit" className="grid h-8 w-8 place-items-center rounded-xl active-scale text-white/40 hover:text-[#30D158] transition" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                        <CheckCircle2 size={14} />
-                      </button>
-                    </form>
+                    <BillPaymentModal
+                      bill={{ id: bill.id, name: bill.name, amount: Number(bill.amount), dueDay: bill.dueDay, accountId: bill.accountId }}
+                      accounts={accounts.map(a => ({ id: a.id, name: a.name, type: a.type }))}
+                    />
                   </div>
                 </div>
               );

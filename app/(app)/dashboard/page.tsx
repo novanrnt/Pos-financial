@@ -6,12 +6,13 @@ import { rupiah, ym } from '@/lib/utils';
 import {
   Bell, ShoppingCart, Receipt, ArrowUpRight, ArrowDownRight,
   ChevronRight, Clock, MoreHorizontal, TrendingUp,
-  Wallet, Car, PiggyBank, Plus,
+  Wallet, Car, PiggyBank, Plus, Repeat, CreditCard, Tags, BarChart3, Settings,
   Utensils, Fuel, Wrench, Dumbbell, DollarSign, ShoppingBagIcon, Home as HomeIcon,
   Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee
 } from 'lucide-react';
 
 import { TransactionFormButton } from '@/components/transaction-form';
+import { TrendChart } from '@/components/trend-chart';
 
 const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const monthLong = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -28,70 +29,8 @@ function getCatIcon(cat: string): React.ReactNode {
   return categoryIcons[cat] || <ShoppingCart size={16} />;
 }
 
-// ───── CSS donut: returns conic-gradient string ─────
-function donutGradient(items: { value: number; color: string }[], total: number): string {
-  if (total === 0) return 'conic-gradient(#222 0deg, #222 360deg)';
-  let current = 0;
-  const parts = items.filter(i => i.value > 0).map(i => {
-    const pct = (i.value / total) * 360;
-    const start = current;
-    current += pct;
-    return `${i.color} ${start}deg ${current}deg`;
-  });
-  if (parts.length === 0) return 'conic-gradient(#222 0deg, #222 360deg)';
-  return `conic-gradient(${parts.join(', ')})`;
-}
-
 const donutColors = ['#FF453A','#FF9F0A','#0A84FF','#BF5AF2','#30D158','#64D2FF','#FFD60A','#FF375F'];
 function getColor(idx: number) { return donutColors[idx % donutColors.length]; }
-
-// ───── Mini trend chart (CSS bars) ─────
-async function MiniBarChart({ data, height = 40 }: { data: { value: number; label: string; isToday?: boolean }[]; height?: number }) {
-  const max = Math.max(...data.map(d => Math.abs(d.value)), 1);
-  return <div className="flex items-end gap-[3px]" style={{ height }}>
-    {data.map((d,i) => {
-      const pct = Math.max(3, (Math.abs(d.value) / max) * 100);
-      const isNeg = d.value < 0;
-      return <div key={i} className="flex-1 flex flex-col items-center gap-1">
-        <div className="w-full rounded-t-[3px] transition-all" style={{
-          height: `${pct}%`,
-          background: isNeg ? 'rgba(255,69,58,0.6)' : 'rgba(48,209,88,0.5)',
-          minHeight: 3,
-        }} />
-        <span className="text-[7px] font-medium" style={{ color: d.isToday ? '#fff' : 'rgba(255,255,255,0.3)' }}>{d.label}</span>
-      </div>;
-    })}
-  </div>;
-}
-
-// ───── Donut chart component ─────
-function DonutChart({ data, total, size = 120 }: { data: { name: string; value: number }[]; total: number; size?: number }) {
-  const items = data.slice().sort((a,b) => b.value - a.value).map((d,i) => ({ ...d, color: getColor(i) }));
-  const grad = donutGradient(items, total);
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="relative shrink-0" style={{ width: size, height: size }}>
-        <div className="w-full h-full rounded-full" style={{ background: grad }} />
-        <div className="absolute inset-[8px] rounded-full bg-black" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[11px] font-semibold opacity-50">0%</span>
-        </div>
-      </div>
-      <div className="w-full space-y-[5px]">
-        {items.slice(0, 5).map((item, i) => {
-          const pct = total > 0 ? (item.value / total) * 100 : 0;
-          return (
-            <div key={i} className="flex items-center gap-2">
-              <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ background: item.color }} />
-              <span className="text-[12px] flex-1 truncate" style={{ color: 'rgba(255,255,255,0.65)' }}>{item.name}</span>
-              <span className="text-[12px] font-semibold">{Math.round(pct)}%</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // ───── Bar data for trend (weekly) ─────
 type DayData = { name: string; income: number; expense: number; net: number };
@@ -216,7 +155,7 @@ export default async function Dashboard() {
   const totalBillThisMonth = bills.length;
 
   // Trend bar chart data (weekly)
-  const trendBarMax = Math.max(...weeklyCashflowData.map(d => Math.max(d.income, d.expense)), 1);
+
 
   return (
     <div className="pb-4 space-y-[18px]">
@@ -249,6 +188,47 @@ export default async function Dashboard() {
         }}>
           {rupiah(netWorth)}
         </h1>
+      </div>
+
+      {/* ========== QUICK MENU ========== */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12,
+        marginTop: 8
+      }}>
+        {[
+          { label: 'Transaksi', href: '/transactions', icon: Repeat, color: '#0A84FF' },
+          { label: 'Tabungan', href: '/savings', icon: PiggyBank, color: '#30D158' },
+          { label: 'Tagihan', href: '/bills', icon: Receipt, color: '#FF453A' },
+          { label: 'Hutang', href: '/debts', icon: CreditCard, color: '#FF9F0A' },
+          { label: 'Mobil', href: '/cars', icon: Car, color: '#64D2FF' },
+          { label: 'Investasi', href: '/investments', icon: TrendingUp, color: '#BF5AF2' },
+          { label: 'Kategori', href: '/categories', icon: Tags, color: '#FFD60A' },
+          { label: 'Laporan', href: '/reports', icon: BarChart3, color: '#FF375F' },
+        ].map(item => {
+          const Icon = item.icon;
+          return (
+            <Link key={item.href} href={item.href}
+              className="active-scale"
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 6, padding: '12px 4px', borderRadius: 16,
+                background: 'rgba(255,255,255,0.04)',
+                border: '0.5px solid rgba(255,255,255,0.06)',
+                textDecoration: 'none'
+              }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 14,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: `${item.color}15`,
+              }}>
+                <Icon size={20} style={{ color: item.color }} />
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
       </div>
 
       {/* ========== 2. TAGIHAN REMINDER ========== */}
@@ -467,45 +447,15 @@ export default async function Dashboard() {
       {/* ========== 7. TREND PENGELUARAN ========== */}
       <div className="animate-ios-slide-up ios-stagger-7">
         <div className="flex items-center justify-between mb-2.5 px-1">
-          <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Trend Pengeluaran</span>
-          <div className="flex rounded-[10px] p-[2px]" style={{ background: 'rgba(255,255,255,0.06)' }}>
-            <div className="text-[12px] font-medium px-3 py-1.5 rounded-[8px]" style={{ background: 'rgba(255,255,255,0.12)', color: '#fff' }}>Minggu</div>
-            <div className="text-[12px] font-medium px-3 py-1.5 rounded-[8px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Bulan</div>
-          </div>
+          <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Trend</span>
         </div>
-        <div className="ios-card p-4">
-          <div className="flex items-end gap-[5px]" style={{ height: 130 }}>
-            {weeklyCashflowData.map((d, i) => {
-              const expPct = Math.max(4, (d.expense / trendBarMax) * 100);
-              const incPct = Math.max(4, (d.income / trendBarMax) * 100);
-              return (
-                <div key={i} className="flex-1 flex flex-col items-center justify-end gap-0.5">
-                  <div className="w-[6px] rounded-t-[3px]" style={{ height: `${incPct}%`, background: 'rgba(48,209,88,0.3)', minHeight: 3 }} />
-                  <div className="w-full flex justify-center">
-                    <div className="w-[6px] rounded-t-[3px]" style={{ height: `${expPct}%`, background: 'rgba(255,69,58,0.6)', minHeight: 3 }} />
-                  </div>
-                  <span className="text-[9px] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{d.name}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <div className="w-[6px] h-[6px] rounded-full" style={{ background: 'rgba(48,209,88,0.3)' }} />
-                <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Pemasukan</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-[6px] h-[6px] rounded-full" style={{ background: '#FF453A' }} />
-                <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Pengeluaran</span>
-              </div>
-            </div>
-            <span className={`text-[12px] font-medium ${last7Pct > 0 ? '' : ''}`}
-              style={{ color: last7Pct > 0 ? '#FF453A' : '#30D158' }}>
-              {last7Pct > 0 ? '▲' : '▼'} {Math.abs(last7Pct).toFixed(0)}% vs Minggu Lalu
-            </span>
-          </div>
-        </div>
+        <TrendChart
+          dailyData={weeklyCashflowData}
+          monthlyData={chartData}
+          weeklyExpense={weeklyExpense}
+          prevWeeklyExpense={prev7Expense}
+          changePct={last7Pct}
+        />
       </div>
 
       {/* ========== 8. PENGELUARAN PER KATEGORI ========== */}
@@ -515,28 +465,27 @@ export default async function Dashboard() {
         </div>
         <div className="ios-card p-4">
           {expensePie.length > 0 ? (
-            <div className="grid grid-cols-[1fr,1fr] gap-4 items-start">
-              <DonutChart data={expensePie} total={expense} size={100} />
-              <div className="space-y-2.5">
-                {expensePie.slice().sort((a, b) => b.value - a.value).slice(0, 5).map((cat, i) => {
-                  const p = expense > 0 ? (cat.value / expense) * 100 : 0;
-                  return (
-                    <div key={i}>
+            <div className="space-y-3">
+              {expensePie.slice().sort((a, b) => b.value - a.value).map((cat, i) => {
+                const p = expense > 0 ? (cat.value / expense) * 100 : 0;
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ background: getColor(i) }} />
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[12px] truncate" style={{ color: 'rgba(255,255,255,0.65)' }}>{cat.name}</span>
-                        <span className="text-[11px] font-medium">{rupiah(cat.value)}</span>
+                        <span className="text-[13px] font-medium text-white/65">{cat.name}</span>
+                        <span className="text-[12px] font-medium">{rupiah(cat.value)}</span>
                       </div>
                       <div className="h-[4px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                         <div className="h-full rounded-full" style={{ width: `${Math.min(p, 100)}%`, background: getColor(i) }} />
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-6">
-              <div className="w-[80px] h-[80px] rounded-full mx-auto" style={{ background: '#222' }} />
               <div className="text-[13px] mt-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Belum ada pengeluaran bulan ini</div>
             </div>
           )}
@@ -550,29 +499,28 @@ export default async function Dashboard() {
         </div>
         <div className="ios-card p-4">
           {incomePie.length > 0 ? (
-            <div className="grid grid-cols-[1fr,1fr] gap-4 items-start">
-              <DonutChart data={incomePie} total={income} size={100} />
-              <div className="space-y-2.5">
-                {incomePie.slice().sort((a, b) => b.value - a.value).slice(0, 5).map((cat, i) => {
-                  const p = income > 0 ? (cat.value / income) * 100 : 0;
-                  return (
-                    <div key={i}>
+            <div className="space-y-3">
+              {incomePie.slice().sort((a, b) => b.value - a.value).map((cat, i) => {
+                const p = income > 0 ? (cat.value / income) * 100 : 0;
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ background: getColor(i) }} />
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[12px] truncate" style={{ color: 'rgba(255,255,255,0.65)' }}>{cat.name}</span>
-                        <span className="text-[11px] font-medium">{rupiah(cat.value)}</span>
+                        <span className="text-[13px] font-medium text-white/65">{cat.name}</span>
+                        <span className="text-[12px] font-medium">{rupiah(cat.value)}</span>
                       </div>
                       <div className="h-[4px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                         <div className="h-full rounded-full" style={{ width: `${Math.min(p, 100)}%`, background: getColor(i) }} />
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-6">
-              <div className="w-[80px] h-[80px] rounded-full mx-auto" style={{ background: '#222' }} />
-              <div className="text-[13px] mt-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Belum ada pemasukan bulan ini</div>
+              <div className="text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Belum ada pemasukan bulan ini</div>
               <Link href="/transactions" className="inline-flex items-center gap-1 mt-3 px-4 py-2.5 rounded-[12px] text-[13px] font-semibold active-scale"
                 style={{ background: '#30D158', color: '#000' }}>
                 <Plus size={14} /> Tambah Pemasukan
@@ -582,40 +530,7 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      {/* ========== 10. TREND BULANAN (chart) ========== */}
-      <div className="animate-ios-fade-in">
-        <div className="flex items-center justify-between mb-2.5 px-1">
-          <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Trend Bulanan</span>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <div className="w-[2px] h-[2px] rounded-full" style={{ background: '#30D158' }} />
-              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Income</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-[6px] h-[6px] rounded-full" style={{ background: 'rgba(255,69,58,0.6)' }} />
-              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Expense</span>
-            </div>
-          </div>
-        </div>
-        <div className="ios-card p-4">
-          <div className="flex items-end gap-[5px]" style={{ height: 100 }}>
-            {chartData.slice(0, now.getMonth() + 1).map((d, i) => {
-              const maxV = Math.max(...chartData.map(c => Math.max(c.income, c.expense)), 1);
-              const incH = Math.max(4, (d.income / maxV) * 100);
-              const expH = Math.max(4, (d.expense / maxV) * 100);
-              return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-[2px] justify-end">
-                  <div className="w-[5px] rounded-t-[2px]" style={{ height: `${incH}%`, background: 'rgba(48,209,88,0.3)', minHeight: 3 }} />
-                  <div className="w-[5px] rounded-t-[2px]" style={{ height: `${expH}%`, background: 'rgba(255,69,58,0.5)', minHeight: 3 }} />
-                  <span className="text-[8px] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{d.name}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* ========== 11. TRANSAKSI TERAKHIR ========== */}
+      {/* ========== 10. TRANSAKSI TERAKHIR ========== */}
       <div>
         <div className="flex items-center justify-between mb-2.5 px-1">
           <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Transaksi Terakhir</span>
