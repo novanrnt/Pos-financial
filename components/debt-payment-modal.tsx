@@ -106,7 +106,6 @@ export function DebtPaymentModal({ debt, accounts, mode, trigger }: DebtPaymentM
               borderRadius: 10, border: 'none', cursor: 'pointer',
               background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)',
             }}><X size={18} /></button>
-            </button>
           </div>
 
           <div className={`mb-4 p-3 rounded-[14px] ${isDebt ? '' : ''}`} style={{
