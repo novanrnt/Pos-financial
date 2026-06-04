@@ -1,138 +1,205 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowDownRight, ArrowUpRight, CreditCard, TrendingUp, Utensils, Fuel, Wrench, Dumbbell, DollarSign, ShoppingCart, Home, Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee, ArrowRightLeft, Repeat, PiggyBank, Receipt, Car, LayoutGrid, AlertCircle, CalendarClock } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { rupiah, ym } from '@/lib/utils';
-import { Card, SectionHeader, StatCard, Badge } from '@/components/ui';
-import { BalanceCard, StatRow, ChartCard } from '@/components/premium';
-import { CashflowChart, NetWorthGrowthChart, WeeklyCashflowChart } from '@/components/charts';
+import {
+  Bell, ShoppingCart, Receipt, ArrowUpRight, ArrowDownRight,
+  ChevronRight, Clock, MoreHorizontal, TrendingUp,
+  Wallet, Car, PiggyBank, Plus,
+  Utensils, Fuel, Wrench, Dumbbell, DollarSign, ShoppingBagIcon, Home as HomeIcon,
+  Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee
+} from 'lucide-react';
+
 import { TransactionFormButton } from '@/components/transaction-form';
 
 const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const monthLong = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-// Category icon mapping
 const categoryIcons: Record<string, React.ReactNode> = {
-  'Makan': <Utensils size={18} />,
-  'BBM': <Fuel size={18} />,
-  'Servis': <Wrench size={18} />,
-  'Olahraga': <Dumbbell size={18} />,
-  'Investasi': <TrendingUp size={18} />,
-  'Gaji': <DollarSign size={18} />,
-  'Belanja': <ShoppingCart size={18} />,
-  'Rumah': <Home size={18} />,
-  'Gadget': <Smartphone size={18} />,
-  'Gaming': <Gamepad2 size={18} />,
-  'Buku': <BookOpen size={18} />,
-  'Kesehatan': <Heart size={18} />,
-  'Liburan': <Plane size={18} />,
-  'Hadiah': <Gift size={18} />,
-  'Musik': <Music size={18} />,
-  'Kopi': <Coffee size={18} />,
+  'Makan': <Utensils size={16} />, 'BBM': <Fuel size={16} />, 'Servis': <Wrench size={16} />,
+  'Olahraga': <Dumbbell size={16} />, 'Investasi': <TrendingUp size={16} />, 'Gaji': <DollarSign size={16} />,
+  'Belanja': <ShoppingBagIcon size={16} />, 'Rumah': <HomeIcon size={16} />, 'Gadget': <Smartphone size={16} />,
+  'Gaming': <Gamepad2 size={16} />, 'Buku': <BookOpen size={16} />, 'Kesehatan': <Heart size={16} />,
+  'Liburan': <Plane size={16} />, 'Hadiah': <Gift size={16} />, 'Musik': <Music size={16} />, 'Kopi': <Coffee size={16} />,
 };
 
-function getCategoryIcon(categoryName: string): React.ReactNode {
-  return categoryIcons[categoryName] || <ShoppingCart size={18} />;
+function getCatIcon(cat: string): React.ReactNode {
+  return categoryIcons[cat] || <ShoppingCart size={16} />;
 }
 
-type DailyData = { income: number; expense: number; date: Date };
+// ───── CSS donut: returns conic-gradient string ─────
+function donutGradient(items: { value: number; color: string }[], total: number): string {
+  if (total === 0) return 'conic-gradient(#222 0deg, #222 360deg)';
+  let current = 0;
+  const parts = items.filter(i => i.value > 0).map(i => {
+    const pct = (i.value / total) * 360;
+    const start = current;
+    current += pct;
+    return `${i.color} ${start}deg ${current}deg`;
+  });
+  if (parts.length === 0) return 'conic-gradient(#222 0deg, #222 360deg)';
+  return `conic-gradient(${parts.join(', ')})`;
+}
 
-export default async function Dashboard(){
-  const u=await requireUser();
-  if(!u)redirect('/login');
-  if(!u.setupCompleted)redirect('/setup');
-  const uid=u.id;
-  const now=new Date();
+const donutColors = ['#FF453A','#FF9F0A','#0A84FF','#BF5AF2','#30D158','#64D2FF','#FFD60A','#FF375F'];
+function getColor(idx: number) { return donutColors[idx % donutColors.length]; }
+
+// ───── Mini trend chart (CSS bars) ─────
+async function MiniBarChart({ data, height = 40 }: { data: { value: number; label: string; isToday?: boolean }[]; height?: number }) {
+  const max = Math.max(...data.map(d => Math.abs(d.value)), 1);
+  return <div className="flex items-end gap-[3px]" style={{ height }}>
+    {data.map((d,i) => {
+      const pct = Math.max(3, (Math.abs(d.value) / max) * 100);
+      const isNeg = d.value < 0;
+      return <div key={i} className="flex-1 flex flex-col items-center gap-1">
+        <div className="w-full rounded-t-[3px] transition-all" style={{
+          height: `${pct}%`,
+          background: isNeg ? 'rgba(255,69,58,0.6)' : 'rgba(48,209,88,0.5)',
+          minHeight: 3,
+        }} />
+        <span className="text-[7px] font-medium" style={{ color: d.isToday ? '#fff' : 'rgba(255,255,255,0.3)' }}>{d.label}</span>
+      </div>;
+    })}
+  </div>;
+}
+
+// ───── Donut chart component ─────
+function DonutChart({ data, total, size = 120 }: { data: { name: string; value: number }[]; total: number; size?: number }) {
+  const items = data.slice().sort((a,b) => b.value - a.value).map((d,i) => ({ ...d, color: getColor(i) }));
+  const grad = donutGradient(items, total);
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div className="relative shrink-0" style={{ width: size, height: size }}>
+        <div className="w-full h-full rounded-full" style={{ background: grad }} />
+        <div className="absolute inset-[8px] rounded-full bg-black" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-[11px] font-semibold opacity-50">0%</span>
+        </div>
+      </div>
+      <div className="w-full space-y-[5px]">
+        {items.slice(0, 5).map((item, i) => {
+          const pct = total > 0 ? (item.value / total) * 100 : 0;
+          return (
+            <div key={i} className="flex items-center gap-2">
+              <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ background: item.color }} />
+              <span className="text-[12px] flex-1 truncate" style={{ color: 'rgba(255,255,255,0.65)' }}>{item.name}</span>
+              <span className="text-[12px] font-semibold">{Math.round(pct)}%</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ───── Bar data for trend (weekly) ─────
+type DayData = { name: string; income: number; expense: number; net: number };
+
+// ───── Server Component ─────
+export default async function Dashboard() {
+  const u = await requireUser();
+  if (!u) redirect('/login');
+  if (!u.setupCompleted) redirect('/setup');
+  const uid = u.id;
+  const now = new Date();
   const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const compareStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-  const month=ym(now);
-  const startYear=new Date(now.getFullYear(),0,1);
-  const endYear=new Date(now.getFullYear(),11,31,23,59,59);
-  const [accounts,cars,debts,invest,allYear,bills,savingsGoals,recentTx,categories,compareTx]=await Promise.all([
-    prisma.account.findMany({where:{userId:uid},orderBy:{isPrimary:'desc'}}),
-    prisma.car.findMany({where:{userId:uid,status:'AVAILABLE'},include:{costs:true},orderBy:{createdAt:'desc'}}),
-    prisma.debt.findMany({where:{userId:uid,status:'ACTIVE'},orderBy:{dueDate:'asc'},take:6}),
-    prisma.investmentSnapshot.findMany({where:{userId:uid,month}}),
-    prisma.transaction.findMany({where:{userId:uid,date:{gte:startYear,lte:endYear}},include:{category:true},orderBy:{date:'asc'}}),
-    prisma.recurringBill.findMany({where:{userId:uid,status:'UNPAID'},include:{account:true},orderBy:{dueDay:'asc'},take:5}),
-    prisma.savingsGoal.findMany({where:{userId:uid}}),
-    prisma.transaction.findMany({where:{userId:uid},include:{category:true,account:true,transferToAccount:true},orderBy:{date:'desc'},take:8}),
-    prisma.category.findMany({where:{userId:uid,isActive:true},orderBy:{name:'asc'}}),
-    prisma.transaction.findMany({where:{userId:uid,date:{gte:compareStart,lte:now}}}),
+  const month = ym(now);
+  const startYear = new Date(now.getFullYear(), 0, 1);
+  const endYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+
+  const [accounts, cars, debts, invest, allYear, bills, savingsGoals, recentTx, categories, compareTx] = await Promise.all([
+    prisma.account.findMany({ where: { userId: uid }, orderBy: { isPrimary: 'desc' } }),
+    prisma.car.findMany({ where: { userId: uid, status: 'AVAILABLE' }, include: { costs: true }, orderBy: { createdAt: 'desc' } }),
+    prisma.debt.findMany({ where: { userId: uid, status: 'ACTIVE' }, orderBy: { dueDate: 'asc' }, take: 6 }),
+    prisma.investmentSnapshot.findMany({ where: { userId: uid, month } }),
+    prisma.transaction.findMany({ where: { userId: uid, date: { gte: startYear, lte: endYear } }, include: { category: true }, orderBy: { date: 'asc' } }),
+    prisma.recurringBill.findMany({ where: { userId: uid, status: 'UNPAID' }, include: { account: true }, orderBy: { dueDay: 'asc' }, take: 5 }),
+    prisma.savingsGoal.findMany({ where: { userId: uid } }),
+    prisma.transaction.findMany({ where: { userId: uid }, include: { category: true, account: true, transferToAccount: true }, orderBy: { date: 'desc' }, take: 8 }),
+    prisma.category.findMany({ where: { userId: uid, isActive: true }, orderBy: { name: 'asc' } }),
+    prisma.transaction.findMany({ where: { userId: uid, date: { gte: compareStart, lte: now } } }),
   ]);
 
-  const cash=accounts.reduce((a,x)=>a+Number(x.balance),0);
-  const carAsset=cars.reduce((a,c)=>a+Number(c.purchasePrice)+c.costs.reduce((s,k)=>s+Number(k.amount),0),0);
-  const debt=debts.filter(d=>d.type==='DEBT').reduce((a,d)=>a+Number(d.remainingAmount),0);
-  const rec=debts.filter(d=>d.type==='RECEIVABLE').reduce((a,d)=>a+Number(d.remainingAmount),0);
-  const inv=invest.reduce((a,i)=>a+Number(i.balance),0);
-  const invExcludeRnd=invest.filter(i=>i.category!=='R&D / Eksperimen').reduce((a,i)=>a+Number(i.balance),0);
-  const savings_total=savingsGoals.reduce((a,g)=>a+Number(g.savedAmount),0);
-  const totalAssets=cash+carAsset+invExcludeRnd+savings_total;
-  const monthTx=allYear.filter(t=>ym(t.date)===month);
-  const income=monthTx.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);
-  const expense=monthTx.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);
-  const savings=income-expense;
-  const netWorth=cash+carAsset+inv+rec+savings_total-debt;
-  const chartData=months.map((m,i)=>{const list=allYear.filter(t=>t.date.getMonth()===i);const inc=list.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);const exp=list.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);return {name:m,income:inc,expense:exp,savings:inc-exp};});
-  const netWorthGrowthData=months.slice(0,now.getMonth()+1).map((m,i)=>{
-    const futureTx=allYear.filter(t=>t.date.getMonth()>i);
-    const futureNet=futureTx.reduce((a,t)=>a+(t.type==='INCOME'?-Number(t.amount):t.type==='EXPENSE'?Number(t.amount):0),0);
-    const monthInvest=invest.reduce((a,x)=>a+Number(x.balance),0);
-    const estimatedNetWorth=Math.max(0,netWorth+futureNet);
-    return {name:m,netWorth:estimatedNetWorth,cash:Math.max(0,cash+futureNet),assets:carAsset+monthInvest+rec};
+  const cash = accounts.reduce((a, x) => a + Number(x.balance), 0);
+  const carAsset = cars.reduce((a, c) => a + Number(c.purchasePrice) + c.costs.reduce((s, k) => s + Number(k.amount), 0), 0);
+  const debt = debts.filter(d => d.type === 'DEBT').reduce((a, d) => a + Number(d.remainingAmount), 0);
+  const rec = debts.filter(d => d.type === 'RECEIVABLE').reduce((a, d) => a + Number(d.remainingAmount), 0);
+  const inv = invest.reduce((a, i) => a + Number(i.balance), 0);
+  const invExcludeRnd = invest.filter(i => i.category !== 'R&D / Eksperimen').reduce((a, i) => a + Number(i.balance), 0);
+  const savings_total = savingsGoals.reduce((a, g) => a + Number(g.savedAmount), 0);
+  const totalAssets = cash + carAsset + invExcludeRnd + savings_total;
+  const monthTx = allYear.filter(t => ym(t.date) === month);
+  const income = monthTx.filter(t => t.type === 'INCOME').reduce((a, t) => a + Number(t.amount), 0);
+  const expense = monthTx.filter(t => t.type === 'EXPENSE').reduce((a, t) => a + Number(t.amount), 0);
+  const savings = income - expense;
+  const netWorth = cash + carAsset + inv + rec + savings_total - debt;
+
+  const chartData = months.map((m, i) => {
+    const list = allYear.filter(t => t.date.getMonth() === i);
+    const inc = list.filter(t => t.type === 'INCOME').reduce((a, t) => a + Number(t.amount), 0);
+    const exp = list.filter(t => t.type === 'EXPENSE').reduce((a, t) => a + Number(t.amount), 0);
+    return { name: m, income: inc, expense: exp, savings: inc - exp };
   });
-  const weekStart=new Date(now); weekStart.setDate(now.getDate()-now.getDay()+1); weekStart.setHours(0,0,0,0);
-  const dayNames=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
-  const weeklyCashflowData=dayNames.map((name,idx)=>{
-    const d=new Date(weekStart); d.setDate(weekStart.getDate()+idx);
-    const list=allYear.filter(t=>t.date.getFullYear()===d.getFullYear()&&t.date.getMonth()===d.getMonth()&&t.date.getDate()===d.getDate());
-    const inc=list.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);
-    const exp=list.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);
-    return {name,income:inc,expense:exp,net:inc-exp};
+
+  const netWorthGrowthData = months.slice(0, now.getMonth() + 1).map((m, i) => {
+    const futureTx = allYear.filter(t => t.date.getMonth() > i);
+    const futureNet = futureTx.reduce((a, t) => a + (t.type === 'INCOME' ? -Number(t.amount) : t.type === 'EXPENSE' ? Number(t.amount) : 0), 0);
+    const monthInvest = invest.reduce((a, x) => a + Number(x.balance), 0);
+    const estimatedNetWorth = Math.max(0, netWorth + futureNet);
+    return { name: m, netWorth: estimatedNetWorth, cash: Math.max(0, cash + futureNet), assets: carAsset + monthInvest + rec };
   });
-  const weeklyIncome=weeklyCashflowData.reduce((a,d)=>a+d.income,0);
-  const weeklyExpense=weeklyCashflowData.reduce((a,d)=>a+d.expense,0);
-  const weeklyNet=weeklyIncome-weeklyExpense;
-  const startOfToday = new Date(now); startOfToday.setHours(0,0,0,0);
+
+  // Weekly data
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay() + 1); weekStart.setHours(0, 0, 0, 0);
+  const dayNames = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  const weeklyCashflowData: DayData[] = dayNames.map((name, idx) => {
+    const d = new Date(weekStart); d.setDate(weekStart.getDate() + idx);
+    const list = allYear.filter(t => t.date.getFullYear() === d.getFullYear() && t.date.getMonth() === d.getMonth() && t.date.getDate() === d.getDate());
+    const inc = list.filter(t => t.type === 'INCOME').reduce((a, t) => a + Number(t.amount), 0);
+    const exp = list.filter(t => t.type === 'EXPENSE').reduce((a, t) => a + Number(t.amount), 0);
+    return { name, income: inc, expense: exp, net: inc - exp };
+  });
+  const weeklyIncome = weeklyCashflowData.reduce((a, d) => a + d.income, 0);
+  const weeklyExpense = weeklyCashflowData.reduce((a, d) => a + d.expense, 0);
+  const weeklyNet = weeklyIncome - weeklyExpense;
+
+  // Compare
+  const startOfToday = new Date(now); startOfToday.setHours(0, 0, 0, 0);
   const startLast7 = new Date(startOfToday); startLast7.setDate(startLast7.getDate() - 6);
   const startPrev7 = new Date(startLast7); startPrev7.setDate(startPrev7.getDate() - 7);
   const endPrev7 = new Date(startLast7); endPrev7.setMilliseconds(-1);
-  const last7Expense = compareTx.filter(t=>t.type==='EXPENSE'&&t.date>=startLast7&&t.date<=now).reduce((a,t)=>a+Number(t.amount),0);
-  const prev7Expense = compareTx.filter(t=>t.type==='EXPENSE'&&t.date>=startPrev7&&t.date<=endPrev7).reduce((a,t)=>a+Number(t.amount),0);
+  const last7Expense = compareTx.filter(t => t.type === 'EXPENSE' && t.date >= startLast7 && t.date <= now).reduce((a, t) => a + Number(t.amount), 0);
+  const prev7Expense = compareTx.filter(t => t.type === 'EXPENSE' && t.date >= startPrev7 && t.date <= endPrev7).reduce((a, t) => a + Number(t.amount), 0);
   const dayOfMonth = now.getDate();
   const monthStartNow = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthStartLast = new Date(lastMonthDate.getFullYear(), lastMonthDate.getMonth(), 1);
   const lastMonthComparableEnd = new Date(lastMonthDate.getFullYear(), lastMonthDate.getMonth(), dayOfMonth, 23, 59, 59, 999);
-  const monthNowExpense = compareTx.filter(t=>t.type==='EXPENSE'&&t.date>=monthStartNow&&t.date<=now).reduce((a,t)=>a+Number(t.amount),0);
-  const monthLastExpense = compareTx.filter(t=>t.type==='EXPENSE'&&t.date>=monthStartLast&&t.date<=lastMonthComparableEnd).reduce((a,t)=>a+Number(t.amount),0);
-  const pct = (current:number, previous:number) => previous > 0 ? ((current - previous) / previous) * 100 : (current > 0 ? 100 : 0);
+  const monthNowExpense = compareTx.filter(t => t.type === 'EXPENSE' && t.date >= monthStartNow && t.date <= now).reduce((a, t) => a + Number(t.amount), 0);
+  const monthLastExpense = compareTx.filter(t => t.type === 'EXPENSE' && t.date >= monthStartLast && t.date <= lastMonthComparableEnd).reduce((a, t) => a + Number(t.amount), 0);
+  const pct = (current: number, previous: number) => previous > 0 ? ((current - previous) / previous) * 100 : (current > 0 ? 100 : 0);
   const last7Pct = pct(last7Expense, prev7Expense);
   const monthPct = pct(monthNowExpense, monthLastExpense);
+
   const todayDate = now.getDate();
-  const dueSoonBills = bills.filter(b => {
-    const delta = b.dueDay - todayDate;
-    return delta >= 0 && delta <= 3;
-  });
+  const dueSoonBills = bills.filter(b => { const delta = b.dueDay - todayDate; return delta >= 0 && delta <= 3; });
   const criticalAccounts = accounts.filter(a => Number(a.balance) <= 0);
   const cashCritical = cash < Math.max(1, expense * 0.2);
-  const lastNetWorthPoint=netWorthGrowthData.length > 1 ? netWorthGrowthData[netWorthGrowthData.length - 2].netWorth : netWorth;
-  const netWorthGrowthPct=lastNetWorthPoint?((netWorth-lastNetWorthPoint)/lastNetWorthPoint)*100:0;
-  const expensePie=Object.values(monthTx.filter(t=>t.type==='EXPENSE'&&t.category).reduce((m:Record<string,{name:string;value:number}>,t)=>{const n=t.category!.name;m[n]={name:n,value:(m[n]?.value||0)+Number(t.amount)};return m},{}));
-  const incomePie=Object.values(monthTx.filter(t=>t.type==='INCOME'&&t.category).reduce((m:Record<string,{name:string;value:number}>,t)=>{const n=t.category!.name;m[n]={name:n,value:(m[n]?.value||0)+Number(t.amount)};return m},{}));
-  const topExpenseCategory=expensePie.slice().sort((a,b)=>b.value-a.value)[0];
-  const topIncomeCategory=incomePie.slice().sort((a,b)=>b.value-a.value)[0];
+
+  // Category pie
+  const expensePie = Object.values(monthTx.filter(t => t.type === 'EXPENSE' && t.category).reduce((m: Record<string, { name: string; value: number }>, t) => { const n = t.category!.name; m[n] = { name: n, value: (m[n]?.value || 0) + Number(t.amount) }; return m; }, {}));
+  const incomePie = Object.values(monthTx.filter(t => t.type === 'INCOME' && t.category).reduce((m: Record<string, { name: string; value: number }>, t) => { const n = t.category!.name; m[n] = { name: n, value: (m[n]?.value || 0) + Number(t.amount) }; return m; }, {}));
 
   // Today's transactions
-  const today=new Date(); today.setHours(0,0,0,0);
-  const tomorrow=new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
-  const todayTx=allYear.filter(t=>t.date>=today&&t.date<tomorrow);
-  const todayIncome=todayTx.filter(t=>t.type==='INCOME').reduce((a,t)=>a+Number(t.amount),0);
-  const todayExpense=todayTx.filter(t=>t.type==='EXPENSE').reduce((a,t)=>a+Number(t.amount),0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+  const todayTx = allYear.filter(t => t.date >= today && t.date < tomorrow);
+  const todayIncome = todayTx.filter(t => t.type === 'INCOME').reduce((a, t) => a + Number(t.amount), 0);
+  const todayExpense = todayTx.filter(t => t.type === 'EXPENSE').reduce((a, t) => a + Number(t.amount), 0);
 
-  // Daily transaction history grouped by date
-  const dailyMap = monthTx.reduce((acc: Record<string, DailyData>, tx) => {
+  // Daily history
+  const dailyMap = monthTx.reduce((acc: Record<string, { income: number; expense: number; date: Date }>, tx) => {
     const dateKey = tx.date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long' });
     if (!acc[dateKey]) acc[dateKey] = { income: 0, expense: 0, date: tx.date };
     if (tx.type === 'INCOME') acc[dateKey].income += Number(tx.amount);
@@ -141,462 +208,488 @@ export default async function Dashboard(){
   }, {});
   const dailyHistory = Object.entries(dailyMap).sort((a, b) => b[1].date.getTime() - a[1].date.getTime());
 
-  return <div className="space-y-5 md:space-y-6">
-    {/* Header */}
-    <div className="glass-premium rounded-3xl p-6 md:p-8 overflow-hidden relative">
-      <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-violet-500/15 blur-3xl pointer-events-none" />
-      <div className="relative z-10">
-        <Badge variant="default" className="mb-3">Financial • POS Finance</Badge>
-        <h1 className="text-3xl md:text-4xl font-black text-premium-text tracking-tight">~ Hai, {u.fullName || 'Owner'}.</h1>
-        <p className="mt-2 text-sm text-premium-text-muted">Track smarter, invest wiser, dan pantau semua cashflow dari satu dashboard premium.</p>
-      </div>
-    </div>
+  // Mini bar data for HARIAN
+  const miniBarData = weeklyCashflowData.map(d => ({ value: d.net, label: d.name, isToday: d.name === dayNames[now.getDay() === 0 ? 6 : now.getDay() - 1] }));
 
-    {/* Prioritas Hari Ini */}
-    <div className="glass-premium rounded-3xl p-6 md:p-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg md:text-xl font-black text-premium-text">Prioritas Hari Ini</h2>
-        <Badge variant="default" className="text-xs">Maks 3 Fokus</Badge>
-      </div>
-      <div className="grid md:grid-cols-3 gap-3">
-        <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
-          <p className="text-xs font-black text-premium-text-muted uppercase">Pengeluaran 7 Hari</p>
-          <p className={`text-base font-black mt-1 flex items-center gap-1 ${last7Pct > 0 ? 'text-premium-expense' : 'text-premium-income'}`}>
-            {last7Pct > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-            {last7Pct > 0 ? '+' : ''}{last7Pct.toFixed(1)}%
-          </p>
-          <p className="text-xs text-premium-text-muted mt-1">{rupiah(last7Expense)} vs {rupiah(prev7Expense)}</p>
-        </div>
-        <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
-          <p className="text-xs font-black text-premium-text-muted uppercase">Tagihan Dekat Jatuh Tempo</p>
-          <p className={`text-base font-black mt-1 flex items-center gap-1 ${dueSoonBills.length > 0 ? 'text-premium-expense' : 'text-premium-income'}`}>
-            {dueSoonBills.length > 0 ? <AlertCircle size={14} /> : <ArrowDownRight size={14} />}
-            {dueSoonBills.length} tagihan
-          </p>
-          <p className="text-xs text-premium-text-muted mt-1">{dueSoonBills.length > 0 ? 'Jatuh tempo <= 3 hari' : 'Aman untuk 3 hari ke depan'}</p>
-        </div>
-        <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
-          <p className="text-xs font-black text-premium-text-muted uppercase">Saldo Kritis</p>
-          <p className={`text-base font-black mt-1 flex items-center gap-1 ${(criticalAccounts.length > 0 || cashCritical) ? 'text-premium-expense' : 'text-premium-income'}`}>
-            {(criticalAccounts.length > 0 || cashCritical) ? <AlertCircle size={14} /> : <ArrowDownRight size={14} />}
-            {criticalAccounts.length} akun kritis
-          </p>
-          <p className="text-xs text-premium-text-muted mt-1">{cashCritical ? 'Kas relatif tipis terhadap pengeluaran bulan ini' : 'Kas masih sehat'}</p>
-        </div>
-      </div>
-    </div>
+  // Total bill amount
+  const totalBillsAmount = bills.reduce((a, b) => a + Number(b.amount), 0);
+  const totalBillThisMonth = bills.length;
 
-    {/* Balance Card */}
-    <BalanceCard total={netWorth} income={income} expense={expense} profit={savings} hidden={false} />
+  // Trend bar chart data (weekly)
+  const trendBarMax = Math.max(...weeklyCashflowData.map(d => Math.max(d.income, d.expense)), 1);
 
-    {/* Today's Summary */}
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-      <div className="glass-premium rounded-2xl p-4 border border-premium-income/20">
-        <div className="flex items-center gap-2 mb-2">
-          <ArrowUpRight size={14} className="text-premium-income" />
-          <p className="text-xs font-black text-premium-text-muted uppercase">Masuk Hari Ini</p>
-        </div>
-        <p className="text-base font-black text-premium-income">{rupiah(todayIncome)}</p>
-        <p className="text-xs text-premium-text-muted mt-1">{todayTx.filter(t=>t.type==='INCOME').length} transaksi</p>
-      </div>
-      <div className="glass-premium rounded-2xl p-4 border border-premium-expense/20">
-        <div className="flex items-center gap-2 mb-2">
-          <ArrowDownRight size={14} className="text-premium-expense" />
-          <p className="text-xs font-black text-premium-text-muted uppercase">Keluar Hari Ini</p>
-        </div>
-        <p className="text-base font-black text-premium-expense">{rupiah(todayExpense)}</p>
-        <p className="text-xs text-premium-text-muted mt-1">{todayTx.filter(t=>t.type==='EXPENSE').length} transaksi</p>
-      </div>
-      <div className="glass-premium rounded-2xl p-4 border border-violet-500/20">
-        <p className="text-xs font-black text-premium-text-muted uppercase mb-2">Masuk Bulan Ini</p>
-        <p className="text-base font-black text-violet-300">{rupiah(income)}</p>
-        <p className="text-xs text-premium-text-muted mt-1">{monthTx.filter(t=>t.type==='INCOME').length} transaksi</p>
-      </div>
-      <div className="glass-premium rounded-2xl p-4 border border-rose-500/20">
-        <p className="text-xs font-black text-premium-text-muted uppercase mb-2">Keluar Bulan Ini</p>
-        <p className="text-base font-black text-rose-300">{rupiah(expense)}</p>
-        <p className="text-xs text-premium-text-muted mt-1">{monthTx.filter(t=>t.type==='EXPENSE').length} transaksi</p>
-      </div>
-    </div>
-
-    {/* Quick Menu - di atas periode */}
-    <div>
-      <h3 className="text-base font-black text-premium-text mb-4">Menu</h3>
-      <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-7 gap-3 md:gap-4">
-        {[
-          { label: 'Transaksi', href: '/transactions', icon: Repeat, color: 'bg-violet-500/20 text-violet-300' },
-          { label: 'Tabungan', href: '/savings', icon: PiggyBank, color: 'bg-emerald-500/20 text-emerald-400' },
-          { label: 'Tagihan', href: '/bills', icon: Receipt, color: 'bg-rose-500/20 text-rose-400' },
-          { label: 'Hutang', href: '/debts', icon: CreditCard, color: 'bg-orange-500/20 text-orange-400' },
-          { label: 'Mobil', href: '/cars', icon: Car, color: 'bg-blue-500/20 text-blue-400' },
-          { label: 'Investasi', href: '/investments', icon: TrendingUp, color: 'bg-cyan-500/20 text-cyan-400' },
-          { label: 'Laporan', href: '/reports', icon: LayoutGrid, color: 'bg-purple-500/20 text-purple-400' },
-        ].map(item => (
-          <Link key={item.href} href={item.href} className="flex flex-col items-center gap-2 group">
-            <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center ${item.color} border border-white/[.08] group-hover:scale-105 transition-transform duration-200`}>
-              <item.icon size={28} className="md:w-8 md:h-8" />
-            </div>
-            <span className="text-xs font-black text-premium-text-muted group-hover:text-premium-text transition-colors text-center">{item.label}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
-
-    {/* Period Selector */}
-    <div className="glass-premium rounded-2xl p-4 md:p-5">
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-black text-premium-text-muted uppercase tracking-wide">Periode</p>
-        <p className="text-xs font-black text-violet-300">{monthLong[now.getMonth()]} {now.getFullYear()}</p>
-      </div>
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {monthLong.map((period) => (
-          <div
-            key={period}
-            className={[
-              'shrink-0 rounded-full px-4 py-2 text-sm font-black',
-              period === monthLong[now.getMonth()]
-                ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'
-                : 'bg-white/[.04] text-premium-text-muted'
-            ].join(' ')}
-          >
-            {period}
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Main Stats */}
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-      <StatCard label="Pemasukan" value={income} hint={`${monthTx.filter(t=>t.type==='INCOME').length} transaksi`} tone="green" trend="up" />
-      <StatCard label="Pengeluaran" value={expense} hint={`${monthTx.filter(t=>t.type==='EXPENSE').length} transaksi`} tone="red" trend="down" />
-      <StatCard label="Net Savings" value={savings} hint={savings>=0?'Positif':'Negatif'} tone={savings>=0?'purple':'red'} />
-      <StatCard label="Investasi" value={inv} hint="Saldo bulan ini" tone="blue" />
-    </div>
-
-    {/* Assets Summary */}
-    <Card variant="accent" className="p-6 md:p-8">
-      <SectionHeader title="Total Aset" desc="Ringkasan semua aset kamu" />
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-        <StatRow label="Saldo Rekening" value={cash} color="income" />
-        <StatRow label="Aset Mobil" value={carAsset} color="neutral" />
-        <StatRow label="Investasi (ex R&D)" value={invExcludeRnd} color="savings" />
-        <StatRow label="Tabungan" value={savings_total} color="savings" />
-      </div>
-      <div className="mt-6 pt-6 border-t border-premium-border-soft">
-        <p className="text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Total</p>
-        <p className="text-2xl md:text-3xl font-black text-premium-income">{rupiah(totalAssets)}</p>
-      </div>
-    </Card>
-
-    {/* Category Breakdown */}
-    <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
-      <div className="glass-premium rounded-3xl p-6 md:p-8">
-        <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Pemasukan per Kategori</h3>
-        {incomePie.length > 0 ? (
-          <div className="space-y-3">
-            {incomePie.slice().sort((a,b)=>b.value-a.value).map((cat, idx) => {
-              const percent = income > 0 ? (cat.value / income) * 100 : 0;
-              return (
-                <div key={idx} className="soft-card rounded-2xl p-4 border border-premium-border-soft">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="text-premium-income opacity-70">{getCategoryIcon(cat.name)}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black text-premium-text truncate">{cat.name}</p>
-                      <p className="text-xs text-premium-text-muted">{rupiah(cat.value)}</p>
-                    </div>
-                    <p className="text-xs font-black text-premium-text-muted shrink-0">{Math.round(percent)}%</p>
-                  </div>
-                  <div className="h-1.5 bg-white/[.04] rounded-full overflow-hidden">
-                    <div className="h-full bg-premium-income rounded-full" style={{ width: `${Math.min(percent, 100)}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-sm text-premium-text-muted text-center py-8">Belum ada pemasukan bulan ini</p>
-        )}
-      </div>
-      <div className="glass-premium rounded-3xl p-6 md:p-8">
-        <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Pengeluaran per Kategori</h3>
-        {expensePie.length > 0 ? (
-          <div className="space-y-3">
-            {expensePie.slice().sort((a,b)=>b.value-a.value).map((cat, idx) => {
-              const percent = expense > 0 ? (cat.value / expense) * 100 : 0;
-              return (
-                <div key={idx} className="soft-card rounded-2xl p-4 border border-premium-border-soft">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="text-premium-expense opacity-70">{getCategoryIcon(cat.name)}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black text-premium-text truncate">{cat.name}</p>
-                      <p className="text-xs text-premium-text-muted">{rupiah(cat.value)}</p>
-                    </div>
-                    <p className="text-xs font-black text-premium-text-muted shrink-0">{Math.round(percent)}%</p>
-                  </div>
-                  <div className="h-1.5 bg-white/[.04] rounded-full overflow-hidden">
-                    <div className="h-full bg-premium-expense rounded-full" style={{ width: `${Math.min(percent, 100)}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-sm text-premium-text-muted text-center py-8">Belum ada pengeluaran bulan ini</p>
-        )}
-      </div>
-    </div>
-
-    {/* Charts Grid */}
-    <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
-      <ChartCard title="Financial Trend" footer={<Link href="/reports" className="text-xs font-black text-violet-300 hover:text-violet-200">Lihat Laporan →</Link>}>
-        <CashflowChart data={chartData}/>
-      </ChartCard>
-      <ChartCard title="Pertumbuhan Net Worth" footer={<Badge variant={netWorthGrowthPct>=0?'success':'danger'} className="text-xs">{netWorthGrowthPct>=0?'+':''}{netWorthGrowthPct.toFixed(1)}%</Badge>}>
-        <NetWorthGrowthChart data={netWorthGrowthData}/>
-      </ChartCard>
-    </div>
-
-    {/* Weekly & Insights */}
-    <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
-      <ChartCard title="Cashflow Mingguan" footer={<Badge variant={weeklyNet>=0?'success':'danger'} className="text-xs">{weeklyNet>=0?'+':''}{rupiah(weeklyNet)}</Badge>}>
-        <WeeklyCashflowChart data={weeklyCashflowData}/>
-      </ChartCard>
-
-      {/* Quick Insights */}
-      <div className="glass-premium rounded-3xl p-6 md:p-8">
-        <h3 className="text-lg md:text-xl font-black text-premium-text mb-6">Insight Cepat</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black text-premium-text-muted uppercase">Top Expense</p>
-              <p className="text-base font-black text-premium-expense mt-1">{topExpenseCategory?.name || '-'}</p>
-              <p className="text-xs text-premium-text-muted">{rupiah(topExpenseCategory?.value || 0)}</p>
-            </div>
-            <div className="text-premium-expense opacity-50">{topExpenseCategory ? getCategoryIcon(topExpenseCategory.name) : <ArrowDownRight size={18} />}</div>
-          </div>
-          <div className="soft-card rounded-2xl p-4 border border-premium-border-soft flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black text-premium-text-muted uppercase">Top Income</p>
-              <p className="text-base font-black text-premium-income mt-1">{topIncomeCategory?.name || '-'}</p>
-              <p className="text-xs text-premium-text-muted">{rupiah(topIncomeCategory?.value || 0)}</p>
-            </div>
-            <div className="text-premium-income opacity-50">{topIncomeCategory ? getCategoryIcon(topIncomeCategory.name) : <ArrowUpRight size={18} />}</div>
-          </div>
-          <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
-            <p className="text-xs font-black text-premium-text-muted uppercase">7D vs Prev 7D</p>
-            <p className={`text-base font-black mt-1 flex items-center gap-1 ${last7Pct > 0 ? 'text-premium-expense' : 'text-premium-income'}`}>
-              {last7Pct > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-              {last7Pct > 0 ? '+' : ''}{last7Pct.toFixed(1)}%
-            </p>
-            <p className="text-xs text-premium-text-muted mt-1">{rupiah(last7Expense)} vs {rupiah(prev7Expense)}</p>
-          </div>
-          <div className="soft-card rounded-2xl p-4 border border-premium-border-soft">
-            <p className="text-xs font-black text-premium-text-muted uppercase">MTD vs Last Month</p>
-            <p className={`text-base font-black mt-1 flex items-center gap-1 ${monthPct > 0 ? 'text-premium-expense' : 'text-premium-income'}`}>
-              {monthPct > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-              {monthPct > 0 ? '+' : ''}{monthPct.toFixed(1)}%
-            </p>
-            <p className="text-xs text-premium-text-muted mt-1">{rupiah(monthNowExpense)} vs {rupiah(monthLastExpense)}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Tagihan Mendatang + Hutang Piutang */}
-    <div className="grid lg:grid-cols-2 gap-5 md:gap-6">
-      {/* Tagihan Mendatang */}
-      <details open className="glass-premium rounded-3xl p-6 md:p-8 group">
-        <summary className="list-none cursor-pointer flex items-center justify-between mb-5">
-          <h3 className="text-base font-black text-premium-text flex items-center gap-2">
-            <Receipt size={18} className="text-rose-400" /> Tagihan Mendatang
-          </h3>
-          <p className="text-xs font-black text-rose-300">{bills.length} item</p>
-        </summary>
-        <div className="mb-4 -mt-2">
-          <Link href="/bills" className="text-xs font-black text-violet-300 hover:text-violet-200 transition">Semua →</Link>
-        </div>
-        {bills.length === 0 ? (
-          <p className="text-sm text-premium-text-muted text-center py-4">Tidak ada tagihan</p>
-        ) : (
-          <div className="space-y-2">
-            {bills.map(b => (
-              <div key={b.id} className="soft-card rounded-2xl p-3.5 border border-rose-500/20 flex items-center gap-3">
-                <div className="shrink-0 w-9 h-9 rounded-xl bg-rose-500/15 flex items-center justify-center">
-                  <Receipt size={16} className="text-rose-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black text-premium-text truncate">{b.name}</p>
-                  <p className="text-xs text-premium-text-muted mt-0.5 flex items-center gap-1">
-                    <CalendarClock size={10} /> Tgl {b.dueDay} setiap bulan
-                  </p>
-                </div>
-                <p className="text-sm font-black text-rose-400 shrink-0">{rupiah(Number(b.amount))}</p>
-              </div>
-            ))}
-            <div className="pt-2 border-t border-premium-border-soft flex items-center justify-between">
-              <p className="text-xs text-premium-text-muted">Total tagihan</p>
-              <p className="text-sm font-black text-rose-400">{rupiah(bills.reduce((a,b)=>a+Number(b.amount),0))}</p>
-            </div>
-          </div>
-        )}
-      </details>
-
-      {/* Hutang & Piutang */}
-      <details open className="glass-premium rounded-3xl p-6 md:p-8 group">
-        <summary className="list-none cursor-pointer flex items-center justify-between mb-5">
-          <h3 className="text-base font-black text-premium-text flex items-center gap-2">
-            <CreditCard size={18} className="text-orange-400" /> Hutang & Piutang
-          </h3>
-          <p className="text-xs font-black text-orange-300">{debts.length} item</p>
-        </summary>
-        <div className="mb-4 -mt-2">
-          <Link href="/debts" className="text-xs font-black text-violet-300 hover:text-violet-200 transition">Semua →</Link>
-        </div>
-        {debts.length === 0 ? (
-          <p className="text-sm text-premium-text-muted text-center py-4">Tidak ada hutang/piutang aktif</p>
-        ) : (
-          <div className="space-y-2">
-            {debts.filter(d=>d.type==='DEBT').slice(0,3).map(d => (
-              <div key={d.id} className="soft-card rounded-2xl p-3.5 border border-rose-500/20 flex items-center gap-3">
-                <div className="shrink-0 w-9 h-9 rounded-xl bg-rose-500/15 flex items-center justify-center">
-                  <ArrowDownRight size={16} className="text-rose-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black text-premium-text truncate">{d.name}</p>
-                  <p className="text-xs text-rose-400/70 mt-0.5">Hutang</p>
-                </div>
-                <p className="text-sm font-black text-rose-400 shrink-0">{rupiah(Number(d.remainingAmount))}</p>
-              </div>
-            ))}
-            {debts.filter(d=>d.type==='RECEIVABLE').slice(0,3).map(d => (
-              <div key={d.id} className="soft-card rounded-2xl p-3.5 border border-emerald-500/20 flex items-center gap-3">
-                <div className="shrink-0 w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-                  <ArrowUpRight size={16} className="text-emerald-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black text-premium-text truncate">{d.name}</p>
-                  <p className="text-xs text-emerald-400/70 mt-0.5">Piutang</p>
-                </div>
-                <p className="text-sm font-black text-emerald-400 shrink-0">{rupiah(Number(d.remainingAmount))}</p>
-              </div>
-            ))}
-            <div className="pt-2 border-t border-premium-border-soft grid grid-cols-2 gap-2">
-              <div>
-                <p className="text-xs text-premium-text-muted">Total Hutang</p>
-                <p className="text-sm font-black text-rose-400">{rupiah(debt)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-premium-text-muted">Total Piutang</p>
-                <p className="text-sm font-black text-emerald-400">{rupiah(rec)}</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </details>
-    </div>
-
-    {/* Recent Transactions - grouped by date like screenshot */}
-    <details open className="group">
-      <summary className="list-none cursor-pointer flex items-center justify-between mb-4">
-        <h3 className="text-base font-black text-premium-text">Transaksi Terakhir</h3>
+  return (
+    <div className="pb-4 space-y-[18px]">
+      {/* ========== 1. HEADER ========== */}
+      <div className="flex items-center justify-between px-1 pt-1">
         <div className="flex items-center gap-3">
-          <p className="text-xs font-black text-violet-300">{recentTx.length} transaksi</p>
+          <div className="w-[40px] h-[40px] rounded-full ios-glass-strong flex items-center justify-center overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #BF5AF2, #0A84FF)' }}>
+            <span className="text-[16px] font-bold text-white">{u.fullName ? u.fullName[0].toUpperCase() : 'O'}</span>
+          </div>
+          <div>
+            <div className="text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              Total Saldo
+            </div>
+          </div>
         </div>
-      </summary>
-      <div className="flex items-center justify-between mb-4 -mt-2">
-        <TransactionFormButton accounts={accounts} categories={categories} label="+ Tambah" />
-        <Link href="/transactions" className="text-xs font-black text-violet-300 hover:text-violet-200 transition">Semua →</Link>
+        <div className="relative">
+          <Bell size={22} style={{ color: 'rgba(255,255,255,0.5)' }} />
+          {dueSoonBills.length > 0 && (
+            <div className="absolute -top-[2px] -right-[2px] w-[10px] h-[10px] rounded-full" style={{ background: '#FF453A' }} />
+          )}
+        </div>
       </div>
 
-      {recentTx.length === 0 ? (
-        <div className="glass-premium rounded-2xl p-8 text-center">
-          <p className="text-premium-text-muted text-sm">Belum ada transaksi</p>
-        </div>
-      ) : (() => {
-        // Group by date
-        const grouped = recentTx.reduce((acc: Record<string, typeof recentTx>, t) => {
-          const dk = t.date.toISOString().slice(0, 10);
-          if (!acc[dk]) acc[dk] = [];
-          acc[dk].push(t);
-          return acc;
-        }, {});
+      {/* Balance Amount */}
+      <div className="px-1">
+        <h1 style={{
+          fontSize: 40, fontWeight: 700, letterSpacing: '-1.2px',
+          lineHeight: 1.1, margin: 0
+        }}>
+          {rupiah(netWorth)}
+        </h1>
+      </div>
 
-        return (
-          <div className="space-y-4">
-            {Object.entries(grouped).map(([dateKey, txs]) => {
-              const dayIncome = txs.filter(t => t.type === 'INCOME').reduce((a, t) => a + Number(t.amount), 0);
-              const dayExpense = txs.filter(t => t.type === 'EXPENSE').reduce((a, t) => a + Number(t.amount), 0);
-              const dayNet = dayIncome - dayExpense;
-              const dateLabel = new Date(dateKey + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
-              return (
-                <div key={dateKey}>
-                  {/* Date header */}
-                  <div className="flex items-center justify-between px-1 mb-2">
-                    <p className="text-xs font-black text-premium-text-muted">{dateLabel}</p>
-                    <p className={`text-xs font-black ${dayNet >= 0 ? 'text-premium-income' : 'text-premium-expense'}`}>
-                      {dayNet >= 0 ? '+' : ''}{rupiah(dayNet)}
-                    </p>
-                  </div>
-                  {/* Transactions */}
-                  <div className="glass-premium rounded-2xl overflow-hidden">
-                    {txs.map((t, idx) => {
-                      const isExpense = t.type === 'EXPENSE';
-                      const isIncome = t.type === 'INCOME';
-                      const catName = t.category?.name || '';
-                      const timeStr = t.date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-
-                      // Icon color based on category
-                      const iconColors = [
-                        'bg-orange-500/20 text-orange-400',
-                        'bg-violet-500/20 text-violet-400',
-                        'bg-emerald-500/20 text-emerald-400',
-                        'bg-blue-500/20 text-blue-400',
-                        'bg-rose-500/20 text-rose-400',
-                        'bg-cyan-500/20 text-cyan-400',
-                        'bg-amber-500/20 text-amber-400',
-                      ];
-                      const colorIdx = catName.length % iconColors.length;
-                      const iconColor = isExpense ? iconColors[colorIdx] : 'bg-emerald-500/20 text-emerald-400';
-
-                      return (
-                        <div key={t.id} className={`flex items-center gap-3 px-4 py-3.5 ${idx < txs.length - 1 ? 'border-b border-white/[.05]' : ''} hover:bg-white/[.03] transition-colors`}>
-                          {/* Icon */}
-                          <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${iconColor}`}>
-                            {isExpense
-                              ? getCategoryIcon(catName)
-                              : isIncome
-                              ? getCategoryIcon(catName)
-                              : <ArrowRightLeft size={16} className="text-violet-300" />}
-                          </div>
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-black text-premium-text truncate">{t.description || catName || t.type}</p>
-                              <span className="text-[10px] text-premium-text-muted shrink-0">{timeStr}</span>
-                            </div>
-                            <div className="flex items-center gap-1 mt-0.5">
-                              <span className="text-[10px] text-premium-text-muted">{t.account.name}</span>
-                              {catName && <><span className="text-[10px] text-premium-text-muted">•</span><span className="text-[10px] text-premium-text-muted">{catName}</span></>}
-                            </div>
-                          </div>
-                          {/* Amount */}
-                          <p className={`text-sm font-black shrink-0 ${isExpense ? 'text-premium-expense' : 'text-premium-income'}`}>
-                            {isExpense ? '−' : '+'}{rupiah(Number(t.amount))}
-                          </p>
+      {/* ========== 2. TAGIHAN REMINDER ========== */}
+      {dueSoonBills.length > 0 && (
+        <div>
+          <div className="flex items-center gap-1.5 mb-2.5 px-1">
+            <Bell size={14} style={{ color: 'rgba(255,255,255,0.5)' }} />
+            <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.5)' }}>Tagihan</span>
+            <div className="text-[11px] font-semibold px-[6px] py-[1px] rounded-full" style={{ background: 'rgba(255,69,58,0.2)', color: '#FF453A' }}>
+              {dueSoonBills.length} tagihan
+            </div>
+          </div>
+          {dueSoonBills.slice(0, 2).map(b => {
+            const daysLeft = b.dueDay - todayDate;
+            return (
+              <div key={b.id} className="ios-card overflow-hidden animate-ios-pulse mb-2.5" style={{
+                background: 'linear-gradient(135deg, rgba(255,159,10,0.15), rgba(255,69,58,0.12))',
+              }}>
+                <div className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0"
+                        style={{ background: 'rgba(255,69,58,0.2)' }}>
+                        <Receipt size={18} style={{ color: '#FF453A' }} />
+                      </div>
+                      <div>
+                        <div className="text-[15px] font-semibold">{b.name}</div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <Clock size={11} style={{ color: 'rgba(255,255,255,0.4)' }} />
+                          <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                            {daysLeft === 0 ? 'Hari ini' : `${daysLeft} hari lagi`}
+                          </span>
                         </div>
-                      );
-                    })}
+                      </div>
+                    </div>
+                    <div style={{ color: '#FF453A' }}>
+                      <div className="text-[16px] font-semibold text-right">{rupiah(Number(b.amount))}</div>
+                      <div className="text-[11px] text-right" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Jatuh tempo {b.dueDay} {monthLong[now.getMonth()]}
+                      </div>
+                    </div>
                   </div>
+                  <div className="flex items-center gap-2 mt-3">
+                    <Link href="/bills" className="flex-1 h-[40px] rounded-[12px] flex items-center justify-center text-[13px] font-semibold active-scale"
+                      style={{ background: '#FF453A', color: 'white' }}>
+                      Bayar Sekarang
+                    </Link>
+                    <button className="w-[40px] h-[40px] rounded-[12px] flex items-center justify-center active-scale"
+                      style={{ background: 'rgba(255,255,255,0.08)' }}>
+                      <MoreHorizontal size={18} style={{ color: 'rgba(255,255,255,0.5)' }} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          <div className="ios-card p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-[13px]" style={{ color: 'rgba(255,255,255,0.5)' }}>Total tagihan bulan ini</div>
+              <div className="text-[15px] font-semibold" style={{ color: '#FF453A' }}>{rupiah(totalBillsAmount)}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== 3. QUICK STATS ========== */}
+      <div className="grid grid-cols-2 gap-[10px]">
+        <div className="ios-card p-4 animate-ios-slide-up ios-stagger-1">
+          <div className="flex items-center gap-1.5 mb-1">
+            <ArrowUpRight size={14} style={{ color: '#30D158' }} />
+            <span className="text-[11px] font-medium uppercase" style={{ color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px' }}>Pemasukan</span>
+          </div>
+          <div className="text-[22px] font-semibold" style={{ color: '#30D158', letterSpacing: '-0.5px' }}>{rupiah(income)}</div>
+          <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{monthTx.filter(t => t.type === 'INCOME').length} transaksi</div>
+        </div>
+        <div className="ios-card p-4 animate-ios-slide-up ios-stagger-2">
+          <div className="flex items-center gap-1.5 mb-1">
+            <ArrowDownRight size={14} style={{ color: '#FF453A' }} />
+            <span className="text-[11px] font-medium uppercase" style={{ color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px' }}>Pengeluaran</span>
+          </div>
+          <div className="text-[22px] font-semibold" style={{ color: '#FF453A', letterSpacing: '-0.5px' }}>{rupiah(expense)}</div>
+          <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{monthTx.filter(t => t.type === 'EXPENSE').length} transaksi</div>
+        </div>
+      </div>
+
+      {/* ========== 4. HUTANG & PIUTANG ========== */}
+      <div className="grid grid-cols-2 gap-[10px]">
+        <div className="ios-card p-4 animate-ios-slide-up ios-stagger-3" style={{
+          background: 'linear-gradient(135deg, rgba(255,69,58,0.12), rgba(255,69,58,0.04))'
+        }}>
+          <div className="flex items-center gap-1.5 mb-1">
+            <ArrowDownRight size={12} style={{ color: '#FF453A' }} />
+            <span className="text-[11px] font-medium uppercase" style={{ color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px' }}>Hutang</span>
+          </div>
+          <div className="text-[20px] font-semibold" style={{ color: '#FF453A', letterSpacing: '-0.5px' }}>{rupiah(debt)}</div>
+          <div className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            {criticalAccounts.length} akun kritis
+          </div>
+        </div>
+        <div className="ios-card p-4 animate-ios-slide-up ios-stagger-4" style={{
+          background: 'linear-gradient(135deg, rgba(48,209,88,0.12), rgba(48,209,88,0.04))'
+        }}>
+          <div className="flex items-center gap-1.5 mb-1">
+            <ArrowUpRight size={12} style={{ color: '#30D158' }} />
+            <span className="text-[11px] font-medium uppercase" style={{ color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px' }}>Piutang</span>
+          </div>
+          <div className="text-[20px] font-semibold" style={{ color: '#30D158', letterSpacing: '-0.5px' }}>{rupiah(rec)}</div>
+          <div className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            {debts.filter(d => d.type === 'RECEIVABLE').length} items
+          </div>
+        </div>
+      </div>
+
+      {/* Net progress bar */}
+      {(debt > 0 || rec > 0) && (
+        <div className="px-1 animate-ios-fade-in">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Net Position</span>
+            <span className="text-[11px] font-semibold" style={{ color: rec > debt ? '#30D158' : '#FF453A' }}>
+              {rupiah(Math.abs(rec - debt))} {rec > debt ? 'surplus' : 'defisit'}
+            </span>
+          </div>
+          <div className="h-[3px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <div className="h-full rounded-full transition-all" style={{
+              width: `${Math.min((Math.max(debt, rec) > 0 ? Math.min(rec, debt) / Math.max(debt, rec) : 0) * 100, 100)}%`,
+              background: 'linear-gradient(90deg, #FF453A, #FF9F0A, #30D158)'
+            }} />
+          </div>
+        </div>
+      )}
+
+      {/* ========== 5. DEBTS LIST ========== */}
+      {debts.length > 0 && (
+        <div className="space-y-[6px] animate-ios-slide-up ios-stagger-5">
+          {debts.slice(0, 4).map(d => {
+            const isDebt = d.type === 'DEBT';
+            const isOverdue = d.dueDate && d.dueDate < new Date();
+            return (
+              <Link key={d.id} href="/debts" className="ios-card p-3.5 flex items-center gap-3 active-scale" style={{ display: 'flex' }}>
+                <div className="w-[32px] h-[32px] rounded-[10px] flex items-center justify-center shrink-0"
+                  style={{ background: isDebt ? 'rgba(255,69,58,0.15)' : 'rgba(48,209,88,0.15)' }}>
+                  {isDebt ? <ArrowDownRight size={14} style={{ color: '#FF453A' }} /> : <ArrowUpRight size={14} style={{ color: '#30D158' }} />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[14px] font-medium truncate">{d.name}</div>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="text-[11px]" style={{ color: isDebt ? 'rgba(255,69,58,0.6)' : 'rgba(48,209,88,0.6)' }}>
+                      {isDebt ? 'Hutang' : 'Piutang'}
+                    </span>
+                    {isOverdue && (
+                      <div className="text-[10px] px-[4px] py-[1px] rounded-full" style={{ background: 'rgba(255,69,58,0.2)', color: '#FF453A' }}>
+                        Lewat
+                      </div>
+                    )}
+                    {d.dueDate && (
+                      <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                        • {d.dueDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-[14px] font-semibold shrink-0" style={{ color: isDebt ? '#FF453A' : '#30D158' }}>
+                  {rupiah(Number(d.remainingAmount))}
+                </div>
+              </Link>
+            );
+          })}
+          <Link href="/debts" className="flex items-center justify-center py-2.5 text-[13px] font-medium active-scale"
+            style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Lihat Semua <ChevronRight size={14} className="ml-0.5" />
+          </Link>
+        </div>
+      )}
+
+      {/* ========== 6. HARIAN ========== */}
+      <div className="animate-ios-slide-up ios-stagger-6">
+        <div className="flex items-center justify-between mb-2.5 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Harian</span>
+            <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              {now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </span>
+          </div>
+          <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            {todayTx.length} transaksi
+          </span>
+        </div>
+        <div className="ios-card p-4">
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-[28px] h-[28px] rounded-[8px] flex items-center justify-center shrink-0"
+                style={{ background: 'rgba(48,209,88,0.15)' }}>
+                <ArrowUpRight size={13} style={{ color: '#30D158' }} />
+              </div>
+              <div>
+                <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Pemasukan</span>
+                <div className="text-[14px] font-semibold" style={{ color: '#30D158' }}>{rupiah(todayIncome)}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-[28px] h-[28px] rounded-[8px] flex items-center justify-center shrink-0"
+                style={{ background: 'rgba(255,69,58,0.15)' }}>
+                <ArrowDownRight size={13} style={{ color: '#FF453A' }} />
+              </div>
+              <div>
+                <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Pengeluaran</span>
+                <div className="text-[14px] font-semibold" style={{ color: '#FF453A' }}>-{rupiah(todayExpense)}</div>
+              </div>
+            </div>
+          </div>
+          <div className="h-[1px] my-2.5" style={{ background: 'rgba(255,255,255,0.06)' }} />
+          <MiniBarChart data={miniBarData} height={36} />
+        </div>
+      </div>
+
+      {/* ========== 7. TREND PENGELUARAN ========== */}
+      <div className="animate-ios-slide-up ios-stagger-7">
+        <div className="flex items-center justify-between mb-2.5 px-1">
+          <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Trend Pengeluaran</span>
+          <div className="flex rounded-[10px] p-[2px]" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div className="text-[12px] font-medium px-3 py-1.5 rounded-[8px]" style={{ background: 'rgba(255,255,255,0.12)', color: '#fff' }}>Minggu</div>
+            <div className="text-[12px] font-medium px-3 py-1.5 rounded-[8px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Bulan</div>
+          </div>
+        </div>
+        <div className="ios-card p-4">
+          <div className="flex items-end gap-[5px]" style={{ height: 130 }}>
+            {weeklyCashflowData.map((d, i) => {
+              const expPct = Math.max(4, (d.expense / trendBarMax) * 100);
+              const incPct = Math.max(4, (d.income / trendBarMax) * 100);
+              return (
+                <div key={i} className="flex-1 flex flex-col items-center justify-end gap-0.5">
+                  <div className="w-[6px] rounded-t-[3px]" style={{ height: `${incPct}%`, background: 'rgba(48,209,88,0.3)', minHeight: 3 }} />
+                  <div className="w-full flex justify-center">
+                    <div className="w-[6px] rounded-t-[3px]" style={{ height: `${expPct}%`, background: 'rgba(255,69,58,0.6)', minHeight: 3 }} />
+                  </div>
+                  <span className="text-[9px] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{d.name}</span>
                 </div>
               );
             })}
           </div>
-        );
-      })()}
-    </details>
+          <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <div className="w-[6px] h-[6px] rounded-full" style={{ background: 'rgba(48,209,88,0.3)' }} />
+                <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Pemasukan</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-[6px] h-[6px] rounded-full" style={{ background: '#FF453A' }} />
+                <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Pengeluaran</span>
+              </div>
+            </div>
+            <span className={`text-[12px] font-medium ${last7Pct > 0 ? '' : ''}`}
+              style={{ color: last7Pct > 0 ? '#FF453A' : '#30D158' }}>
+              {last7Pct > 0 ? '▲' : '▼'} {Math.abs(last7Pct).toFixed(0)}% vs Minggu Lalu
+            </span>
+          </div>
+        </div>
+      </div>
 
-    {/* FAB - Mobile floating button */}
-    <TransactionFormButton accounts={accounts} categories={categories} variant="fab" />
-  </div>;
+      {/* ========== 8. PENGELUARAN PER KATEGORI ========== */}
+      <div className="animate-ios-slide-up ios-stagger-8">
+        <div className="flex items-center justify-between mb-2.5 px-1">
+          <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Pengeluaran per Kategori</span>
+        </div>
+        <div className="ios-card p-4">
+          {expensePie.length > 0 ? (
+            <div className="grid grid-cols-[1fr,1fr] gap-4 items-start">
+              <DonutChart data={expensePie} total={expense} size={100} />
+              <div className="space-y-2.5">
+                {expensePie.slice().sort((a, b) => b.value - a.value).slice(0, 5).map((cat, i) => {
+                  const p = expense > 0 ? (cat.value / expense) * 100 : 0;
+                  return (
+                    <div key={i}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[12px] truncate" style={{ color: 'rgba(255,255,255,0.65)' }}>{cat.name}</span>
+                        <span className="text-[11px] font-medium">{rupiah(cat.value)}</span>
+                      </div>
+                      <div className="h-[4px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                        <div className="h-full rounded-full" style={{ width: `${Math.min(p, 100)}%`, background: getColor(i) }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <div className="w-[80px] h-[80px] rounded-full mx-auto" style={{ background: '#222' }} />
+              <div className="text-[13px] mt-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Belum ada pengeluaran bulan ini</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ========== 9. PEMASUKAN PER KATEGORI ========== */}
+      <div>
+        <div className="flex items-center justify-between mb-2.5 px-1">
+          <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Pemasukan per Kategori</span>
+        </div>
+        <div className="ios-card p-4">
+          {incomePie.length > 0 ? (
+            <div className="grid grid-cols-[1fr,1fr] gap-4 items-start">
+              <DonutChart data={incomePie} total={income} size={100} />
+              <div className="space-y-2.5">
+                {incomePie.slice().sort((a, b) => b.value - a.value).slice(0, 5).map((cat, i) => {
+                  const p = income > 0 ? (cat.value / income) * 100 : 0;
+                  return (
+                    <div key={i}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[12px] truncate" style={{ color: 'rgba(255,255,255,0.65)' }}>{cat.name}</span>
+                        <span className="text-[11px] font-medium">{rupiah(cat.value)}</span>
+                      </div>
+                      <div className="h-[4px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                        <div className="h-full rounded-full" style={{ width: `${Math.min(p, 100)}%`, background: getColor(i) }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <div className="w-[80px] h-[80px] rounded-full mx-auto" style={{ background: '#222' }} />
+              <div className="text-[13px] mt-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Belum ada pemasukan bulan ini</div>
+              <Link href="/transactions" className="inline-flex items-center gap-1 mt-3 px-4 py-2.5 rounded-[12px] text-[13px] font-semibold active-scale"
+                style={{ background: '#30D158', color: '#000' }}>
+                <Plus size={14} /> Tambah Pemasukan
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ========== 10. TREND BULANAN (chart) ========== */}
+      <div className="animate-ios-fade-in">
+        <div className="flex items-center justify-between mb-2.5 px-1">
+          <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Trend Bulanan</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <div className="w-[2px] h-[2px] rounded-full" style={{ background: '#30D158' }} />
+              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Income</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-[6px] h-[6px] rounded-full" style={{ background: 'rgba(255,69,58,0.6)' }} />
+              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Expense</span>
+            </div>
+          </div>
+        </div>
+        <div className="ios-card p-4">
+          <div className="flex items-end gap-[5px]" style={{ height: 100 }}>
+            {chartData.slice(0, now.getMonth() + 1).map((d, i) => {
+              const maxV = Math.max(...chartData.map(c => Math.max(c.income, c.expense)), 1);
+              const incH = Math.max(4, (d.income / maxV) * 100);
+              const expH = Math.max(4, (d.expense / maxV) * 100);
+              return (
+                <div key={i} className="flex-1 flex flex-col items-center gap-[2px] justify-end">
+                  <div className="w-[5px] rounded-t-[2px]" style={{ height: `${incH}%`, background: 'rgba(48,209,88,0.3)', minHeight: 3 }} />
+                  <div className="w-[5px] rounded-t-[2px]" style={{ height: `${expH}%`, background: 'rgba(255,69,58,0.5)', minHeight: 3 }} />
+                  <span className="text-[8px] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{d.name}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ========== 11. TRANSAKSI TERAKHIR ========== */}
+      <div>
+        <div className="flex items-center justify-between mb-2.5 px-1">
+          <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Transaksi Terakhir</span>
+          <Link href="/transactions" className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Lihat Semua
+          </Link>
+        </div>
+        <div className="space-y-[6px]">
+          {recentTx.slice(0, 5).map(t => {
+            const isExpense = t.type === 'EXPENSE';
+            const isIncome = t.type === 'INCOME';
+            const catName = t.category?.name || '';
+            const timeStr = t.date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            const cIdx = catName.length % donutColors.length;
+            const iconBg = isExpense ? donutColors[cIdx] : '#30D158';
+            return (
+              <div key={t.id} className="ios-card p-3.5 flex items-center gap-3 active-scale">
+                <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0"
+                  style={{ background: `${iconBg}20` }}>
+                  {getCatIcon(catName)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] font-medium truncate">{t.description || catName || t.type}</span>
+                    <span className="text-[11px] shrink-0" style={{ color: 'rgba(255,255,255,0.3)' }}>{timeStr}</span>
+                  </div>
+                  <div className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    {t.account.name}
+                    {catName && <span> • {catName}</span>}
+                  </div>
+                </div>
+                <div className="text-[14px] font-semibold shrink-0" style={{ color: isExpense ? '#FF453A' : '#30D158' }}>
+                  {isExpense ? '−' : '+'}{rupiah(Number(t.amount))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ========== 12. TOTAL ASET ========== */}
+      <div className="ios-card p-4 animate-ios-fade-in">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[15px] font-semibold">Total Aset</span>
+          <span className="text-[20px] font-semibold" style={{ color: '#30D158', letterSpacing: '-0.5px' }}>{rupiah(totalAssets)}</span>
+        </div>
+        <div className="space-y-2.5">
+          {[
+            { label: 'Saldo Rekening', value: cash, icon: <Wallet size={14} />, color: '#0A84FF' },
+            { label: 'Aset Mobil', value: carAsset, icon: <Car size={14} />, color: '#FF9F0A' },
+            { label: 'Investasi', value: invExcludeRnd, icon: <TrendingUp size={14} />, color: '#BF5AF2' },
+            { label: 'Tabungan', value: savings_total, icon: <PiggyBank size={14} />, color: '#30D158' },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-[24px] h-[24px] rounded-[6px] flex items-center justify-center" style={{ background: `${item.color}15` }}>
+                  <span style={{ color: item.color }}>{item.icon}</span>
+                </div>
+                <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.65)' }}>{item.label}</span>
+              </div>
+              <span className="text-[14px] font-medium">{rupiah(item.value)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] font-semibold">Net Worth</span>
+            <span className="text-[17px] font-semibold" style={{ color: '#30D158' }}>{rupiah(netWorth)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ========== FAB ========== */}
+      <TransactionFormButton accounts={accounts} categories={categories} variant="fab" />
+    </div>
+  );
 }
