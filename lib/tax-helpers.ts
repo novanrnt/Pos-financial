@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from './prisma';
+import type { TaxBreakdownItem } from './tax-calculations';
 import {
   calculatePTKP,
   calculateNetIncome,
@@ -23,7 +24,7 @@ export interface TaxSummary {
   status: 'kurang_bayar' | 'lebih_bayar' | 'nihil';
   incomeByCategory: Record<string, { count: number; total: number }>;
   expenseByCategory: Record<string, { count: number; total: number }>;
-  taxBreakdown: any[];
+  taxBreakdown: TaxBreakdownItem[];
   method: 'progressive' | 'umkm_final';
 }
 
@@ -197,7 +198,7 @@ export async function calculateTaxSummary(
   const pkp = calculatePKP(netIncome, ptkp);
 
   let pphDue = 0;
-  let taxBreakdown: any[] = [];
+  let taxBreakdown: TaxBreakdownItem[] = [];
 
   if (method === 'progressive') {
     const result = calculateProgressiveTax(pkp);

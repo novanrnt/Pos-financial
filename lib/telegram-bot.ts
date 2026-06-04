@@ -37,7 +37,7 @@ async function getUserByTelegramId(telegramId: number) {
   });
 }
 
-async function sendTelegramMessage(botToken: string, chatId: number, text: string, options?: any) {
+async function sendTelegramMessage(botToken: string, chatId: number, text: string, options?: Record<string, unknown>) {
   try {
     const payload = {
       chat_id: chatId,
