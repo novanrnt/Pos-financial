@@ -93,7 +93,7 @@ export function TaxSettingsCard({ onSettingsChange }: TaxSettingsCardProps) {
 
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.08)',
+      background: 'rgba(255,255,255,0.15)',
       WebkitBackdropFilter: 'blur(40px) saturate(200%)',
       backdropFilter: 'blur(40px) saturate(200%)',
       border: '0.5px solid rgba(255,255,255,0.1)',

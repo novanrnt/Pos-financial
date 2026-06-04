@@ -22,7 +22,7 @@ export function TaxDetailsTable({
   return (
     <div style={{
       background: 'rgba(255,255,255,0.06)', borderRadius: 16,
-      border: '0.5px solid rgba(255,255,255,0.08)', padding: 16,
+      border: '0.5px solid rgba(255,255,255,0.15)', padding: 16,
     }}>
       <h3 style={{ fontSize: 15, fontWeight: 600, color: '#fff', marginBottom: 16, letterSpacing: '-0.2px' }}>{title}</h3>
       <div className="overflow-x-auto">

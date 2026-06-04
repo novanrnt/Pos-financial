@@ -51,7 +51,7 @@ export function CarFormModal({ accounts }: { accounts: Account[] }) {
       <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(20px)' }} onClick={() => setIsOpen(false)} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div style={{
-          background: 'rgba(255,255,255,0.08)', WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+          background: 'rgba(255,255,255,0.15)', WebkitBackdropFilter: 'blur(40px) saturate(200%)',
           backdropFilter: 'blur(40px) saturate(200%)',
           border: '0.5px solid rgba(255,255,255,0.1)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',

@@ -209,47 +209,6 @@ export default async function Dashboard() {
         </h1>
       </div>
 
-      {/* ========== QUICK MENU ========== */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12,
-        marginTop: 8
-      }}>
-        {[
-          { label: 'Transaksi', href: '/transactions', icon: Repeat, color: '#0A84FF' },
-          { label: 'Tabungan', href: '/savings', icon: PiggyBank, color: '#30D158' },
-          { label: 'Tagihan', href: '/bills', icon: Receipt, color: '#FF453A' },
-          { label: 'Hutang', href: '/debts', icon: CreditCard, color: '#FF9F0A' },
-          { label: 'Mobil', href: '/cars', icon: Car, color: '#64D2FF' },
-          { label: 'Investasi', href: '/investments', icon: TrendingUp, color: '#BF5AF2' },
-          { label: 'Kategori', href: '/categories', icon: Tags, color: '#FFD60A' },
-          { label: 'Laporan', href: '/reports', icon: BarChart3, color: '#FF375F' },
-        ].map(item => {
-          const Icon = item.icon;
-          return (
-            <Link key={item.href} href={item.href}
-              className="active-scale"
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 6, padding: '12px 4px', borderRadius: 16,
-                background: 'rgba(255,255,255,0.04)',
-                border: '0.5px solid rgba(255,255,255,0.06)',
-                textDecoration: 'none'
-              }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 14,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: `${item.color}15`,
-              }}>
-                <Icon size={20} style={{ color: item.color }} />
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-
       {/* ========== 2. TAGIHAN REMINDER ========== */}
       {dueSoonBills.length > 0 && (
         <div>
@@ -312,6 +271,47 @@ export default async function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* ========== QUICK MENU ========== */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12,
+        marginTop: 4
+      }}>
+        {[
+          { label: 'Transaksi', href: '/transactions', icon: Repeat, color: '#0A84FF' },
+          { label: 'Tabungan', href: '/savings', icon: PiggyBank, color: '#30D158' },
+          { label: 'Tagihan', href: '/bills', icon: Receipt, color: '#FF453A' },
+          { label: 'Hutang', href: '/debts', icon: CreditCard, color: '#FF9F0A' },
+          { label: 'Mobil', href: '/cars', icon: Car, color: '#64D2FF' },
+          { label: 'Investasi', href: '/investments', icon: TrendingUp, color: '#BF5AF2' },
+          { label: 'Kategori', href: '/categories', icon: Tags, color: '#FFD60A' },
+          { label: 'Laporan', href: '/reports', icon: BarChart3, color: '#FF375F' },
+        ].map(item => {
+          const Icon = item.icon;
+          return (
+            <Link key={item.href} href={item.href}
+              className="active-scale"
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 6, padding: '12px 4px', borderRadius: 16,
+                background: 'rgba(255,255,255,0.04)',
+                border: '0.5px solid rgba(255,255,255,0.06)',
+                textDecoration: 'none'
+              }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 14,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: `${item.color}15`,
+              }}>
+                <Icon size={20} style={{ color: item.color }} />
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
 
       {/* ========== 3. QUICK STATS ========== */}
       <div className="grid grid-cols-2 gap-[10px]">
