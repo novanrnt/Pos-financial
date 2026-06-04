@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { deleteDebt, payDebt } from '@/lib/actions';
-import { Badge, SubmitButton } from '@/components/ui';
+import { SubmitButton } from '@/components/ui';
 import { rupiah } from '@/lib/utils';
 import { CreditCard, Plus, Trash2, ArrowDownRight, ArrowUpRight, Calendar, AlertCircle, CheckCircle2, Banknote, Coins } from 'lucide-react';
 import { DebtFormModal } from '@/components/debt-form-modal';
@@ -26,34 +26,49 @@ export default async function Debts() {
   const netPosition = totalReceivable - totalDebt;
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
+    <div style={{ maxWidth: 672, margin: '0 auto', paddingBottom: 80, display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-premium-text">Hutang & Piutang</h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 900, color: '#FFFFFF', margin: 0 }}>Hutang & Piutang</h1>
         <DebtFormModal accounts={accounts} />
       </div>
 
-      {/* Summary Card */}
-      <div className="rounded-3xl overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #3a0a1a 0%, #1a2a0a 50%, #0a1a3a 100%)' }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 via-transparent to-blue-500/10 pointer-events-none" />
-        <div className="relative p-6 md:p-8">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-sm text-white/60">Net Position (IDR)</p>
-            <CreditCard size={16} className="text-white/40" />
+      {/* Summary Card - iOS 26 Liquid Glass */}
+      <div className="ios-card" style={{ padding: 24, overflow: 'hidden', position: 'relative' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,69,58,0.12), transparent, rgba(10,132,255,0.08))', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: 0 }}>Net Position (IDR)</p>
+            <CreditCard size={16} style={{ color: 'rgba(255,255,255,0.3)' }} />
           </div>
-          <h2 className={`text-3xl md:text-4xl font-black tracking-tight mb-1 ${netPosition >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+          <h2 style={{
+            fontSize: 36, fontWeight: 900, letterSpacing: '-0.5px', margin: '0 0 4px 0',
+            color: netPosition >= 0 ? '#30D158' : '#FF453A'
+          }}>
             {netPosition >= 0 ? '+' : ''}{rupiah(netPosition)}
           </h2>
-          <p className="text-xs text-white/50 mb-6">{activeDebts.length + activeReceivables.length} item aktif</p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: '0 0 24px 0' }}>
+            {activeDebts.length + activeReceivables.length} item aktif
+          </p>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/[.08] rounded-2xl p-4 border border-white/[.10]">
-              <p className="text-xs text-white/50 mb-1 flex items-center gap-1"><ArrowDownRight size={12} /> Hutang</p>
-              <p className="text-base font-black text-rose-300">{rupiah(totalDebt)}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{
+              background: 'rgba(255,255,255,0.06)', borderRadius: 16,
+              border: '0.5px solid rgba(255,255,255,0.08)', padding: 16
+            }}>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <ArrowDownRight size={12} /> Hutang
+              </p>
+              <p style={{ fontSize: 16, fontWeight: 900, color: '#FF453A', margin: 0 }}>{rupiah(totalDebt)}</p>
             </div>
-            <div className="bg-white/[.08] rounded-2xl p-4 border border-white/[.10]">
-              <p className="text-xs text-white/50 mb-1 flex items-center gap-1"><ArrowUpRight size={12} /> Piutang</p>
-              <p className="text-base font-black text-emerald-300">{rupiah(totalReceivable)}</p>
+            <div style={{
+              background: 'rgba(255,255,255,0.06)', borderRadius: 16,
+              border: '0.5px solid rgba(255,255,255,0.08)', padding: 16
+            }}>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <ArrowUpRight size={12} /> Piutang
+              </p>
+              <p style={{ fontSize: 16, fontWeight: 900, color: '#30D158', margin: 0 }}>{rupiah(totalReceivable)}</p>
             </div>
           </div>
         </div>
@@ -62,34 +77,52 @@ export default async function Debts() {
       {/* Active Debts */}
       {activeDebts.length > 0 && (
         <div>
-          <h2 className="text-base font-black text-premium-text mb-3 flex items-center gap-2">
-            <ArrowDownRight size={18} className="text-rose-400" /> Hutang Aktif
+          <h2 style={{ fontSize: 15, fontWeight: 900, color: '#FFFFFF', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ArrowDownRight size={18} style={{ color: '#FF453A' }} /> Hutang Aktif
           </h2>
-          <div className="space-y-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {activeDebts.map(debt => {
               const isOverdue = debt.dueDate && debt.dueDate < new Date();
               return (
-                <div key={debt.id} className={`glass-premium rounded-2xl p-4 border ${isOverdue ? 'border-rose-500/30' : 'border-rose-500/20'} flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4`}>
-                  <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${isOverdue ? 'bg-rose-500/30' : 'bg-rose-500/20'}`}>
-                    {isOverdue ? <AlertCircle size={20} className="text-rose-400" /> : <ArrowDownRight size={20} className="text-rose-400" />}
+                <div key={debt.id} style={{
+                  borderRadius: 16, padding: 16,
+                  background: 'rgba(255,255,255,0.08)',
+                  backdropFilter: 'blur(40px) saturate(200%)',
+                  border: isOverdue ? '0.5px solid rgba(255,69,58,0.4)' : '0.5px solid rgba(255,69,58,0.2)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                  display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 16
+                }}>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 12,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: isOverdue ? 'rgba(255,69,58,0.3)' : 'rgba(255,69,58,0.2)',
+                    flexShrink: 0
+                  }}>
+                    {isOverdue ? <AlertCircle size={20} style={{ color: '#FF453A' }} /> : <ArrowDownRight size={20} style={{ color: '#FF453A' }} />}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-black text-premium-text truncate">{debt.name}</p>
-                      {isOverdue && <Badge variant="danger" className="text-xs">Overdue</Badge>}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <p style={{ fontSize: 14, fontWeight: 900, color: '#FFFFFF', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{debt.name}</p>
+                      {isOverdue && (
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
+                          background: 'rgba(255,69,58,0.2)', color: '#FF453A',
+                          border: '0.5px solid rgba(255,69,58,0.3)'
+                        }}>Overdue</span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <p className="text-xs text-premium-text-muted">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 2 }}>
+                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>
                         {debt.dueDate ? debt.dueDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Tanpa jatuh tempo'}
                       </p>
-                      {debt.notes && <span className="text-xs text-premium-text-muted">• {debt.notes}</span>}
+                      {debt.notes && <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>&bull; {debt.notes}</span>}
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-black text-rose-400">{rupiah(Number(debt.remainingAmount))}</p>
-                    <p className="text-xs text-premium-text-muted">dari {rupiah(Number(debt.amount))}</p>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 900, color: '#FF453A', margin: 0 }}>{rupiah(Number(debt.remainingAmount))}</p>
+                    <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>dari {rupiah(Number(debt.amount))}</p>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                     <DebtPaymentModal
                       debt={{
                         id: debt.id,
@@ -118,7 +151,12 @@ export default async function Debts() {
                     />
                     <form action={deleteDebt}>
                       <input type="hidden" name="debtId" value={debt.id} />
-                      <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-lg hover:bg-premium-expense/10 text-premium-text-muted hover:text-premium-expense transition">
+                      <button type="submit" className="active-scale" style={{
+                        width: 32, height: 32, display: 'grid', placeItems: 'center',
+                        borderRadius: 10, border: 'none', cursor: 'pointer',
+                        background: 'transparent', color: 'rgba(255,255,255,0.4)',
+                        transition: 'all 0.2s'
+                      }}>
                         <Trash2 size={14} />
                       </button>
                     </form>
@@ -133,34 +171,52 @@ export default async function Debts() {
       {/* Active Receivables */}
       {activeReceivables.length > 0 && (
         <div>
-          <h2 className="text-base font-black text-premium-text mb-3 flex items-center gap-2">
-            <ArrowUpRight size={18} className="text-emerald-400" /> Piutang Aktif
+          <h2 style={{ fontSize: 15, fontWeight: 900, color: '#FFFFFF', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ArrowUpRight size={18} style={{ color: '#30D158' }} /> Piutang Aktif
           </h2>
-          <div className="space-y-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {activeReceivables.map(receivable => {
               const isOverdue = receivable.dueDate && receivable.dueDate < new Date();
               return (
-                <div key={receivable.id} className={`glass-premium rounded-2xl p-4 border ${isOverdue ? 'border-amber-500/30' : 'border-emerald-500/20'} flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4`}>
-                  <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${isOverdue ? 'bg-amber-500/20' : 'bg-emerald-500/20'}`}>
-                    {isOverdue ? <AlertCircle size={20} className="text-amber-400" /> : <ArrowUpRight size={20} className="text-emerald-400" />}
+                <div key={receivable.id} style={{
+                  borderRadius: 16, padding: 16,
+                  background: 'rgba(255,255,255,0.08)',
+                  backdropFilter: 'blur(40px) saturate(200%)',
+                  border: isOverdue ? '0.5px solid rgba(255,159,10,0.4)' : '0.5px solid rgba(48,209,88,0.2)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                  display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 16
+                }}>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 12,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: isOverdue ? 'rgba(255,159,10,0.2)' : 'rgba(48,209,88,0.2)',
+                    flexShrink: 0
+                  }}>
+                    {isOverdue ? <AlertCircle size={20} style={{ color: '#FF9F0A' }} /> : <ArrowUpRight size={20} style={{ color: '#30D158' }} />}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-black text-premium-text truncate">{receivable.name}</p>
-                      {isOverdue && <Badge variant="warning" className="text-xs">Overdue</Badge>}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <p style={{ fontSize: 14, fontWeight: 900, color: '#FFFFFF', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{receivable.name}</p>
+                      {isOverdue && (
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
+                          background: 'rgba(255,159,10,0.2)', color: '#FF9F0A',
+                          border: '0.5px solid rgba(255,159,10,0.3)'
+                        }}>Overdue</span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <p className="text-xs text-premium-text-muted">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 2 }}>
+                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>
                         {receivable.dueDate ? receivable.dueDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Tanpa jatuh tempo'}
                       </p>
-                      {receivable.notes && <span className="text-xs text-premium-text-muted">• {receivable.notes}</span>}
+                      {receivable.notes && <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>&bull; {receivable.notes}</span>}
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-black text-emerald-400">{rupiah(Number(receivable.remainingAmount))}</p>
-                    <p className="text-xs text-premium-text-muted">dari {rupiah(Number(receivable.amount))}</p>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 900, color: '#30D158', margin: 0 }}>{rupiah(Number(receivable.remainingAmount))}</p>
+                    <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>dari {rupiah(Number(receivable.amount))}</p>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                     <DebtPaymentModal
                       debt={{
                         id: receivable.id,
@@ -189,7 +245,12 @@ export default async function Debts() {
                     />
                     <form action={deleteDebt}>
                       <input type="hidden" name="debtId" value={receivable.id} />
-                      <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-lg hover:bg-premium-expense/10 text-premium-text-muted hover:text-premium-expense transition">
+                      <button type="submit" className="active-scale" style={{
+                        width: 32, height: 32, display: 'grid', placeItems: 'center',
+                        borderRadius: 10, border: 'none', cursor: 'pointer',
+                        background: 'transparent', color: 'rgba(255,255,255,0.4)',
+                        transition: 'all 0.2s'
+                      }}>
                         <Trash2 size={14} />
                       </button>
                     </form>
@@ -203,10 +264,12 @@ export default async function Debts() {
 
       {/* Empty State */}
       {debts.length === 0 && (
-        <div className="glass-premium rounded-3xl p-12 text-center">
-          <CreditCard size={40} className="text-premium-text-muted opacity-30 mx-auto mb-4" />
-          <p className="text-premium-text font-black">Belum ada hutang & piutang</p>
-          <p className="text-xs text-premium-text-muted mt-2">Tambahkan hutang atau piutang untuk tracking keuangan</p>
+        <div className="ios-card" style={{ textAlign: 'center', padding: 48 }}>
+          <CreditCard size={40} style={{ color: 'rgba(255,255,255,0.3)', margin: '0 auto 16px auto', opacity: 0.5 }} />
+          <p style={{ color: '#FFFFFF', fontWeight: 900, fontSize: 15, margin: 0 }}>Belum ada hutang & piutang</p>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8, margin: '8px 0 0 0' }}>
+            Tambahkan hutang atau piutang untuk tracking keuangan
+          </p>
         </div>
       )}
 

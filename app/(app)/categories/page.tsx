@@ -22,30 +22,27 @@ export default async function Categories() {
     <div className="space-y-6 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-premium-text">Kategori</h1>
+        <h1 className="text-[28px] font-semibold text-white tracking-tight">Kategori</h1>
         <CategoryFormModal />
       </div>
 
       {/* Summary Card */}
-      <div className="rounded-3xl overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #2a0a3a 0%, #0a3a2a 50%, #3a2a0a 100%)' }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-amber-500/10 pointer-events-none" />
-        <div className="relative p-6 md:p-8">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-sm text-white/60">Total Kategori</p>
-            <Layers size={16} className="text-white/40" />
-          </div>
-          <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-1">{categories.length}</h2>
-          <p className="text-xs text-white/50 mb-6">{activeCategories.length} kategori aktif</p>
+      <div className="ios-card p-6 md:p-8">
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-[13px] text-white/50">Total Kategori</p>
+          <Layers size={16} className="text-white/40" />
+        </div>
+        <h2 className="text-3xl md:text-4xl font-semibold text-white tracking-tight mb-1">{categories.length}</h2>
+        <p className="text-[11px] text-white/50 mb-6">{activeCategories.length} kategori aktif</p>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/[.08] rounded-2xl p-4 border border-white/[.10]">
-              <p className="text-xs text-white/50 mb-1 flex items-center gap-1"><ArrowUpRight size={12} /> Pemasukan</p>
-              <p className="text-base font-black text-emerald-300">{incomeCategories.length} kategori</p>
-            </div>
-            <div className="bg-white/[.08] rounded-2xl p-4 border border-white/[.10]">
-              <p className="text-xs text-white/50 mb-1 flex items-center gap-1"><ArrowDownRight size={12} /> Pengeluaran</p>
-              <p className="text-base font-black text-rose-300">{expenseCategories.length} kategori</p>
-            </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-4" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-[11px] text-white/50 mb-1 flex items-center gap-1"><ArrowUpRight size={12} style={{ color: '#30D158' }} /> Pemasukan</p>
+            <p className="text-[13px] font-semibold" style={{ color: '#30D158' }}>{incomeCategories.length} kategori</p>
+          </div>
+          <div className="p-4" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-[11px] text-white/50 mb-1 flex items-center gap-1"><ArrowDownRight size={12} style={{ color: '#FF453A' }} /> Pengeluaran</p>
+            <p className="text-[13px] font-semibold" style={{ color: '#FF453A' }}>{expenseCategories.length} kategori</p>
           </div>
         </div>
       </div>
@@ -53,27 +50,27 @@ export default async function Categories() {
       {/* Income Categories */}
       {incomeCategories.length > 0 && (
         <div>
-          <h2 className="text-base font-black text-premium-text mb-3 flex items-center gap-2">
-            <ArrowUpRight size={18} className="text-emerald-400" /> Kategori Pemasukan
+          <h2 className="text-[11px] font-medium text-white/50 mb-3 flex items-center gap-2 tracking-wide uppercase">
+            <ArrowUpRight size={14} style={{ color: '#30D158' }} /> Kategori Pemasukan
           </h2>
           <div className="space-y-2">
             {incomeCategories.map(category => (
-              <div key={category.id} className="glass-premium rounded-2xl p-4 border border-emerald-500/20 flex items-center gap-4">
-                <div className="shrink-0 w-11 h-11 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                  <ArrowUpRight size={20} className="text-emerald-400" />
+              <div key={category.id} className="ios-card p-4 flex items-center gap-4 active-scale" style={{ border: '0.5px solid rgba(48,209,88,0.12)' }}>
+                <div className="shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(48,209,88,0.12)' }}>
+                  <ArrowUpRight size={20} style={{ color: '#30D158' }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-black text-premium-text truncate">{category.name}</p>
-                    <Badge variant={category.isActive ? 'success' : 'default'} className="text-xs">
+                    <p className="text-[13px] font-medium text-white truncate">{category.name}</p>
+                    <Badge variant={category.isActive ? 'success' : 'default'} className="text-[11px]">
                       {category.isActive ? 'Aktif' : 'Nonaktif'}
                     </Badge>
                   </div>
-                  <p className="text-xs text-premium-text-muted mt-0.5">Kategori Pemasukan</p>
+                  <p className="text-[11px] text-white/50 mt-0.5">Kategori Pemasukan</p>
                 </div>
                 <form action={toggleCategory}>
                   <input type="hidden" name="id" value={category.id} />
-                  <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-lg hover:bg-emerald-500/10 text-premium-text-muted hover:text-emerald-400 transition">
+                  <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-xl active-scale transition" style={{ color: 'rgba(255,255,255,0.5)' }}>
                     {category.isActive ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </form>
@@ -86,27 +83,27 @@ export default async function Categories() {
       {/* Expense Categories */}
       {expenseCategories.length > 0 && (
         <div>
-          <h2 className="text-base font-black text-premium-text mb-3 flex items-center gap-2">
-            <ArrowDownRight size={18} className="text-rose-400" /> Kategori Pengeluaran
+          <h2 className="text-[11px] font-medium text-white/50 mb-3 flex items-center gap-2 tracking-wide uppercase">
+            <ArrowDownRight size={14} style={{ color: '#FF453A' }} /> Kategori Pengeluaran
           </h2>
           <div className="space-y-2">
             {expenseCategories.map(category => (
-              <div key={category.id} className="glass-premium rounded-2xl p-4 border border-rose-500/20 flex items-center gap-4">
-                <div className="shrink-0 w-11 h-11 rounded-xl bg-rose-500/20 flex items-center justify-center">
-                  <ArrowDownRight size={20} className="text-rose-400" />
+              <div key={category.id} className="ios-card p-4 flex items-center gap-4 active-scale" style={{ border: '0.5px solid rgba(255,69,58,0.12)' }}>
+                <div className="shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,69,58,0.12)' }}>
+                  <ArrowDownRight size={20} style={{ color: '#FF453A' }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-black text-premium-text truncate">{category.name}</p>
-                    <Badge variant={category.isActive ? 'success' : 'default'} className="text-xs">
+                    <p className="text-[13px] font-medium text-white truncate">{category.name}</p>
+                    <Badge variant={category.isActive ? 'success' : 'default'} className="text-[11px]">
                       {category.isActive ? 'Aktif' : 'Nonaktif'}
                     </Badge>
                   </div>
-                  <p className="text-xs text-premium-text-muted mt-0.5">Kategori Pengeluaran</p>
+                  <p className="text-[11px] text-white/50 mt-0.5">Kategori Pengeluaran</p>
                 </div>
                 <form action={toggleCategory}>
                   <input type="hidden" name="id" value={category.id} />
-                  <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-lg hover:bg-rose-500/10 text-premium-text-muted hover:text-rose-400 transition">
+                  <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-xl active-scale transition" style={{ color: 'rgba(255,255,255,0.5)' }}>
                     {category.isActive ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </form>
@@ -118,10 +115,10 @@ export default async function Categories() {
 
       {/* Empty State */}
       {categories.length === 0 && (
-        <div className="glass-premium rounded-3xl p-12 text-center">
-          <Layers size={40} className="text-premium-text-muted opacity-30 mx-auto mb-4" />
-          <p className="text-premium-text font-black">Belum ada kategori</p>
-          <p className="text-xs text-premium-text-muted mt-2">Tambahkan kategori untuk mengorganisir transaksi</p>
+        <div className="ios-card p-12 text-center">
+          <Layers size={40} className="text-white/30 mx-auto mb-4" />
+          <p className="text-white font-medium text-[13px]">Belum ada kategori</p>
+          <p className="text-[11px] text-white/50 mt-2">Tambahkan kategori untuk mengorganisir transaksi</p>
         </div>
       )}
 

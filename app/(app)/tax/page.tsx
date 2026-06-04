@@ -5,6 +5,7 @@ import { TaxSettingsCard } from '@/components/tax-settings-card';
 import { TaxSummaryCard } from '@/components/tax-summary-card';
 import { TaxDetailsTable } from '@/components/tax-details-table';
 import { formatRupiah } from '@/lib/tax-calculations';
+import { AlertTriangle } from 'lucide-react';
 
 interface TaxSummary {
   totalIncome: number;
@@ -124,11 +125,11 @@ Status: ${summary.status === 'kurang_bayar' ? 'Kurang Bayar' : summary.status ==
   };
 
   return (
-    <div className="space-y-6 pb-20">
+    <div style={{ paddingBottom: 80, display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-black text-white">Pajak / SPT Tahunan</h1>
-        <p className="text-white/60 mt-2">
+        <h1 style={{ fontSize: 28, fontWeight: 900, color: '#FFFFFF', margin: 0 }}>Pajak / SPT Tahunan</h1>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 8, margin: '8px 0 0 0' }}>
           Estimasi pajak penghasilan tahunan berdasarkan transaksi Anda
         </p>
       </div>
@@ -138,14 +139,18 @@ Status: ${summary.status === 'kurang_bayar' ? 'Kurang Bayar' : summary.status ==
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 text-red-200">
+        <div style={{
+          background: 'rgba(255,69,58,0.2)', border: '0.5px solid rgba(255,69,58,0.4)',
+          borderRadius: 16, padding: 16, color: 'rgba(255,69,58,0.9)',
+          fontSize: 14
+        }}>
           {error}
         </div>
       )}
 
       {/* Loading State */}
       {loading && (
-        <div className="text-center py-8 text-white/60">
+        <div style={{ textAlign: 'center', padding: 32, color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>
           Memuat data pajak...
         </div>
       )}
@@ -208,40 +213,40 @@ Status: ${summary.status === 'kurang_bayar' ? 'Kurang Bayar' : summary.status ==
 
           {/* Tax Breakdown */}
           {summary.taxBreakdown.length > 0 && (
-            <div className="soft-card rounded-2xl p-4 border border-premium-border-soft space-y-4">
-              <h3 className="text-lg font-black text-white">
+            <div className="ios-card" style={{ padding: 16 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FFFFFF', margin: '0 0 16px 0' }}>
                 {method === 'progressive'
                   ? 'Breakdown PPh Progresif per Lapisan'
                   : 'Perhitungan PPh Final UMKM'}
               </h3>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="py-3 px-4 text-left text-white/80 font-semibold">
+                    <tr style={{ borderBottom: '0.5px solid rgba(255,255,255,0.1)' }}>
+                      <th style={{ padding: '12px 16px', textAlign: 'left', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
                         {method === 'progressive' ? 'Lapisan' : 'Keterangan'}
                       </th>
-                      <th className="py-3 px-4 text-right text-white/80 font-semibold">
+                      <th style={{ padding: '12px 16px', textAlign: 'right', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
                         {method === 'progressive' ? 'Tarif' : 'Basis'}
                       </th>
-                      <th className="py-3 px-4 text-right text-white/80 font-semibold">
+                      <th style={{ padding: '12px 16px', textAlign: 'right', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
                         PPh
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/10">
+                  <tbody style={{ borderCollapse: 'collapse' }}>
                     {summary.taxBreakdown.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-white/5 transition-colors">
-                        <td className="py-3 px-4 text-white/80">
+                      <tr key={idx} style={{ borderBottom: '0.5px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '12px 16px', color: 'rgba(255,255,255,0.7)' }}>
                           {item.layer}
                         </td>
-                        <td className="py-3 px-4 text-right text-white/90">
+                        <td style={{ padding: '12px 16px', textAlign: 'right', color: 'rgba(255,255,255,0.8)' }}>
                           {method === 'progressive'
                             ? `${(item.rate * 100).toFixed(1)}%`
                             : formatRupiah(item.basis || item.taxableAmount || 0)}
                         </td>
-                        <td className="py-3 px-4 text-right font-semibold text-white">
+                        <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 700, color: '#FFFFFF' }}>
                           {formatRupiah(item.tax)}
                         </td>
                       </tr>
@@ -253,19 +258,31 @@ Status: ${summary.status === 'kurang_bayar' ? 'Kurang Bayar' : summary.status ==
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-4">
+          <div style={{ display: 'flex', gap: 16 }}>
             <button
               onClick={handleCopySummary}
-              className="flex-1 btn btn-primary rounded-lg"
+              className="active-scale"
+              style={{
+                flex: 1, padding: '14px 24px',
+                background: '#0A84FF', border: 'none',
+                borderRadius: 16, color: '#FFFFFF', fontSize: 14,
+                fontWeight: 600, cursor: 'pointer'
+              }}
             >
               Salin Ringkasan
             </button>
           </div>
 
           {/* Disclaimer */}
-          <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-4 text-sm text-amber-200">
-            <p className="font-semibold mb-2">⚠️ Disclaimer</p>
-            <p>
+          <div style={{
+            background: 'rgba(255,159,10,0.2)', border: '0.5px solid rgba(255,159,10,0.4)',
+            borderRadius: 16, padding: 16, fontSize: 13, color: '#FF9F0A'
+          }}>
+            <p style={{ fontWeight: 700, marginBottom: 8, margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+              Disclaimer
+            </p>
+            <p style={{ margin: 0 }}>
               Fitur ini hanya untuk estimasi. Untuk perhitungan pajak yang akurat,
               konsultasikan dengan konsultan pajak profesional. Hasil perhitungan
               mungkin berbeda dengan SPT resmi karena berbagai faktor yang tidak

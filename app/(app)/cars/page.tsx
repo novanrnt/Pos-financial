@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { addCarCost, sellCar } from '@/lib/actions';
-import { Card, PageTitle, SubmitButton, SectionHeader, Badge } from '@/components/ui';
+import { SubmitButton } from '@/components/ui';
 import { DeleteCarButton } from '@/components/delete-car-button';
 import { rupiah, todayInput } from '@/lib/utils';
-import { Car, TrendingUp, TrendingDown, AlertCircle, Plus } from 'lucide-react';
+import { Car, TrendingUp, TrendingDown, AlertCircle, Plus, Settings, CheckCircle } from 'lucide-react';
 import { CarFormModal } from '@/components/car-form-modal';
 
 export default async function Cars() {
@@ -19,176 +19,255 @@ export default async function Cars() {
   const soldCars = cars.filter(c => c.status === 'SOLD');
 
   return (
-    <>
-      <div className="flex items-center justify-between mb-6">
-        <PageTitle title="Stok Mobil" desc="Modal, biaya, foto URL, profit/rugi, dan jual mobil otomatis masuk rekening." />
+    <div style={{ paddingBottom: 80 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 900, color: '#FFFFFF', margin: 0 }}>Stok Mobil</h1>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4, marginBottom: 0 }}>
+            Modal, biaya, foto URL, profit/rugi, dan jual mobil otomatis masuk rekening.
+          </p>
+        </div>
         <CarFormModal accounts={accounts} />
       </div>
-      
-      <div className="grid gap-6 lg:grid-cols-1">
-        {/* Cars List */}
-        <div className="space-y-6">
-          {/* Available Cars */}
-          {availableCars.length > 0 && (
-            <div>
-              <div className="px-1 mb-4">
-                <p className="text-xs font-black text-premium-text-muted uppercase tracking-wide">🚗 Stok Tersedia ({availableCars.length})</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {availableCars.map(c => {
-                  const cost = c.costs.reduce((a, k) => a + Number(k.amount), 0);
-                  const modal = Number(c.purchasePrice) + cost;
-                  const profit = c.sellPrice ? Number(c.sellPrice) - modal : null;
-                  const estimatedProfit = Number(c.estimatedSellPrice) - modal;
 
-                  return (
-                    <Card key={c.id} className="p-5 hover:border-premium-border-medium transition-all">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-black text-premium-text">{c.name}</h3>
-                          <p className="text-xs text-premium-text-muted mt-1">{c.brand} {c.model} • {c.year}</p>
-                          {c.licensePlate && <p className="text-xs text-premium-text-muted">{c.licensePlate}</p>}
-                        </div>
-                        <Badge variant="success" className="text-xs">Tersedia</Badge>
-                      </div>
+      {/* Available Cars */}
+      {availableCars.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, paddingLeft: 4 }}>
+            <Car size={14} style={{ color: '#30D158' }} />
+            <span style={{ fontSize: 11, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Stok Tersedia ({availableCars.length})
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+            {availableCars.map(c => {
+              const cost = c.costs.reduce((a, k) => a + Number(k.amount), 0);
+              const modal = Number(c.purchasePrice) + cost;
+              const profit = c.sellPrice ? Number(c.sellPrice) - modal : null;
+              const estimatedProfit = Number(c.estimatedSellPrice) - modal;
 
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-premium-border-soft">
-                        <div>
-                          <p className="text-xs text-premium-text-muted font-black uppercase">Modal</p>
-                          <p className="text-sm font-black text-premium-text mt-1">{rupiah(modal)}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-premium-text-muted font-black uppercase">Est. Jual</p>
-                          <p className="text-sm font-black text-premium-text mt-1">{rupiah(c.estimatedSellPrice)}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-premium-text-muted font-black uppercase">Biaya</p>
-                          <p className="text-sm font-black text-premium-expense mt-1">{rupiah(cost)}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-premium-text-muted font-black uppercase">Est. Profit</p>
-                          <p className={`text-sm font-black mt-1 ${estimatedProfit >= 0 ? 'text-premium-income' : 'text-premium-expense'}`}>
-                            {estimatedProfit >= 0 ? '+' : ''}{rupiah(estimatedProfit)}
-                          </p>
-                        </div>
-                      </div>
+              return (
+                <div key={c.id} className="ios-card" style={{ padding: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FFFFFF', margin: 0 }}>{c.name}</h3>
+                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '4px 0 0 0' }}>{c.brand} {c.model} &bull; {c.year}</p>
+                      {c.licensePlate && <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>{c.licensePlate}</p>}
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+                      background: 'rgba(48,209,88,0.2)', color: '#30D158',
+                      border: '0.5px solid rgba(48,209,88,0.3)',
+                      whiteSpace: 'nowrap'
+                    }}>Tersedia</span>
+                  </div>
 
-                      {/* Debts */}
-                      {c.debts && c.debts.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-premium-border-soft">
-                          <p className="text-xs font-black text-premium-text-muted uppercase mb-2">Hutang Terkait</p>
-                          <div className="space-y-1">
-                            {c.debts.map(d => (
-                              <div key={d.id} className="flex items-center justify-between text-xs bg-premium-expense/10 p-2 rounded-lg border border-premium-expense/20">
-                                <span className="text-premium-text">{d.name}</span>
-                                <span className={d.status === 'PAID' ? 'text-premium-income' : 'text-premium-expense'}>
-                                  {d.status === 'PAID' ? 'Lunas' : rupiah(d.remainingAmount)}
-                                </span>
-                              </div>
-                            ))}
+                  {/* Stats Grid */}
+                  <div style={{
+                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
+                    marginTop: 16, paddingTop: 16,
+                    borderTop: '0.5px solid rgba(255,255,255,0.08)'
+                  }}>
+                    <div>
+                      <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>Modal</p>
+                      <p style={{ fontSize: 14, fontWeight: 900, color: '#FFFFFF', marginTop: 4, margin: '4px 0 0 0' }}>{rupiah(modal)}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>Est. Jual</p>
+                      <p style={{ fontSize: 14, fontWeight: 900, color: '#FFFFFF', marginTop: 4, margin: '4px 0 0 0' }}>{rupiah(c.estimatedSellPrice)}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>Biaya</p>
+                      <p style={{ fontSize: 14, fontWeight: 900, color: '#FF453A', marginTop: 4, margin: '4px 0 0 0' }}>{rupiah(cost)}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>Est. Profit</p>
+                      <p style={{
+                        fontSize: 14, fontWeight: 900, marginTop: 4, margin: '4px 0 0 0',
+                        color: estimatedProfit >= 0 ? '#30D158' : '#FF453A'
+                      }}>
+                        {estimatedProfit >= 0 ? '+' : ''}{rupiah(estimatedProfit)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Debts */}
+                  {c.debts && c.debts.length > 0 && (
+                    <div style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid rgba(255,255,255,0.08)' }}>
+                      <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 8, margin: '0 0 8px 0' }}>Hutang Terkait</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {c.debts.map(d => (
+                          <div key={d.id} style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            fontSize: 12, padding: '8px 12px',
+                            background: 'rgba(255,69,58,0.1)',
+                            borderRadius: 12, border: '0.5px solid rgba(255,69,58,0.2)'
+                          }}>
+                            <span style={{ color: 'rgba(255,255,255,0.8)' }}>{d.name}</span>
+                            <span style={{ color: d.status === 'PAID' ? '#30D158' : '#FF453A', fontWeight: 700 }}>
+                              {d.status === 'PAID' ? 'Lunas' : rupiah(d.remainingAmount)}
+                            </span>
                           </div>
-                        </div>
-                      )}
-
-                      {/* Actions */}
-                      <details className="mt-4 pt-4 border-t border-premium-border-soft">
-                        <summary className="cursor-pointer text-xs font-black text-violet-300 hover:text-violet-200 transition-colors">
-                          ⚙️ Aksi
-                        </summary>
-                        <div className="mt-3 space-y-3">
-                          {/* Add Cost */}
-                          <form action={addCarCost} className="space-y-2">
-                            <input type="hidden" name="carId" value={c.id} />
-                            <p className="text-xs font-black text-premium-text-muted uppercase">Tambah Biaya</p>
-                            <select name="accountId" className="w-full text-sm">
-                              {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                            </select>
-                            <input name="amount" placeholder="Nominal biaya" type="number" className="w-full text-sm" />
-                            <input name="description" placeholder="Detail biaya" className="w-full text-sm" />
-                            <input name="date" type="date" defaultValue={todayInput()} className="w-full text-sm" />
-                            <button type="submit" className="w-full btn btn-ghost text-sm">Simpan Biaya</button>
-                          </form>
-
-                          {/* Sell Car */}
-                          <form action={sellCar} className="space-y-2 pt-3 border-t border-premium-border-soft">
-                            <input type="hidden" name="carId" value={c.id} />
-                            <p className="text-xs font-black text-premium-text-muted uppercase">Jual Mobil</p>
-                            <select name="accountId" className="w-full text-sm">
-                              {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                            </select>
-                            <input name="sellPrice" placeholder="Harga jual aktual" type="number" className="w-full text-sm" />
-                            <input name="date" type="date" defaultValue={todayInput()} className="w-full text-sm" />
-                            <button type="submit" className="w-full btn btn-primary text-sm">Jual Mobil</button>
-                          </form>
-
-                          {/* Delete */}
-                          <div className="pt-3 border-t border-premium-border-soft">
-                            <DeleteCarButton carId={c.id} />
-                          </div>
-                        </div>
-                      </details>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Sold Cars */}
-          {soldCars.length > 0 && (
-            <div>
-              <div className="px-1 mb-4">
-                <p className="text-xs font-black text-premium-text-muted uppercase tracking-wide">✅ Terjual ({soldCars.length})</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {soldCars.map(c => {
-                  const cost = c.costs.reduce((a, k) => a + Number(k.amount), 0);
-                  const modal = Number(c.purchasePrice) + cost;
-                  const profit = c.sellPrice ? Number(c.sellPrice) - modal : null;
-
-                  return (
-                    <Card key={c.id} className="p-5 opacity-75">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-black text-premium-text">{c.name}</h3>
-                          <p className="text-xs text-premium-text-muted mt-1">{c.brand} {c.model} • {c.year}</p>
-                        </div>
-                        <Badge variant="danger" className="text-xs">Terjual</Badge>
+                        ))}
                       </div>
+                    </div>
+                  )}
 
-                      <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-premium-border-soft">
-                        <div>
-                          <p className="text-xs text-premium-text-muted font-black uppercase">Modal</p>
-                          <p className="text-sm font-black text-premium-text mt-1">{rupiah(modal)}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-premium-text-muted font-black uppercase">Jual</p>
-                          <p className="text-sm font-black text-premium-text mt-1">{rupiah(c.sellPrice)}</p>
-                        </div>
-                        <div className="col-span-2">
-                          <p className="text-xs text-premium-text-muted font-black uppercase">Profit/Rugi</p>
-                          <p className={`text-lg font-black mt-1 ${profit && profit >= 0 ? 'text-premium-income' : 'text-premium-expense'}`}>
-                            {profit && profit >= 0 ? '+' : ''}{rupiah(profit || 0)}
-                          </p>
-                        </div>
+                  {/* Actions */}
+                  <details style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid rgba(255,255,255,0.08)' }}>
+                    <summary style={{
+                      cursor: 'pointer', fontSize: 11, fontWeight: 900,
+                      color: '#BF5AF2', transition: 'color 0.2s',
+                      listStyle: 'none', display: 'flex', alignItems: 'center', gap: 6
+                    }}>
+                      <Settings size={12} style={{ color: '#BF5AF2' }} />
+                      Aksi
+                    </summary>
+                    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {/* Add Cost */}
+                      <form action={addCarCost} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <input type="hidden" name="carId" value={c.id} />
+                        <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>Tambah Biaya</p>
+                        <select name="accountId" className="w-full text-sm" style={{
+                          background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
+                          borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
+                        }}>
+                          {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                        <input name="amount" placeholder="Nominal biaya" type="number" style={{
+                          background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
+                          borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
+                        }} />
+                        <input name="description" placeholder="Detail biaya" style={{
+                          background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
+                          borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
+                        }} />
+                        <input name="date" type="date" defaultValue={todayInput()} style={{
+                          background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
+                          borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
+                        }} />
+                        <button type="submit" className="active-scale" style={{
+                          width: '100%', padding: '10px 16px',
+                          background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)',
+                          borderRadius: 14, color: 'rgba(255,255,255,0.8)', fontSize: 13,
+                          fontWeight: 600, cursor: 'pointer'
+                        }}>Simpan Biaya</button>
+                      </form>
+
+                      {/* Sell Car */}
+                      <form action={sellCar} style={{
+                        display: 'flex', flexDirection: 'column', gap: 8,
+                        paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.08)'
+                      }}>
+                        <input type="hidden" name="carId" value={c.id} />
+                        <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>Jual Mobil</p>
+                        <select name="accountId" style={{
+                          background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
+                          borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
+                        }}>
+                          {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                        <input name="sellPrice" placeholder="Harga jual aktual" type="number" style={{
+                          background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
+                          borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
+                        }} />
+                        <input name="date" type="date" defaultValue={todayInput()} style={{
+                          background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
+                          borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
+                        }} />
+                        <button type="submit" className="active-scale" style={{
+                          width: '100%', padding: '10px 16px',
+                          background: '#0A84FF', border: 'none',
+                          borderRadius: 14, color: '#FFFFFF', fontSize: 13,
+                          fontWeight: 600, cursor: 'pointer'
+                        }}>Jual Mobil</button>
+                      </form>
+
+                      {/* Delete */}
+                      <div style={{ paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.08)' }}>
+                        <DeleteCarButton carId={c.id} />
                       </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {cars.length === 0 && (
-            <Card className="text-center py-12">
-              <div className="text-4xl mb-3">🚗</div>
-              <p className="text-premium-text-muted">Belum ada mobil</p>
-              <p className="text-xs text-premium-text-muted mt-2">Tambahkan mobil pertama kamu untuk mulai tracking stok.</p>
-            </Card>
-          )}
+                    </div>
+                  </details>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </>
+      )}
+
+      {/* Sold Cars */}
+      {soldCars.length > 0 && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, paddingLeft: 4 }}>
+            <CheckCircle size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
+            <span style={{ fontSize: 11, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Terjual ({soldCars.length})
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+            {soldCars.map(c => {
+              const cost = c.costs.reduce((a, k) => a + Number(k.amount), 0);
+              const modal = Number(c.purchasePrice) + cost;
+              const profit = c.sellPrice ? Number(c.sellPrice) - modal : null;
+
+              return (
+                <div key={c.id} className="ios-card" style={{ padding: 20, opacity: 0.75 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FFFFFF', margin: 0 }}>{c.name}</h3>
+                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '4px 0 0 0' }}>{c.brand} {c.model} &bull; {c.year}</p>
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+                      background: 'rgba(255,69,58,0.2)', color: '#FF453A',
+                      border: '0.5px solid rgba(255,69,58,0.3)',
+                      whiteSpace: 'nowrap'
+                    }}>Terjual</span>
+                  </div>
+
+                  <div style={{
+                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
+                    marginTop: 16, paddingTop: 16,
+                    borderTop: '0.5px solid rgba(255,255,255,0.08)'
+                  }}>
+                    <div>
+                      <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>Modal</p>
+                      <p style={{ fontSize: 14, fontWeight: 900, color: '#FFFFFF', marginTop: 4, margin: '4px 0 0 0' }}>{rupiah(modal)}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>Jual</p>
+                      <p style={{ fontSize: 14, fontWeight: 900, color: '#FFFFFF', marginTop: 4, margin: '4px 0 0 0' }}>{rupiah(c.sellPrice)}</p>
+                    </div>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>Profit/Rugi</p>
+                      <p style={{
+                        fontSize: 20, fontWeight: 900, marginTop: 4, margin: '4px 0 0 0',
+                        color: profit && profit >= 0 ? '#30D158' : '#FF453A'
+                      }}>
+                        {profit && profit >= 0 ? '+' : ''}{rupiah(profit || 0)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {cars.length === 0 && (
+        <div className="ios-card" style={{ textAlign: 'center', padding: 48 }}>
+          <div style={{ marginBottom: 12 }}>
+            <Car size={40} style={{ color: 'rgba(255,255,255,0.3)' }} />
+          </div>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, fontWeight: 600, margin: 0 }}>Belum ada mobil</p>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8, margin: '8px 0 0 0' }}>
+            Tambahkan mobil pertama kamu untuk mulai tracking stok.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }

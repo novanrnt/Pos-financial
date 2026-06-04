@@ -18,47 +18,50 @@ export default async function Reports() {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
-      <PageTitle title="Laporan & Monthly Closing" desc="Kunci bulan, download laporan PDF lengkap." />
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-[28px] font-semibold text-white tracking-tight">Laporan & Monthly Closing</h1>
+        <p className="text-[13px] text-white/50 mt-2">Kunci bulan, download laporan PDF lengkap.</p>
+      </div>
 
       {/* Closing History */}
       {closings.length === 0 ? (
-        <div className="glass-premium rounded-3xl p-12 text-center">
-          <BarChart3 size={40} className="text-premium-text-muted opacity-30 mx-auto mb-4" />
-          <p className="text-premium-text font-black">Belum ada monthly closing</p>
-          <p className="text-xs text-premium-text-muted mt-2">Lakukan closing bulan pertama untuk mulai tracking laporan.</p>
+        <div className="ios-card p-12 text-center">
+          <BarChart3 size={40} className="text-white/30 mx-auto mb-4" />
+          <p className="text-white font-medium text-[13px]">Belum ada monthly closing</p>
+          <p className="text-[11px] text-white/50 mt-2">Lakukan closing bulan pertama untuk mulai tracking laporan.</p>
         </div>
       ) : (
         <div className="space-y-5">
           {closings.map(c => {
             const s = c.summaryJson as any;
             return (
-              <div key={c.id} className="glass-premium rounded-3xl p-6 md:p-8">
+              <div key={c.id} className="ios-card p-6 md:p-8">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-5">
                   <div>
-                    <h3 className="text-xl font-black text-premium-text">{c.month}</h3>
-                    <p className="text-xs text-premium-text-muted mt-1">
+                    <h3 className="text-xl font-semibold text-white">{c.month}</h3>
+                    <p className="text-[11px] text-white/50 mt-1">
                       Dikunci: {c.closedAt.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
                   </div>
-                  <Badge variant="success" className="text-xs flex items-center gap-1">
+                  <Badge variant="success" className="text-[11px] flex items-center gap-1">
                     <Lock size={12} /> Terkunci
                   </Badge>
                 </div>
 
                 {/* Cashflow Summary */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-                  <div className="soft-card rounded-2xl p-4 border border-premium-income/20 min-w-0">
-                    <p className="text-[10px] font-black text-premium-text-muted uppercase">Pemasukan</p>
-                    <p className="text-sm md:text-base font-black text-premium-income mt-1 break-words leading-tight">{rupiah(s.income || 0)}</p>
+                  <div className="p-4 min-w-0" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '0.5px solid rgba(48,209,88,0.15)' }}>
+                    <p className="text-[11px] font-medium text-white/50 uppercase">Pemasukan</p>
+                    <p className="text-[13px] font-semibold mt-1 break-words leading-tight" style={{ color: '#30D158' }}>{rupiah(s.income || 0)}</p>
                   </div>
-                  <div className="soft-card rounded-2xl p-4 border border-premium-expense/20 min-w-0">
-                    <p className="text-[10px] font-black text-premium-text-muted uppercase">Pengeluaran</p>
-                    <p className="text-sm md:text-base font-black text-premium-expense mt-1 break-words leading-tight">{rupiah(s.expense || 0)}</p>
+                  <div className="p-4 min-w-0" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '0.5px solid rgba(255,69,58,0.15)' }}>
+                    <p className="text-[11px] font-medium text-white/50 uppercase">Pengeluaran</p>
+                    <p className="text-[13px] font-semibold mt-1 break-words leading-tight" style={{ color: '#FF453A' }}>{rupiah(s.expense || 0)}</p>
                   </div>
-                  <div className="soft-card rounded-2xl p-4 border border-violet-500/20 min-w-0">
-                    <p className="text-[10px] font-black text-premium-text-muted uppercase">Cashflow</p>
-                    <p className={`text-sm md:text-base font-black mt-1 break-words leading-tight ${(s.profit||0)>=0?'text-premium-income':'text-premium-expense'}`}>{rupiah(s.profit || 0)}</p>
+                  <div className="p-4 min-w-0" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '0.5px solid rgba(191,90,242,0.15)' }}>
+                    <p className="text-[11px] font-medium text-white/50 uppercase">Cashflow</p>
+                    <p className={`text-[13px] font-semibold mt-1 break-words leading-tight ${(s.profit||0)>=0?'text-[#30D158]':'text-[#FF453A]'}`}>{rupiah(s.profit || 0)}</p>
                   </div>
                 </div>
 
@@ -66,18 +69,18 @@ export default async function Reports() {
                 <div className="space-y-4">
                   {/* Rekening */}
                   {s.accounts && s.accounts.length > 0 && (
-                    <div className="border-t border-premium-border-soft pt-4">
-                      <p className="text-xs font-black text-premium-text-muted uppercase mb-3 flex items-center gap-2"><Wallet size={14} /> Saldo Rekening</p>
+                    <div className="border-t border-white/[0.07] pt-4">
+                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center gap-2"><Wallet size={14} /> Saldo Rekening</p>
                       <div className="space-y-1.5">
                         {s.accounts.map((a: any, i: number) => (
                           <div key={i} className="flex items-center justify-between py-1.5">
-                            <span className="text-sm text-premium-text">{a.name} <span className="text-xs text-premium-text-muted">({a.type || ''})</span></span>
-                            <span className="text-sm font-black text-premium-income">{rupiah(Number(a.balance))}</span>
+                            <span className="text-[13px] text-white">{a.name} <span className="text-[11px] text-white/50">({a.type || ''})</span></span>
+                            <span className="text-[13px] font-semibold" style={{ color: '#30D158' }}>{rupiah(Number(a.balance))}</span>
                           </div>
                         ))}
-                        <div className="flex items-center justify-between pt-2 border-t border-premium-border-soft">
-                          <span className="text-xs font-black text-premium-text-muted">Total</span>
-                          <span className="text-sm font-black text-premium-income">{rupiah(s.totalCash || 0)}</span>
+                        <div className="flex items-center justify-between pt-2 border-t border-white/[0.07]">
+                          <span className="text-[11px] font-medium text-white/50">Total</span>
+                          <span className="text-[13px] font-semibold" style={{ color: '#30D158' }}>{rupiah(s.totalCash || 0)}</span>
                         </div>
                       </div>
                     </div>
@@ -85,13 +88,13 @@ export default async function Reports() {
 
                   {/* Pemasukan per Kategori */}
                   {s.incomeByCategory && s.incomeByCategory.length > 0 && (
-                    <div className="border-t border-premium-border-soft pt-4">
-                      <p className="text-xs font-black text-premium-text-muted uppercase mb-3 flex items-center gap-2"><TrendingUp size={14} /> Pemasukan per Kategori</p>
+                    <div className="border-t border-white/[0.07] pt-4">
+                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center gap-2"><TrendingUp size={14} /> Pemasukan per Kategori</p>
                       <div className="space-y-1.5">
                         {s.incomeByCategory.map((c: any, i: number) => (
                           <div key={i} className="flex items-center justify-between py-1.5">
-                            <span className="text-sm text-premium-text">{c.name}</span>
-                            <span className="text-sm font-black text-premium-income">{rupiah(c.total)}</span>
+                            <span className="text-[13px] text-white">{c.name}</span>
+                            <span className="text-[13px] font-semibold" style={{ color: '#30D158' }}>{rupiah(c.total)}</span>
                           </div>
                         ))}
                       </div>
@@ -100,13 +103,13 @@ export default async function Reports() {
 
                   {/* Pengeluaran per Kategori */}
                   {s.expenseByCategory && s.expenseByCategory.length > 0 && (
-                    <div className="border-t border-premium-border-soft pt-4">
-                      <p className="text-xs font-black text-premium-text-muted uppercase mb-3 flex items-center gap-2"><TrendingDown size={14} /> Pengeluaran per Kategori</p>
+                    <div className="border-t border-white/[0.07] pt-4">
+                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center gap-2"><TrendingDown size={14} /> Pengeluaran per Kategori</p>
                       <div className="space-y-1.5">
                         {s.expenseByCategory.map((c: any, i: number) => (
                           <div key={i} className="flex items-center justify-between py-1.5">
-                            <span className="text-sm text-premium-text">{c.name}</span>
-                            <span className="text-sm font-black text-premium-expense">{rupiah(c.total)}</span>
+                            <span className="text-[13px] text-white">{c.name}</span>
+                            <span className="text-[13px] font-semibold" style={{ color: '#FF453A' }}>{rupiah(c.total)}</span>
                           </div>
                         ))}
                       </div>
@@ -115,21 +118,21 @@ export default async function Reports() {
 
                   {/* Aset Mobil */}
                   {s.cars && s.cars.length > 0 && (
-                    <div className="border-t border-premium-border-soft pt-4">
-                      <p className="text-xs font-black text-premium-text-muted uppercase mb-3 flex items-center gap-2"><Car size={14} /> Aset Mobil (Total Modal)</p>
+                    <div className="border-t border-white/[0.07] pt-4">
+                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center gap-2"><Car size={14} /> Aset Mobil (Total Modal)</p>
                       <div className="space-y-1.5">
                         {s.cars.map((c: any, i: number) => (
                           <div key={i} className="flex items-center justify-between py-1.5">
                             <div>
-                              <span className="text-sm text-premium-text">{c.name}</span>
-                              <span className="text-xs text-premium-text-muted ml-2">(Beli: {rupiah(c.purchasePrice)} + Biaya: {rupiah(c.totalCosts)})</span>
+                              <span className="text-[13px] text-white">{c.name}</span>
+                              <span className="text-[11px] text-white/50 ml-2">(Beli: {rupiah(c.purchasePrice)} + Biaya: {rupiah(c.totalCosts)})</span>
                             </div>
-                            <span className="text-sm font-black text-premium-text">{rupiah(c.totalModal)}</span>
+                            <span className="text-[13px] font-semibold text-white">{rupiah(c.totalModal)}</span>
                           </div>
                         ))}
-                        <div className="flex items-center justify-between pt-2 border-t border-premium-border-soft">
-                          <span className="text-xs font-black text-premium-text-muted">Total Modal</span>
-                          <span className="text-sm font-black text-premium-text">{rupiah(s.totalCarModal || 0)}</span>
+                        <div className="flex items-center justify-between pt-2 border-t border-white/[0.07]">
+                          <span className="text-[11px] font-medium text-white/50">Total Modal</span>
+                          <span className="text-[13px] font-semibold text-white">{rupiah(s.totalCarModal || 0)}</span>
                         </div>
                       </div>
                     </div>
@@ -137,51 +140,51 @@ export default async function Reports() {
 
                   {/* Hutang & Piutang */}
                   {((s.debts && s.debts.length > 0) || (s.receivables && s.receivables.length > 0)) && (
-                    <div className="border-t border-premium-border-soft pt-4">
-                      <p className="text-xs font-black text-premium-text-muted uppercase mb-3 flex items-center gap-2"><CreditCard size={14} /> Hutang & Piutang</p>
+                    <div className="border-t border-white/[0.07] pt-4">
+                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center gap-2"><CreditCard size={14} /> Hutang & Piutang</p>
                       {s.debts && s.debts.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-xs text-rose-400 mb-1.5">Hutang</p>
+                          <p className="text-[11px] font-medium mb-1.5" style={{ color: '#FF453A' }}>Hutang</p>
                           {s.debts.map((d: any, i: number) => (
                             <div key={i} className="flex items-center justify-between py-1.5">
-                              <span className="text-sm text-premium-text">{d.name}</span>
-                              <span className="text-sm font-black text-rose-400">{rupiah(d.remaining)}</span>
+                              <span className="text-[13px] text-white">{d.name}</span>
+                              <span className="text-[13px] font-semibold" style={{ color: '#FF453A' }}>{rupiah(d.remaining)}</span>
                             </div>
                           ))}
                         </div>
                       )}
                       {s.receivables && s.receivables.length > 0 && (
                         <div>
-                          <p className="text-xs text-emerald-400 mb-1.5">Piutang</p>
+                          <p className="text-[11px] font-medium mb-1.5" style={{ color: '#30D158' }}>Piutang</p>
                           {s.receivables.map((d: any, i: number) => (
                             <div key={i} className="flex items-center justify-between py-1.5">
-                              <span className="text-sm text-premium-text">{d.name}</span>
-                              <span className="text-sm font-black text-emerald-400">{rupiah(d.remaining)}</span>
+                              <span className="text-[13px] text-white">{d.name}</span>
+                              <span className="text-[13px] font-semibold" style={{ color: '#30D158' }}>{rupiah(d.remaining)}</span>
                             </div>
                           ))}
                         </div>
                       )}
-                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-premium-border-soft mt-2">
-                        <div><p className="text-xs text-premium-text-muted">Total Hutang</p><p className="text-sm font-black text-rose-400">{rupiah(s.totalDebt || 0)}</p></div>
-                        <div><p className="text-xs text-premium-text-muted">Total Piutang</p><p className="text-sm font-black text-emerald-400">{rupiah(s.totalReceivable || 0)}</p></div>
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/[0.07] mt-2">
+                        <div><p className="text-[11px] text-white/50">Total Hutang</p><p className="text-[13px] font-semibold" style={{ color: '#FF453A' }}>{rupiah(s.totalDebt || 0)}</p></div>
+                        <div><p className="text-[11px] text-white/50">Total Piutang</p><p className="text-[13px] font-semibold" style={{ color: '#30D158' }}>{rupiah(s.totalReceivable || 0)}</p></div>
                       </div>
                     </div>
                   )}
 
                   {/* Investasi */}
                   {s.investments && s.investments.length > 0 && (
-                    <div className="border-t border-premium-border-soft pt-4">
-                      <p className="text-xs font-black text-premium-text-muted uppercase mb-3 flex items-center gap-2"><TrendingUp size={14} /> Investasi</p>
+                    <div className="border-t border-white/[0.07] pt-4">
+                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center gap-2"><TrendingUp size={14} /> Investasi</p>
                       <div className="space-y-1.5">
                         {s.investments.map((inv: any, i: number) => (
                           <div key={i} className="flex items-center justify-between py-1.5">
-                            <span className="text-sm text-premium-text">{inv.category}</span>
-                            <span className="text-sm font-black text-premium-savings">{rupiah(inv.balance)}</span>
+                            <span className="text-[13px] text-white">{inv.category}</span>
+                            <span className="text-[13px] font-semibold" style={{ color: '#BF5AF2' }}>{rupiah(inv.balance)}</span>
                           </div>
                         ))}
-                        <div className="flex items-center justify-between pt-2 border-t border-premium-border-soft">
-                          <span className="text-xs font-black text-premium-text-muted">Total</span>
-                          <span className="text-sm font-black text-premium-savings">{rupiah(s.totalInvestment || 0)}</span>
+                        <div className="flex items-center justify-between pt-2 border-t border-white/[0.07]">
+                          <span className="text-[11px] font-medium text-white/50">Total</span>
+                          <span className="text-[13px] font-semibold" style={{ color: '#BF5AF2' }}>{rupiah(s.totalInvestment || 0)}</span>
                         </div>
                       </div>
                     </div>
@@ -189,18 +192,18 @@ export default async function Reports() {
 
                   {/* Tabungan */}
                   {s.savings && s.savings.length > 0 && (
-                    <div className="border-t border-premium-border-soft pt-4">
-                      <p className="text-xs font-black text-premium-text-muted uppercase mb-3 flex items-center gap-2"><PiggyBank size={14} /> Tabungan</p>
+                    <div className="border-t border-white/[0.07] pt-4">
+                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center gap-2"><PiggyBank size={14} /> Tabungan</p>
                       <div className="space-y-1.5">
                         {s.savings.map((g: any, i: number) => (
                           <div key={i} className="flex items-center justify-between py-1.5">
-                            <span className="text-sm text-premium-text">{g.name} {g.isCompleted && '✅'}</span>
-                            <span className="text-sm font-black text-emerald-400">{rupiah(g.savedAmount)} / {rupiah(g.targetAmount)}</span>
+                            <span className="text-[13px] text-white">{g.name} {g.isCompleted && '✅'}</span>
+                            <span className="text-[13px] font-semibold" style={{ color: '#30D158' }}>{rupiah(g.savedAmount)} / {rupiah(g.targetAmount)}</span>
                           </div>
                         ))}
-                        <div className="flex items-center justify-between pt-2 border-t border-premium-border-soft">
-                          <span className="text-xs font-black text-premium-text-muted">Total Tabungan</span>
-                          <span className="text-sm font-black text-emerald-400">{rupiah(s.totalSavings || 0)}</span>
+                        <div className="flex items-center justify-between pt-2 border-t border-white/[0.07]">
+                          <span className="text-[11px] font-medium text-white/50">Total Tabungan</span>
+                          <span className="text-[13px] font-semibold" style={{ color: '#30D158' }}>{rupiah(s.totalSavings || 0)}</span>
                         </div>
                       </div>
                     </div>
@@ -208,10 +211,10 @@ export default async function Reports() {
 
                   {/* Net Worth */}
                   {s.netWorth !== undefined && (
-                    <div className="border-t border-premium-border-soft pt-4">
+                    <div className="border-t border-white/[0.07] pt-4">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-black text-premium-text">Net Worth Snapshot</p>
-                        <p className="text-lg font-black text-violet-300">{rupiah(s.netWorth)}</p>
+                        <p className="text-[13px] font-medium text-white">Net Worth Snapshot</p>
+                        <p className="text-lg font-semibold" style={{ color: '#BF5AF2' }}>{rupiah(s.netWorth)}</p>
                       </div>
                     </div>
                   )}
@@ -220,7 +223,7 @@ export default async function Reports() {
                 {/* Download PDF */}
                 <a
                   href={`/api/export/monthly?month=${c.month}`}
-                  className="mt-6 w-full flex items-center justify-center gap-2 btn btn-ghost text-sm"
+                  className="mt-6 w-full flex items-center justify-center gap-2 btn btn-ghost text-[13px] active-scale"
                 >
                   <Download size={14} /> Download PDF Lengkap
                 </a>
@@ -231,22 +234,22 @@ export default async function Reports() {
       )}
 
       {/* Close Month Form */}
-      <div className="glass-premium rounded-3xl p-6 md:p-8">
-        <h2 className="text-lg font-black text-premium-text mb-4">Closing Bulan</h2>
+      <div className="ios-card p-6 md:p-8">
+        <h2 className="text-lg font-semibold text-white mb-4">Closing Bulan</h2>
 
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 mb-5">
+        <div className="p-4 mb-5" style={{ background: 'rgba(255,159,10,0.08)', borderRadius: 16, border: '0.5px solid rgba(255,159,10,0.15)' }}>
           <div className="flex items-start gap-3">
-            <AlertCircle size={18} className="text-amber-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle size={18} className="flex-shrink-0 mt-0.5" style={{ color: '#FF9F0A' }} />
             <div>
-              <p className="text-xs font-black text-amber-400 uppercase">Perhatian</p>
-              <p className="text-xs text-premium-text-muted mt-1">Setelah closing, transaksi bulan tersebut tidak dapat diubah. Pastikan semua data sudah benar.</p>
+              <p className="text-[11px] font-medium uppercase" style={{ color: '#FF9F0A' }}>Perhatian</p>
+              <p className="text-[13px] text-white/50 mt-1">Setelah closing, transaksi bulan tersebut tidak dapat diubah. Pastikan semua data sudah benar.</p>
             </div>
           </div>
         </div>
 
         <form action={closeMonth} className="space-y-4">
           <div>
-            <label className="block text-xs font-black text-premium-text-muted uppercase tracking-wide mb-2">Pilih Bulan</label>
+            <label className="block text-[11px] font-medium text-white/50 uppercase tracking-wide mb-2">Pilih Bulan</label>
             <input name="month" type="month" defaultValue={currentMonthStr} className="input w-full" />
           </div>
           <SubmitButton>Kunci Bulan Ini</SubmitButton>

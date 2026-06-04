@@ -1,131 +1,145 @@
 'use client';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Car, CreditCard, FileText, Home, Layers, LogOut, PiggyBank, Receipt, Repeat, Settings, WalletCards, Plus, Menu, X, DollarSign } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import { Logo } from './logo';
+import {
+  LayoutDashboard, Wallet, Repeat, PiggyBank, Car, CreditCard,
+  TrendingUp, Receipt, Tags, BarChart3, Settings, X, Menu, LogOut
+} from 'lucide-react';
 
 const items = [
-  ['Dashboard','/dashboard',Home],
-  ['Rekening','/accounts',WalletCards],
-  ['Transaksi','/transactions',Repeat],
-  ['Tabungan','/savings',PiggyBank],
-  ['Mobil','/cars',Car],
-  ['Hutang','/debts',CreditCard],
-  ['Investasi','/investments',PiggyBank],
-  ['Tagihan','/bills',Receipt],
-  ['Kategori','/categories',Layers],
-  ['Laporan Bulanan','/reports',FileText],
-  ['Laporan Tahunan','/reports/annual',FileText],
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Rekening', href: '/accounts', icon: Wallet },
+  { label: 'Transaksi', href: '/transactions', icon: Repeat },
+  { label: 'Tabungan', href: '/savings', icon: PiggyBank },
+  { label: 'Mobil', href: '/cars', icon: Car },
+  { label: 'Hutang', href: '/debts', icon: CreditCard },
+  { label: 'Investasi', href: '/investments', icon: TrendingUp },
+  { label: 'Tagihan', href: '/bills', icon: Receipt },
+  { label: 'Kategori', href: '/categories', icon: Tags },
+  { label: 'Laporan', href: '/reports', icon: BarChart3 },
+  { label: 'Setting', href: '/settings', icon: Settings },
+];
 
-  ['Pajak','/tax',DollarSign],
-  ['Setting','/settings',Settings]
-] as const;
+export function Sidebar() {
+  const pathname = usePathname();
 
-export function Sidebar(){
-  const p=usePathname();
   return (
-    <aside className="hide-mobile fixed inset-y-0 left-0 z-30 w-[276px] border-r border-white/10 bg-[#070d19] p-4">
-      {/* Logo Card */}
-      <div className="mb-6 rounded-2xl border border-white/15 bg-gradient-to-br from-cyan-500/15 via-white/[.03] to-emerald-400/10 p-4 shadow-lg">
-        <Logo className="w-full" />
+    <aside className="hidden md:flex fixed left-0 top-0 h-screen w-[260px] flex-col z-30 ios-glass-strong"
+      style={{ borderRight: '0.5px solid rgba(255,255,255,0.08)' }}>
+      <div className="p-6 pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-[10px] flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #30D158, #0A84FF)' }}>
+            <span className="text-white text-[13px] font-bold">P</span>
+          </div>
+          <span className="text-[15px] font-semibold tracking-tight">POS Finance</span>
+        </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="space-y-1.5">
-        {items.map(([n,h,I])=>
-          <Link 
-            key={h} 
-            href={h} 
-            className={cn(
-              'group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-black transition-all duration-300',
-              p.startsWith(h)
-                ? 'bg-white/10 text-[#ecf3ff] ring-1 ring-white/15 shadow-lg shadow-cyan-500/10'
-                : 'text-[#94a4c0] hover:bg-white/[.06] hover:text-[#ecf3ff]'
-            )}
-          >
-            <I size={18} className={cn(
-              'transition-colors',
-              p.startsWith(h) ? 'text-cyan-300' : 'text-[#94a4c0] group-hover:text-cyan-300'
-            )}/>
-            {n}
-          </Link>
-        )}
+      <nav className="flex-1 px-3 overflow-y-auto hide-scroll">
+        <div className="space-y-[2px]">
+          {items.map(item => {
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const Icon = item.icon;
+            return (
+              <Link key={item.href} href={item.href}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-[13px] font-medium transition-all active-scale"
+                style={{
+                  color: active ? '#fff' : 'rgba(255,255,255,0.5)',
+                  background: active ? 'rgba(48,209,88,0.15)' : 'transparent',
+                }}>
+                <Icon size={17} style={{ color: active ? '#30D158' : 'rgba(255,255,255,0.4)' }} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
-      {/* Logout Button */}
-      <form action="/api/logout" method="post" className="absolute bottom-4 left-4 right-4">
-        <button className="btn btn-ghost w-full">
-          <LogOut size={18}/> Logout
-        </button>
-      </form>
+      <div className="p-3 pb-6">
+        <form action="/api/logout" method="POST">
+          <button type="submit"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-[12px] text-[13px] font-medium transition-all active-scale"
+            style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <LogOut size={17} style={{ color: 'rgba(255,255,255,0.4)' }} />
+            Logout
+          </button>
+        </form>
+      </div>
     </aside>
   );
 }
 
-export function BottomNav(){
-  const p=usePathname();
-  const [open,setOpen]=useState(false);
-  
-  return <>
-    {/* Mobile Menu Button */}
-    <div className="md:hidden fixed z-40" style={{ top: 'calc(12px + env(safe-area-inset-top))', left: '16px' }}>
-      <button 
-        onClick={()=>setOpen(!open)} 
-        className="grid h-12 w-12 place-items-center rounded-xl bg-[#111a2c] border border-white/10 text-cyan-200 hover:bg-[#152239] transition-all duration-300"
-      >
-        <Menu size={22}/>
-      </button>
-    </div>
-    
-    {/* Mobile Menu Overlay */}
-    {open&&<div 
-      className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-300" 
-      onClick={()=>setOpen(false)}
-    />}
-    
-    {/* Mobile Menu Drawer */}
-    {open&&<div className="md:hidden fixed inset-y-0 left-0 z-50 w-[280px] rounded-r-2xl border-r border-white/10 bg-[#070d19] p-4 shadow-premium overflow-y-auto animate-in slide-in-from-left">
-      <div className="flex items-center justify-between mb-6">
-        <Logo className="flex-1" />
-        <button 
-          onClick={()=>setOpen(false)} 
-          className="grid h-10 w-10 place-items-center rounded-lg hover:bg-white/[.06] transition shrink-0"
-        >
-          <X size={20}/>
+export function BottomNav() {
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  return (
+    <>
+      {/* Mobile hamburger */}
+      <div className="md:hidden fixed top-0 left-0 z-40 px-4 pt-[calc(12px+env(safe-area-inset-top))]">
+        <button onClick={() => setOpen(true)}
+          className="w-10 h-10 rounded-[12px] flex items-center justify-center active-scale ios-card">
+          <Menu size={20} style={{ color: 'rgba(255,255,255,0.7)' }} />
         </button>
       </div>
 
-      {/* Menu Items */}
-      <nav className="space-y-1.5">
-        {items.map(([n,h,I])=>
-          <Link 
-            key={h} 
-            href={h} 
-            onClick={()=>setOpen(false)} 
-            className={cn(
-              'group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-black transition-all duration-300',
-              p.startsWith(h)
-                ? 'bg-white/10 text-[#ecf3ff] ring-1 ring-white/15'
-                : 'text-[#94a4c0] hover:bg-white/[.06] hover:text-[#ecf3ff]'
-            )}
-          >
-            <I size={18} className={cn(
-              'transition-colors',
-              p.startsWith(h) ? 'text-cyan-300' : 'text-[#94a4c0] group-hover:text-cyan-300'
-            )}/>
-            {n}
-          </Link>
-        )}
-      </nav>
+      {/* Drawer overlay */}
+      {open && (
+        <div className="md:hidden fixed inset-0 z-50" onClick={() => setOpen(false)}>
+          <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(20px)' }} />
+          <div className="absolute left-0 top-0 h-full w-[260px] ios-glass-strong flex flex-col"
+            style={{ borderRight: '0.5px solid rgba(255,255,255,0.08)' }}>
+            <div className="p-5 pb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-[10px] flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg, #30D158, #0A84FF)' }}>
+                  <span className="text-white text-[13px] font-bold">P</span>
+                </div>
+                <span className="text-[15px] font-semibold tracking-tight">POS Finance</span>
+              </div>
+              <button onClick={() => setOpen(false)}
+                className="w-8 h-8 rounded-[10px] flex items-center justify-center active-scale"
+                style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <X size={18} style={{ color: 'rgba(255,255,255,0.5)' }} />
+              </button>
+            </div>
 
-      {/* Logout Button */}
-      <form action="/api/logout" method="post" className="mt-6 pt-6 border-t border-premium-border-soft">
-        <button className="btn btn-ghost w-full">
-          <LogOut size={18}/> Logout
-        </button>
-      </form>
-    </div>}
-  </>
+            <nav className="flex-1 px-3 overflow-y-auto hide-scroll">
+              <div className="space-y-[2px]">
+                {items.map(item => {
+                  const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  const Icon = item.icon;
+                  return (
+                    <Link key={item.href} href={item.href} onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-[13px] font-medium transition-all active-scale"
+                      style={{
+                        color: active ? '#fff' : 'rgba(255,255,255,0.5)',
+                        background: active ? 'rgba(48,209,88,0.15)' : 'transparent',
+                      }}>
+                      <Icon size={17} style={{ color: active ? '#30D158' : 'rgba(255,255,255,0.4)' }} />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
+
+            <div className="p-3 pb-8">
+              <form action="/api/logout" method="POST">
+                <button type="submit"
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-[12px] text-[13px] font-medium transition-all active-scale"
+                  style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <LogOut size={17} style={{ color: 'rgba(255,255,255,0.4)' }} />
+                  Logout
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }

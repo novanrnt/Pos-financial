@@ -2,14 +2,14 @@ import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { deleteAccount } from '@/lib/actions';
 import { rupiah } from '@/lib/utils';
-import { Wallet, Building2, Smartphone, Banknote, Package, Star, Trash2, Plus, ArrowDownRight, PiggyBank, CreditCard, Receipt } from 'lucide-react';
+import { Wallet, Building2, Smartphone, Banknote, Package, Star, Trash2, ArrowDownRight, PiggyBank } from 'lucide-react';
 import { AccountFormModal } from '@/components/account-form-modal';
 
 const typeConfig = {
-  BANK:    { label: 'Akun Bank',        icon: Building2,   color: 'bg-blue-500/20 text-blue-400',    border: 'border-blue-500/20' },
-  EWALLET: { label: 'E-Wallet',         icon: Smartphone,  color: 'bg-violet-500/20 text-violet-400', border: 'border-violet-500/20' },
-  CASH:    { label: 'Kantong Tunai',    icon: Banknote,    color: 'bg-emerald-500/20 text-emerald-400', border: 'border-emerald-500/20' },
-  OTHER:   { label: 'Lainnya',          icon: Package,     color: 'bg-orange-500/20 text-orange-400', border: 'border-orange-500/20' },
+  BANK:    { label: 'Akun Bank',     icon: Building2,   color: '#0A84FF', bg: 'rgba(10,132,255,0.15)' },
+  EWALLET: { label: 'E-Wallet',      icon: Smartphone,  color: '#BF5AF2', bg: 'rgba(191,90,242,0.15)' },
+  CASH:    { label: 'Kantong Tunai', icon: Banknote,    color: '#30D158', bg: 'rgba(48,209,88,0.15)' },
+  OTHER:   { label: 'Lainnya',       icon: Package,     color: '#FF9F0A', bg: 'rgba(255,159,10,0.15)' },
 } as const;
 
 export default async function Accounts() {
@@ -35,39 +35,38 @@ export default async function Accounts() {
     <div className="space-y-6 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-premium-text">Dompet Saya</h1>
+        <h1 className="text-[17px] font-semibold text-white" style={{ letterSpacing: -0.2 }}>Dompet Saya</h1>
         <AccountFormModal />
       </div>
 
       {/* Hero Summary Card */}
-      <div className="rounded-3xl overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #0f4c3a 0%, #0a2a4a 50%, #1a0a3a 100%)' }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-violet-500/10 pointer-events-none" />
-        <div className="relative p-6 md:p-8">
+      <div className="ios-glass-strong rounded-3xl p-6 md:p-8 relative overflow-hidden">
+        <div className="relative">
           {/* Top */}
           <div className="flex items-center justify-between mb-1">
-            <p className="text-sm text-white/60">Sisa Belanja (IDR)</p>
+            <p className="text-[13px] text-white/50">Sisa Belanja (IDR)</p>
             <ArrowDownRight size={16} className="text-white/40" />
           </div>
-          <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-1">{rupiah(netBalance)}</h2>
-          <p className="text-xs text-white/50 mb-6">Total saldo dikurangi hutang aktif</p>
+          <h2 className="text-[32px] md:text-[40px] font-semibold text-white tracking-tight mb-1" style={{ letterSpacing: -0.5 }}>{rupiah(netBalance)}</h2>
+          <p className="text-[11px] text-white/40 mb-6">Total saldo dikurangi hutang aktif</p>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/[.08] rounded-2xl p-4 border border-white/[.10]">
-              <p className="text-xs text-white/50 mb-1">Saldo Bersih</p>
-              <p className="text-base font-black text-white">{rupiah(totalBalance)}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-3" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-[11px] text-white/40 mb-0.5">Saldo Bersih</p>
+              <p className="text-[15px] font-semibold text-white">{rupiah(totalBalance)}</p>
             </div>
-            <div className="bg-white/[.08] rounded-2xl p-4 border border-white/[.10]">
-              <p className="text-xs text-white/50 mb-1">Hutang Aktif</p>
-              <p className="text-base font-black text-rose-300">{rupiah(totalDebt)}</p>
+            <div className="p-3" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-[11px] text-white/40 mb-0.5">Hutang Aktif</p>
+              <p className="text-[15px] font-semibold" style={{ color: '#FF453A' }}>{rupiah(totalDebt)}</p>
             </div>
-            <div className="bg-white/[.08] rounded-2xl p-4 border border-white/[.10]">
-              <p className="text-xs text-white/50 mb-1">Tabungan Aktif</p>
-              <p className="text-base font-black text-emerald-300">{rupiah(totalSavings)}</p>
+            <div className="p-3" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-[11px] text-white/40 mb-0.5">Tabungan Aktif</p>
+              <p className="text-[15px] font-semibold" style={{ color: '#30D158' }}>{rupiah(totalSavings)}</p>
             </div>
-            <div className="bg-white/[.08] rounded-2xl p-4 border border-white/[.10]">
-              <p className="text-xs text-white/50 mb-1">Tagihan Mendatang</p>
-              <p className="text-base font-black text-amber-300">{rupiah(totalBills)}</p>
+            <div className="p-3" style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-[11px] text-white/40 mb-0.5">Tagihan Mendatang</p>
+              <p className="text-[15px] font-semibold" style={{ color: '#FF9F0A' }}>{rupiah(totalBills)}</p>
             </div>
           </div>
         </div>
@@ -75,10 +74,10 @@ export default async function Accounts() {
 
       {/* Accounts grouped by type */}
       {rows.length === 0 ? (
-        <div className="glass-premium rounded-3xl p-12 text-center">
-          <Wallet size={40} className="text-premium-text-muted opacity-30 mx-auto mb-4" />
-          <p className="text-premium-text font-black">Belum ada rekening</p>
-          <p className="text-xs text-premium-text-muted mt-2">Tambahkan rekening pertama kamu</p>
+        <div className="ios-card p-12 text-center">
+          <Wallet size={40} className="text-white/20 mx-auto mb-4" />
+          <p className="text-[15px] font-semibold text-white/90">Belum ada rekening</p>
+          <p className="text-[13px] text-white/40 mt-1">Tambahkan rekening pertama kamu</p>
         </div>
       ) : (
         typeOrder.map(type => {
@@ -88,31 +87,31 @@ export default async function Accounts() {
           const Icon = cfg.icon;
           return (
             <div key={type}>
-              <h2 className="text-base font-black text-premium-text mb-3">{cfg.label}</h2>
+              <h2 className="text-[15px] font-semibold text-white/80 mb-3 px-1">{cfg.label}</h2>
               <div className="space-y-2">
                 {group.map(a => (
-                  <div key={a.id} className={`glass-premium rounded-2xl p-4 border ${cfg.border} flex items-center gap-4`}>
+                  <div key={a.id} className="ios-card p-4 flex items-center gap-4 active-scale">
                     {/* Icon */}
-                    <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${cfg.color}`}>
-                      <Icon size={20} />
+                    <div className="shrink-0 w-11 h-11 rounded-[14px] flex items-center justify-center" style={{ background: cfg.bg }}>
+                      <Icon size={20} style={{ color: cfg.color }} />
                     </div>
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-black text-premium-text">{a.name}</p>
-                        {a.isPrimary && <Star size={12} className="text-amber-400 fill-amber-400 shrink-0" />}
+                        <p className="text-[15px] font-semibold text-white truncate">{a.name}</p>
+                        {a.isPrimary && <Star size={12} className="shrink-0" style={{ color: '#FF9F0A', fill: '#FF9F0A' }} />}
                       </div>
-                      <p className="text-xs text-premium-text-muted mt-0.5">{a.type} • IDR</p>
+                      <p className="text-[13px] text-white/40 mt-0.5">{a.type} • IDR</p>
                     </div>
                     {/* Balance */}
                     <div className="text-right shrink-0">
-                      <p className="text-[10px] text-premium-text-muted mb-0.5">Saldo Saat Ini</p>
-                      <p className="text-sm font-black text-premium-income">{rupiah(Number(a.balance))}</p>
+                      <p className="text-[11px] text-white/40 mb-0.5">Saldo Saat Ini</p>
+                      <p className="text-[15px] font-semibold" style={{ color: '#30D158' }}>{rupiah(Number(a.balance))}</p>
                     </div>
                     {/* Delete */}
                     <form action={deleteAccount}>
                       <input type="hidden" name="id" value={a.id} />
-                      <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-lg hover:bg-premium-expense/10 text-premium-text-muted hover:text-premium-expense transition">
+                      <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-xl active-scale text-white/40 hover:text-[#FF453A] transition" style={{ background: 'rgba(255,255,255,0.06)' }}>
                         <Trash2 size={14} />
                       </button>
                     </form>
@@ -127,27 +126,27 @@ export default async function Accounts() {
       {/* Savings Goals as "Kantong Tabungan" */}
       {savingsGoals.length > 0 && (
         <div>
-          <h2 className="text-base font-black text-premium-text mb-3">Kantong Tabungan</h2>
+          <h2 className="text-[15px] font-semibold text-white/80 mb-3 px-1">Kantong Tabungan</h2>
           <div className="space-y-2">
             {savingsGoals.map(g => {
               const pct = Math.min((Number(g.savedAmount) / Number(g.targetAmount)) * 100, 100);
               return (
-                <div key={g.id} className="glass-premium rounded-2xl p-4 border border-emerald-500/20 flex items-center gap-4">
-                  <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center bg-emerald-500/20 text-emerald-400">
-                    <PiggyBank size={20} />
+                <div key={g.id} className="ios-card p-4 flex items-center gap-4 active-scale">
+                  <div className="shrink-0 w-11 h-11 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(48,209,88,0.15)' }}>
+                    <PiggyBank size={20} style={{ color: '#30D158' }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-black text-premium-text truncate">{g.name}</p>
-                      <span className="text-[10px] text-emerald-400 shrink-0">{Math.round(pct)}%</span>
+                      <p className="text-[15px] font-semibold text-white truncate">{g.name}</p>
+                      <span className="text-[11px] shrink-0" style={{ color: '#30D158' }}>{Math.round(pct)}%</span>
                     </div>
-                    <div className="mt-1.5 h-1 bg-white/[.06] rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct}%` }} />
+                    <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: '#30D158' }} />
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-[10px] text-premium-text-muted mb-0.5">Terkumpul</p>
-                    <p className="text-sm font-black text-emerald-400">{rupiah(Number(g.savedAmount))}</p>
+                    <p className="text-[11px] text-white/40 mb-0.5">Terkumpul</p>
+                    <p className="text-[15px] font-semibold" style={{ color: '#30D158' }}>{rupiah(Number(g.savedAmount))}</p>
                   </div>
                 </div>
               );
