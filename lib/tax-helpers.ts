@@ -210,8 +210,8 @@ export async function calculateTaxSummary(
     taxBreakdown = [
       {
         layer: 'UMKM Final 0.5%',
-        basis: result.basis,
         rate: 0.5,
+        taxableAmount: result.basis,
         tax: result.totalTax,
       },
     ];
