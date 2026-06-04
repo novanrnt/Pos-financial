@@ -3,8 +3,9 @@ import { requireUser } from '@/lib/auth';
 import { deleteDebt, payDebt } from '@/lib/actions';
 import { Badge, SubmitButton } from '@/components/ui';
 import { rupiah } from '@/lib/utils';
-import { CreditCard, Plus, Trash2, ArrowDownRight, ArrowUpRight, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { CreditCard, Plus, Trash2, ArrowDownRight, ArrowUpRight, Calendar, AlertCircle, CheckCircle2, Banknote, Coins } from 'lucide-react';
 import { DebtFormModal } from '@/components/debt-form-modal';
+import { DebtPaymentModal } from '@/components/debt-payment-modal';
 
 export default async function Debts() {
   const u = await requireUser();
@@ -88,12 +89,40 @@ export default async function Debts() {
                     <p className="text-sm font-black text-rose-400">{rupiah(Number(debt.remainingAmount))}</p>
                     <p className="text-xs text-premium-text-muted">dari {rupiah(Number(debt.amount))}</p>
                   </div>
-                  <form action={deleteDebt}>
-                    <input type="hidden" name="id" value={debt.id} />
-                    <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-lg hover:bg-premium-expense/10 text-premium-text-muted hover:text-premium-expense transition">
-                      <Trash2 size={14} />
-                    </button>
-                  </form>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <DebtPaymentModal
+                      debt={{
+                        id: debt.id,
+                        name: debt.name,
+                        type: debt.type,
+                        remainingAmount: debt.remainingAmount,
+                        amount: debt.amount,
+                        accountId: debt.accountId,
+                      }}
+                      accounts={accounts.map(a => ({ id: a.id, name: a.name, type: a.type }))}
+                      mode="cicil"
+                      trigger={<Coins size={14} />}
+                    />
+                    <DebtPaymentModal
+                      debt={{
+                        id: debt.id,
+                        name: debt.name,
+                        type: debt.type,
+                        remainingAmount: debt.remainingAmount,
+                        amount: debt.amount,
+                        accountId: debt.accountId,
+                      }}
+                      accounts={accounts.map(a => ({ id: a.id, name: a.name, type: a.type }))}
+                      mode="lunasi"
+                      trigger={<Banknote size={14} />}
+                    />
+                    <form action={deleteDebt}>
+                      <input type="hidden" name="debtId" value={debt.id} />
+                      <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-lg hover:bg-premium-expense/10 text-premium-text-muted hover:text-premium-expense transition">
+                        <Trash2 size={14} />
+                      </button>
+                    </form>
+                  </div>
                 </div>
               );
             })}
@@ -131,12 +160,40 @@ export default async function Debts() {
                     <p className="text-sm font-black text-emerald-400">{rupiah(Number(receivable.remainingAmount))}</p>
                     <p className="text-xs text-premium-text-muted">dari {rupiah(Number(receivable.amount))}</p>
                   </div>
-                  <form action={deleteDebt}>
-                    <input type="hidden" name="id" value={receivable.id} />
-                    <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-lg hover:bg-premium-expense/10 text-premium-text-muted hover:text-premium-expense transition">
-                      <Trash2 size={14} />
-                    </button>
-                  </form>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <DebtPaymentModal
+                      debt={{
+                        id: receivable.id,
+                        name: receivable.name,
+                        type: receivable.type,
+                        remainingAmount: receivable.remainingAmount,
+                        amount: receivable.amount,
+                        accountId: receivable.accountId,
+                      }}
+                      accounts={accounts.map(a => ({ id: a.id, name: a.name, type: a.type }))}
+                      mode="cicil"
+                      trigger={<Coins size={14} />}
+                    />
+                    <DebtPaymentModal
+                      debt={{
+                        id: receivable.id,
+                        name: receivable.name,
+                        type: receivable.type,
+                        remainingAmount: receivable.remainingAmount,
+                        amount: receivable.amount,
+                        accountId: receivable.accountId,
+                      }}
+                      accounts={accounts.map(a => ({ id: a.id, name: a.name, type: a.type }))}
+                      mode="lunasi"
+                      trigger={<Banknote size={14} />}
+                    />
+                    <form action={deleteDebt}>
+                      <input type="hidden" name="debtId" value={receivable.id} />
+                      <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-lg hover:bg-premium-expense/10 text-premium-text-muted hover:text-premium-expense transition">
+                        <Trash2 size={14} />
+                      </button>
+                    </form>
+                  </div>
                 </div>
               );
             })}
