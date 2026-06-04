@@ -32,6 +32,25 @@ function getCatIcon(cat: string): React.ReactNode {
 const donutColors = ['#FF453A','#FF9F0A','#0A84FF','#BF5AF2','#30D158','#64D2FF','#FFD60A','#FF375F'];
 function getColor(idx: number) { return donutColors[idx % donutColors.length]; }
 
+// ───── Mini trend chart (CSS bars) ─────
+async function MiniBarChart({ data, height = 40 }: { data: { value: number; label: string; isToday?: boolean }[]; height?: number }) {
+  const max = Math.max(...data.map(d => Math.abs(d.value)), 1);
+  return <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height }}>
+    {data.map((d,i) => {
+      const pct = Math.max(3, (Math.abs(d.value) / max) * 100);
+      const isNeg = d.value < 0;
+      return <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        <div style={{
+          width: '100%', borderRadius: '3px 3px 0 0', transition: 'all 0.3s',
+          height: `${pct}%`, minHeight: 3,
+          background: isNeg ? 'rgba(255,69,58,0.6)' : 'rgba(48,209,88,0.5)',
+        }} />
+        <span style={{ fontSize: 7, fontWeight: 500, color: d.isToday ? '#fff' : 'rgba(255,255,255,0.3)' }}>{d.label}</span>
+      </div>;
+    })}
+  </div>;
+}
+
 // ───── Bar data for trend (weekly) ─────
 type DayData = { name: string; income: number; expense: number; net: number };
 
