@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
 import { deleteAccount } from '@/lib/actions';
-import { Badge, SubmitButton } from '@/components/ui';
 import { rupiah } from '@/lib/utils';
 import { Wallet, Building2, Smartphone, Banknote, Package, Star, Trash2, Plus, ArrowDownRight, PiggyBank, CreditCard, Receipt } from 'lucide-react';
 import { AccountFormModal } from '@/components/account-form-modal';
