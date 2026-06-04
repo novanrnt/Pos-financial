@@ -9,7 +9,6 @@ import {
   calculateUMKMFinalTax,
   calculateTaxStatus,
   calculateTaxDifference,
-  formatRupiah,
 } from './tax-calculations';
 
 export interface TaxSummary {

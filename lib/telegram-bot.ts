@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma';
 import { toNumber } from '@/lib/utils';
-import bcrypt from 'bcryptjs';
 
 interface TelegramUpdate {
   update_id: number;
