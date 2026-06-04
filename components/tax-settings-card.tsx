@@ -92,8 +92,15 @@ export function TaxSettingsCard({ onSettingsChange }: TaxSettingsCardProps) {
   };
 
   return (
-    <div className="glass-premium rounded-3xl p-6 border border-white/10 space-y-4">
-      <h3 className="text-lg font-black text-white">Pengaturan Pajak</h3>
+    <div style={{
+      background: 'rgba(255,255,255,0.08)',
+      WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+      backdropFilter: 'blur(40px) saturate(200%)',
+      border: '0.5px solid rgba(255,255,255,0.1)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+      borderRadius: 24, padding: 24,
+    }}>
+      <h3 style={{ fontSize: 17, fontWeight: 600, color: '#fff', marginBottom: 20, letterSpacing: '-0.2px' }}>Pengaturan Pajak</h3>
 
       {error && (
         <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-sm text-red-200">

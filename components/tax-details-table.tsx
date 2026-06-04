@@ -20,25 +20,26 @@ export function TaxDetailsTable({
   type = 'summary',
 }: TaxDetailsTableProps) {
   return (
-    <div className="soft-card rounded-2xl p-4 border border-premium-border-soft space-y-4">
-      <h3 className="text-lg font-black text-white">{title}</h3>
-
+    <div style={{
+      background: 'rgba(255,255,255,0.06)', borderRadius: 16,
+      border: '0.5px solid rgba(255,255,255,0.08)', padding: 16,
+    }}>
+      <h3 style={{ fontSize: 15, fontWeight: 600, color: '#fff', marginBottom: 16, letterSpacing: '-0.2px' }}>{title}</h3>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <tbody className="divide-y divide-white/10">
+        <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
+          <tbody>
             {rows.map((row, idx) => (
-              <tr
-                key={idx}
-                className={`${
-                  row.highlight ? 'bg-white/5' : ''
-                } hover:bg-white/5 transition-colors`}
-              >
-                <td className="py-3 px-4 text-white/80 font-medium">
+              <tr key={idx} style={{
+                background: row.highlight ? 'rgba(255,255,255,0.04)' : 'transparent',
+                borderTop: '0.5px solid rgba(255,255,255,0.05)',
+              }}>
+                <td style={{ padding: '10px 12px', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>
                   {row.label}
                 </td>
-                <td className={`py-3 px-4 text-right font-semibold ${
-                  row.highlight ? 'text-white' : 'text-white/90'
-                }`}>
+                <td style={{
+                  padding: '10px 12px', textAlign: 'right', fontWeight: 600,
+                  color: row.highlight ? '#fff' : 'rgba(255,255,255,0.8)'
+                }}>
                   {type === 'breakdown' && typeof row.value === 'number'
                     ? `${(row.value * 100).toFixed(1)}%`
                     : formatRupiah(row.value)}

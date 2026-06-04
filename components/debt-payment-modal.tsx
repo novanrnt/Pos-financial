@@ -88,27 +88,41 @@ export function DebtPaymentModal({ debt, accounts, mode, trigger }: DebtPaymentM
 
   const modalContent = isOpen ? (
     <>
-      <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsOpen(false)} />
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(20px)' }} onClick={() => setIsOpen(false)} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div className="glass-premium rounded-3xl p-4 sm:p-6 w-full max-w-md border border-premium-border-soft my-4 max-h-[90vh] overflow-y-auto">
+        <div style={{
+          background: 'rgba(255,255,255,0.08)',
+          WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+          backdropFilter: 'blur(40px) saturate(200%)',
+          border: '0.5px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+          borderRadius: 24, padding: 20, width: '100%', maxWidth: 420,
+          maxHeight: '90vh', overflowY: 'auto',
+        }}>
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-black text-premium-text">{title}</h2>
-            <button onClick={() => setIsOpen(false)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-white/[.10] transition text-premium-text-muted shrink-0">
-              <X size={18} />
+            <h2 style={{ fontSize: 17, fontWeight: 600, color: '#fff', letterSpacing: '-0.2px', margin: 0 }}>{title}</h2>
+            <button onClick={() => setIsOpen(false)} className="active-scale" style={{
+              width: 32, height: 32, display: 'grid', placeItems: 'center',
+              borderRadius: 10, border: 'none', cursor: 'pointer',
+              background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)',
+            }}><X size={18} /></button>
             </button>
           </div>
 
-          <div className={`mb-4 p-3 rounded-xl border ${isDebt ? 'bg-rose-500/10 border-rose-500/20' : 'bg-emerald-500/10 border-emerald-500/20'}`}>
-            <p className="text-xs text-premium-text-muted">{isDebt ? 'Hutang' : 'Piutang'}</p>
-            <p className="text-sm font-black text-premium-text">{debt.name}</p>
-            <p className={`text-xs mt-0.5 ${isDebt ? 'text-rose-400' : 'text-emerald-400'}`}>
+          <div className={`mb-4 p-3 rounded-[14px] ${isDebt ? '' : ''}`} style={{
+            background: isDebt ? 'rgba(255,69,58,0.12)' : 'rgba(48,209,88,0.12)',
+            border: isDebt ? '0.5px solid rgba(255,69,58,0.25)' : '0.5px solid rgba(48,209,88,0.25)',
+          }}>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>{isDebt ? 'Hutang' : 'Piutang'}</p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', margin: '2px 0 0 0' }}>{debt.name}</p>
+            <p style={{ fontSize: 12, marginTop: 2, margin: '2px 0 0 0', color: isDebt ? '#FF453A' : '#30D158' }}>
               Sisa: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(remaining)}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
                 {mode === 'lunasi' ? 'Nominal Pelunasan' : 'Nominal Cicilan'}
               </label>
               <input
@@ -119,41 +133,45 @@ export function DebtPaymentModal({ debt, accounts, mode, trigger }: DebtPaymentM
                 readOnly={mode === 'lunasi'}
                 max={remaining}
               />
-              {errors.amount && <p className="text-xs text-rose-400 mt-1">{errors.amount.message}</p>}
+              {errors.amount && <p style={{ fontSize: 12, color: '#FF453A', marginTop: 4 }}>{errors.amount.message}</p>}
               {mode === 'cicil' && (
-                <p className="text-xs text-premium-text-muted mt-1">Maksimal: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(remaining)}</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>Maksimal: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(remaining)}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">Rekening</label>
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Rekening</label>
               <select {...register('accountId')} className="input w-full">
                 <option value="">Pilih Rekening</option>
                 {accounts.map(a => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {a.type === 'CASH' ? '💵' : a.type === 'BANK' ? '🏦' : a.type === 'EWALLET' ? '📱' : ''}
-                  </option>
+                  <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
               </select>
-              {errors.accountId && <p className="text-xs text-rose-400 mt-1">{errors.accountId.message}</p>}
+              {errors.accountId && <p style={{ fontSize: 12, color: '#FF453A', marginTop: 4 }}>{errors.accountId.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">Tanggal</label>
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Tanggal</label>
               <input {...register('date')} type="date" className="input w-full" />
-              {errors.date && <p className="text-xs text-rose-400 mt-1">{errors.date.message}</p>}
+              {errors.date && <p style={{ fontSize: 12, color: '#FF453A', marginTop: 4 }}>{errors.date.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">Catatan (Opsional)</label>
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Catatan (Opsional)</label>
               <textarea {...register('notes')} placeholder="Catatan tambahan..." className="input w-full" rows={2} />
             </div>
 
             <div className="flex gap-3 pt-4">
-              <button type="button" onClick={() => setIsOpen(false)} className="flex-1 px-4 py-2 rounded-xl bg-white/[.06] hover:bg-white/[.10] transition text-premium-text font-black text-sm">Batal</button>
-              <button type="submit" disabled={isLoading} className={`flex-1 px-4 py-2 rounded-xl transition text-white font-black text-sm disabled:opacity-50 ${isDebt ? 'bg-rose-500 hover:bg-rose-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}>
-                {isLoading ? 'Memproses...' : mode === 'lunasi' ? 'Lunasi' : 'Bayar'}
-              </button>
+              <button type="button" onClick={() => setIsOpen(false)} className="active-scale" style={{
+                flex: 1, padding: '12px 16px', borderRadius: 14,
+                background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              }}>Batal</button>
+              <button type="submit" disabled={isLoading} className="active-scale" style={{
+                flex: 1, padding: '12px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                background: isDebt ? '#FF453A' : '#30D158', color: isDebt ? '#fff' : '#000',
+                fontSize: 13, fontWeight: 600, opacity: isLoading ? 0.5 : 1,
+              }}>{isLoading ? 'Memproses...' : mode === 'lunasi' ? 'Lunasi' : 'Bayar'}</button>
             </div>
           </form>
         </div>
@@ -174,7 +192,13 @@ export function DebtPaymentModal({ debt, accounts, mode, trigger }: DebtPaymentM
           });
           setIsOpen(true);
         }}
-        className="shrink-0 grid h-8 w-8 place-items-center rounded-lg hover:bg-white/[.10] transition text-premium-text-muted"
+        className="active-scale"
+        style={{
+          width: 32, height: 32, display: 'grid', placeItems: 'center',
+          borderRadius: 10, border: 'none', cursor: 'pointer',
+          background: isDebt ? 'rgba(255,69,58,0.1)' : 'rgba(48,209,88,0.1)',
+          color: isDebt ? '#FF453A' : '#30D158',
+        }}
         title={title}
       >
         {trigger}

@@ -16,63 +16,48 @@ export function TaxSummaryCard({
   ptkpStatus,
 }: TaxSummaryCardProps) {
   const statusConfig = {
-    kurang_bayar: {
-      label: 'Kurang Bayar',
-      color: 'from-red-500/20 to-red-600/20',
-      textColor: 'text-red-300',
-      badgeColor: 'bg-red-500/30 text-red-200',
-    },
-    lebih_bayar: {
-      label: 'Lebih Bayar',
-      color: 'from-green-500/20 to-green-600/20',
-      textColor: 'text-green-300',
-      badgeColor: 'bg-green-500/30 text-green-200',
-    },
-    nihil: {
-      label: 'Nihil',
-      color: 'from-blue-500/20 to-blue-600/20',
-      textColor: 'text-blue-300',
-      badgeColor: 'bg-blue-500/30 text-blue-200',
-    },
+    kurang_bayar: { label: 'Kurang Bayar', color: '#FF453A', bg: 'rgba(255,69,58,0.12)' },
+    lebih_bayar: { label: 'Lebih Bayar', color: '#30D158', bg: 'rgba(48,209,88,0.12)' },
+    nihil: { label: 'Nihil', color: '#0A84FF', bg: 'rgba(10,132,255,0.12)' },
   };
-
   const config = statusConfig[status];
 
   return (
-    <div
-      className={`glass-premium rounded-3xl p-8 border border-white/10 bg-gradient-to-br ${config.color}`}
-    >
-      <div className="space-y-4">
-        {/* Status Badge */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-black text-white">Estimasi PPh</h3>
-          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${config.badgeColor}`}>
-            {config.label}
-          </span>
-        </div>
+    <div style={{
+      background: config.bg,
+      border: `0.5px solid ${config.color}25`,
+      borderRadius: 24, padding: 24,
+      WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+      backdropFilter: 'blur(40px) saturate(200%)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+    }}>
+      <div className="flex items-center justify-between mb-6">
+        <h3 style={{ fontSize: 17, fontWeight: 600, color: '#fff', letterSpacing: '-0.2px', margin: 0 }}>Estimasi PPh</h3>
+        <span style={{
+          padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+          background: config.bg, color: config.color, border: `0.5px solid ${config.color}30`,
+        }}>{config.label}</span>
+      </div>
 
-        {/* PPh Amount */}
-        <div className="space-y-1">
-          <p className={`text-4xl font-black ${config.textColor}`}>
-            {formatRupiah(Math.abs(pphDue))}
-          </p>
-          <p className="text-sm text-white/60">
-            {status === 'kurang_bayar' && 'Jumlah yang harus dibayarkan'}
-            {status === 'lebih_bayar' && 'Jumlah yang dapat diklaim kembali'}
-            {status === 'nihil' && 'Tidak ada kewajiban pajak'}
-          </p>
-        </div>
+      <div style={{ marginBottom: 20 }}>
+        <p style={{ fontSize: 32, fontWeight: 700, color: config.color, letterSpacing: '-0.5px', margin: '0 0 4px 0' }}>
+          {formatRupiah(Math.abs(pphDue))}
+        </p>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+          {status === 'kurang_bayar' && 'Jumlah yang harus dibayarkan'}
+          {status === 'lebih_bayar' && 'Jumlah yang dapat diklaim kembali'}
+          {status === 'nihil' && 'Tidak ada kewajiban pajak'}
+        </p>
+      </div>
 
-        {/* Details */}
-        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
-          <div>
-            <p className="text-xs text-white/60 mb-1">Tahun Pajak</p>
-            <p className="text-lg font-semibold text-white">{year}</p>
-          </div>
-          <div>
-            <p className="text-xs text-white/60 mb-1">Status PTKP</p>
-            <p className="text-lg font-semibold text-white">{ptkpStatus}</p>
-          </div>
+      <div className="grid grid-cols-2 gap-4 pt-4" style={{ borderTop: '0.5px solid rgba(255,255,255,0.1)' }}>
+        <div>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: '0 0 2px 0' }}>Tahun Pajak</p>
+          <p style={{ fontSize: 17, fontWeight: 600, color: '#fff', margin: 0 }}>{year}</p>
+        </div>
+        <div>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: '0 0 2px 0' }}>Status PTKP</p>
+          <p style={{ fontSize: 17, fontWeight: 600, color: '#fff', margin: 0 }}>{ptkpStatus}</p>
         </div>
       </div>
     </div>

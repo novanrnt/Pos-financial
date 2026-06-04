@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,6 +20,9 @@ type SavingsFormData = z.infer<typeof savingsSchema>;
 export function SavingsGoalModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const { register, handleSubmit, reset, formState: { errors } } = useForm<SavingsFormData>({
     resolver: zodResolver(savingsSchema),
   });
@@ -31,120 +35,78 @@ export function SavingsGoalModal() {
       formData.append('targetAmount', String(data.targetAmount));
       if (data.deadline) formData.append('deadline', data.deadline);
       if (data.notes) formData.append('notes', data.notes);
-      
       await addSavingsGoal(formData);
-      reset();
-      setIsOpen(false);
+      reset(); setIsOpen(false);
     } catch (error) {
       console.error('Error adding savings goal:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
+
+  const modal = isOpen ? (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(20px)' }} onClick={() => setIsOpen(false)} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div style={{
+          background: 'rgba(255,255,255,0.08)', WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+          backdropFilter: 'blur(40px) saturate(200%)',
+          border: '0.5px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+          borderRadius: 24, padding: 20, width: '100%', maxWidth: 420,
+        }}>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="flex items-center gap-2" style={{ fontSize: 17, fontWeight: 600, color: '#fff', letterSpacing: '-0.2px', margin: 0 }}>
+              <Plus size={18} style={{ color: '#30D158' }} /> Buat Goal Tabungan
+            </h2>
+            <button onClick={() => setIsOpen(false)} className="active-scale" style={{
+              width: 32, height: 32, borderRadius: 10, display: 'grid', placeItems: 'center',
+              border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)',
+            }}><X size={18} /></button>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Nama Goal</label>
+              <input {...register('name')} placeholder="Contoh: DP Rumah, Liburan Bali..." className="input w-full" />
+              {errors.name && <p style={{ fontSize: 12, color: '#FF453A', marginTop: 4 }}>{errors.name.message}</p>}
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Target Nominal</label>
+              <input {...register('targetAmount')} placeholder="0" type="number" className="input w-full" />
+              {errors.targetAmount && <p style={{ fontSize: 12, color: '#FF453A', marginTop: 4 }}>{errors.targetAmount.message}</p>}
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Deadline (Opsional)</label>
+              <input {...register('deadline')} type="date" className="input w-full" />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Catatan (Opsional)</label>
+              <input {...register('notes')} placeholder="Catatan..." className="input w-full" />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <button type="button" onClick={() => setIsOpen(false)} className="active-scale" style={{
+                flex: 1, padding: '12px 16px', borderRadius: 14,
+                background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              }}>Batal</button>
+              <button type="submit" disabled={isLoading} className="active-scale" style={{
+                flex: 1, padding: '12px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                background: '#30D158', color: '#000', fontSize: 13, fontWeight: 600, opacity: isLoading ? 0.5 : 1,
+              }}>{isLoading ? 'Menyimpan...' : 'Buat Goal'}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
+  ) : null;
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="grid h-10 w-10 place-items-center rounded-xl bg-white/[.06] hover:bg-white/[.10] transition text-premium-text"
-      >
-        <Plus size={20} />
-      </button>
-
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="glass-premium rounded-3xl p-4 sm:p-6 w-full max-w-md border border-premium-border-soft my-4">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-black text-premium-text flex items-center gap-2">
-                <Plus size={18} className="text-violet-300" /> Buat Goal Tabungan
-              </h2>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="grid h-8 w-8 place-items-center rounded-lg hover:bg-white/[.10] transition text-premium-text-muted"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">
-                  Nama Goal
-                </label>
-                <input
-                  {...register('name')}
-                  placeholder="Contoh: DP Rumah, Liburan Bali..."
-                  className="input w-full"
-                />
-                {errors.name && (
-                  <p className="text-xs text-rose-400 mt-1">{errors.name.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">
-                  Target Nominal
-                </label>
-                <input
-                  {...register('targetAmount')}
-                  placeholder="0"
-                  type="number"
-                  className="input w-full"
-                />
-                {errors.targetAmount && (
-                  <p className="text-xs text-rose-400 mt-1">{errors.targetAmount.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">
-                  Deadline (Opsional)
-                </label>
-                <input
-                  {...register('deadline')}
-                  type="date"
-                  className="input w-full"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-premium-text-muted uppercase mb-2">
-                  Catatan (Opsional)
-                </label>
-                <input
-                  {...register('notes')}
-                  placeholder="Catatan..."
-                  className="input w-full"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="flex-1 px-4 py-2 rounded-xl bg-white/[.06] hover:bg-white/[.10] transition text-premium-text font-black text-sm"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1 px-4 py-2 rounded-xl bg-violet-500 hover:bg-violet-600 transition text-white font-black text-sm disabled:opacity-50"
-                >
-                  {isLoading ? 'Menyimpan...' : 'Buat Goal'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <button onClick={() => { reset(); setIsOpen(true); }} className="active-scale" style={{
+        width: 40, height: 40, display: 'grid', placeItems: 'center',
+        borderRadius: 12, border: 'none', cursor: 'pointer',
+        background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.7)',
+      }}><Plus size={20} /></button>
+      {mounted && createPortal(modal, document.body)}
     </>
   );
 }
