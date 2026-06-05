@@ -51,12 +51,24 @@ export default async function Transactions() {
             <p className="text-[13px] text-white/40 mt-1">Tekan tombol + untuk menambahkan transaksi pertama.</p>
           </div>
         ) : (
-          Object.entries(groupedEntries).map(([dateKey, entries]) => (
+          Object.entries(groupedEntries).map(([dateKey, entries]) => {
+            const dailyExpense = entries.reduce((sum, entry) => {
+              if (entry.type === 'transaction' && entry.data.type === 'EXPENSE') return sum + entry.data.amount;
+              if (entry.type === 'debt_payment' && entry.data.debt.type === 'DEBT') return sum + entry.data.payment.amount;
+              return sum;
+            }, 0);
+
+            return (
             <div key={dateKey}>
-              <div className="px-2 mb-2">
+              <div className="px-2 mb-2 flex items-center justify-between">
                 <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">
                   {new Date(dateKey).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
+                {dailyExpense > 0 && (
+                  <p className="text-[11px] font-semibold text-[#FF453A]/70 uppercase tracking-wide">
+                    −{rupiah(dailyExpense)}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 {entries.map((entry) => {
@@ -148,7 +160,8 @@ export default async function Transactions() {
                 })}
               </div>
             </div>
-          ))
+            );
+          })}
         )}
       </div>
     </div>
