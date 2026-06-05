@@ -9,7 +9,7 @@ export default async function Transactions() {
   const u = await requireUser();
   const uid = u!.id;
   const [tx, accounts, cats, debts] = await Promise.all([
-    prisma.transaction.findMany({ where: { userId: uid, sourceType: { not: 'debt_payment' } }, include: { account: true, category: true, transferToAccount: true }, orderBy: { date: 'desc' }, take: 100 }),
+    prisma.transaction.findMany({ where: { userId: uid }, include: { account: true, category: true, transferToAccount: true }, orderBy: { date: 'desc' }, take: 100 }),
     prisma.account.findMany({ where: { userId: uid } }),
     prisma.category.findMany({ where: { userId: uid, isActive: true } }),
     prisma.debt.findMany({ where: { userId: uid }, include: { payments: { include: { account: true } }, account: true }, orderBy: { createdAt: 'desc' } })
@@ -19,12 +19,12 @@ export default async function Transactions() {
     ...tx.map(t => ({ type: 'transaction' as const, data: t, date: t.date })),
     ...debts.flatMap(d => [
       { type: 'debt_created' as const, data: d, date: d.createdAt },
-      ...d.payments.map(p => ({ type: 'debt_payment' as const, data: { debt: d, payment: p }, date: p.date }))
     ])
   ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 150);
 
   const groupedEntries = allEntries.reduce((acc, entry) => {
-    const dateKey = entry.date.toISOString().slice(0, 10);
+    const localDate = new Date(entry.date.getTime() + 7 * 60 * 60 * 1000);
+    const dateKey = localDate.toISOString().slice(0, 10);
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(entry);
     return acc;
