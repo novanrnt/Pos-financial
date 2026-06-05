@@ -50,8 +50,8 @@ export default async function Transactions() {
         ) : (
           Object.entries(groupedEntries).map(([dateKey, entries]) => {
             const dailyExpense = entries.reduce((sum, entry) => {
-              if (entry.type === 'transaction' && entry.data.type === 'EXPENSE') return sum + entry.data.amount;
-              if (entry.type === 'debt_payment' && entry.data.debt.type === 'DEBT') return sum + entry.data.payment.amount;
+              if (entry.type === 'transaction' && entry.data.type === 'EXPENSE') return sum + Number(entry.data.amount);
+              if (entry.type === 'debt_payment' && entry.data.debt.type === 'DEBT') return sum + Number(entry.data.payment.amount);
               return sum;
             }, 0);
 
