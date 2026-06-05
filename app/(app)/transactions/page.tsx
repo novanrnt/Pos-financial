@@ -15,7 +15,7 @@ export default async function Transactions() {
     prisma.debt.findMany({ where: { userId: uid }, include: { payments: { include: { account: true } }, account: true }, orderBy: { createdAt: 'desc' } })
   ]);
 
-  const allEntries = [
+  const allEntries: Array<{ type: 'transaction' | 'debt_created' | 'debt_payment'; data: any; date: Date }> = [
     ...tx.map(t => ({ type: 'transaction' as const, data: t, date: t.date })),
     ...debts.flatMap(d => [
       { type: 'debt_created' as const, data: d, date: d.createdAt },
@@ -28,7 +28,7 @@ export default async function Transactions() {
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(entry);
     return acc;
-  }, {} as Record<string, typeof allEntries>);
+  }, {} as Record<string, Array<{ type: 'transaction' | 'debt_created' | 'debt_payment'; data: any; date: Date }>>);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
