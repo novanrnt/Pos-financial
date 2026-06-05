@@ -54,6 +54,11 @@ export default async function Transactions() {
               if (entry.type === 'debt_payment' && entry.data.debt.type === 'DEBT') return sum + Number(entry.data.payment.amount);
               return sum;
             }, 0);
+            const dailyIncome = entries.reduce((sum, entry) => {
+              if (entry.type === 'transaction' && entry.data.type === 'INCOME') return sum + Number(entry.data.amount);
+              if (entry.type === 'debt_payment' && entry.data.debt.type === 'RECEIVABLE') return sum + Number(entry.data.payment.amount);
+              return sum;
+            }, 0);
 
             return (
               <div key={dateKey}>
@@ -61,11 +66,18 @@ export default async function Transactions() {
                   <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">
                     {new Date(dateKey).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
-                  {dailyExpense > 0 && (
-                    <p className="text-[11px] font-semibold text-[#FF453A]/70 uppercase tracking-wide">
-                      −{rupiah(dailyExpense)}
-                    </p>
-                  )}
+                  <div className="flex gap-3">
+                    {dailyIncome > 0 && (
+                      <p className="text-[11px] font-semibold text-[#30D158]/70 uppercase tracking-wide">
+                        +{rupiah(dailyIncome)}
+                      </p>
+                    )}
+                    {dailyExpense > 0 && (
+                      <p className="text-[11px] font-semibold text-[#FF453A]/70 uppercase tracking-wide">
+                        −{rupiah(dailyExpense)}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {entries.map((entry) => {
