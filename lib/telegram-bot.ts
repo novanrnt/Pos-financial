@@ -117,7 +117,7 @@ async function handleAccountsCommand(botToken: string, chatId: number, telegramI
   accounts.forEach((acc, idx) => {
     const balance = typeof acc.balance === 'object' ? acc.balance.toString() : String(acc.balance);
     message += `${idx + 1}. <b>${acc.name}</b> (${acc.type})\n`;
-    message += `   Saldo: Rp ${parseInt(balance).toLocaleString('id-ID')}\n\n`;
+    message += `   Saldo: Rp ${Number(acc.balance).toLocaleString('id-ID')}\n\n`;
   });
 
   return sendTelegramMessage(botToken, chatId, message);
@@ -142,6 +142,7 @@ async function parseTransaction(text: string, telegramId: number) {
     if (monthIndex === undefined) return { error: '❌ Bulan tidak valid' };
 
     const date = new Date(Number(year), monthIndex, Number(day));
+    if(date.getDate() !== Number(day)) return { error: '❌ Tanggal tidak valid untuk bulan tersebut' };
     const amount = toNumber(amountStr);
     const type = typeStr?.toLowerCase() || 'expense';
 

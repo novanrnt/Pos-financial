@@ -17,10 +17,16 @@ export default async function Investments() {
   }, {} as Record<string, typeof rows>);
 
   const totalInvestment = rows.reduce((a, r) => a + Number(r.balance), 0);
-  const latestMonth = rows.length > 0 ? rows[0] : null;
-  const previousMonth = rows.length > 1 ? rows[1] : null;
-  const totalGrowth = latestMonth && previousMonth ? Number(latestMonth.balance) - Number(previousMonth.balance) : 0;
-  const growthPercent = previousMonth ? (totalGrowth / Number(previousMonth.balance)) * 100 : 0;
+
+  const latestMonth = rows.length > 0 ? rows[0].month : null;
+  const previousMonth = rows.length > 0
+    ? rows.find(r => r.month < rows[0].month)?.month ?? null
+    : null;
+
+  const latestTotal = latestMonth ? rows.filter(r => r.month === latestMonth).reduce((a, r) => a + Number(r.balance), 0) : 0;
+  const previousTotal = previousMonth ? rows.filter(r => r.month === previousMonth).reduce((a, r) => a + Number(r.balance), 0) : 0;
+  const totalGrowth = latestTotal - previousTotal;
+  const growthPercent = previousTotal > 0 ? (totalGrowth / previousTotal) * 100 : 0;
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">

@@ -243,7 +243,7 @@ Status: ${summary.status === 'kurang_bayar' ? 'Kurang Bayar' : summary.status ==
                         </td>
                         <td style={{ padding: '12px 16px', textAlign: 'right', color: 'rgba(255,255,255,0.8)' }}>
                           {method === 'progressive'
-                            ? `${(item.rate * 100).toFixed(1)}%`
+                            ? `${item.rate.toFixed(1)}%`
                             : formatRupiah(item.basis || item.taxableAmount || 0)}
                         </td>
                         <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 700, color: '#FFFFFF' }}>

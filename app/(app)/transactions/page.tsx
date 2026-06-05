@@ -9,7 +9,7 @@ export default async function Transactions() {
   const u = await requireUser();
   const uid = u!.id;
   const [tx, accounts, cats, debts] = await Promise.all([
-    prisma.transaction.findMany({ where: { userId: uid }, include: { account: true, category: true, transferToAccount: true }, orderBy: { date: 'desc' }, take: 100 }),
+    prisma.transaction.findMany({ where: { userId: uid, sourceType: { not: 'debt_payment' } }, include: { account: true, category: true, transferToAccount: true }, orderBy: { date: 'desc' }, take: 100 }),
     prisma.account.findMany({ where: { userId: uid } }),
     prisma.category.findMany({ where: { userId: uid, isActive: true } }),
     prisma.debt.findMany({ where: { userId: uid }, include: { payments: { include: { account: true } }, account: true }, orderBy: { createdAt: 'desc' } })
@@ -50,13 +50,11 @@ export default async function Transactions() {
         ) : (
           Object.entries(groupedEntries).map(([dateKey, entries]) => {
             const dailyExpense = entries.reduce((sum, entry) => {
-              if (entry.type === 'transaction' && entry.data.type === 'EXPENSE') return sum + Number(entry.data.amount);
-              if (entry.type === 'debt_payment' && entry.data.debt.type === 'DEBT') return sum + Number(entry.data.payment.amount);
+              if (entry.type === 'transaction' && entry.data.type === 'EXPENSE' && entry.data.sourceType !== 'debt_payment') return sum + Number(entry.data.amount);
               return sum;
             }, 0);
             const dailyIncome = entries.reduce((sum, entry) => {
-              if (entry.type === 'transaction' && entry.data.type === 'INCOME') return sum + Number(entry.data.amount);
-              if (entry.type === 'debt_payment' && entry.data.debt.type === 'RECEIVABLE') return sum + Number(entry.data.payment.amount);
+              if (entry.type === 'transaction' && entry.data.type === 'INCOME' && entry.data.sourceType !== 'debt_payment') return sum + Number(entry.data.amount);
               return sum;
             }, 0);
 

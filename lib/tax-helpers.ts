@@ -32,15 +32,15 @@ export interface TaxSummary {
  * Get all transactions for a specific year
  */
 export async function getTaxYearTransactions(userId: string, year: number) {
-  const startDate = new Date(`${year}-01-01`);
-  const endDate = new Date(`${year}-12-31`);
+  const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+  const endDate = new Date(`${year + 1}-01-01T00:00:00.000Z`);
 
   return await prisma.transaction.findMany({
     where: {
       userId,
       date: {
         gte: startDate,
-        lte: endDate,
+        lt: endDate,
       },
     },
     include: {
