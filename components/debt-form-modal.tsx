@@ -65,26 +65,22 @@ export function DebtFormModal({ accounts }: { accounts: Account[] }) {
             <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 10 }}>
               Tipe
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <label className="flex items-center gap-3 cursor-pointer p-4 active-scale" style={{
-                borderRadius: 14, border: '0.5px solid rgba(255,69,58,0.3)',
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex items-center gap-2 cursor-pointer p-3 active-scale" style={{
+                borderRadius: 12, border: '0.5px solid rgba(255,69,58,0.3)',
                 background: 'rgba(255,255,255,0.04)',
               }}>
                 <input type="radio" value="DEBT" {...register('type')} style={{ accentColor: '#FF453A' }} />
-                <div className="flex items-center gap-2">
-                  <ArrowDownRight size={16} style={{ color: '#FF453A' }} />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>Hutang</span>
-                </div>
+                <ArrowDownRight size={14} style={{ color: '#FF453A', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#fff' }}>Hutang</span>
               </label>
-              <label className="flex items-center gap-3 cursor-pointer p-4 active-scale" style={{
-                borderRadius: 14, border: '0.5px solid rgba(48,209,88,0.3)',
+              <label className="flex items-center gap-2 cursor-pointer p-3 active-scale" style={{
+                borderRadius: 12, border: '0.5px solid rgba(48,209,88,0.3)',
                 background: 'rgba(255,255,255,0.04)',
               }}>
                 <input type="radio" value="RECEIVABLE" {...register('type')} style={{ accentColor: '#30D158' }} />
-                <div className="flex items-center gap-2">
-                  <ArrowUpRight size={16} style={{ color: '#30D158' }} />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>Piutang</span>
-                </div>
+                <ArrowUpRight size={14} style={{ color: '#30D158', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#fff' }}>Piutang</span>
               </label>
             </div>
           </div>

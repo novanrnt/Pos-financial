@@ -81,26 +81,22 @@ export function BillFormModal({ accounts }: { accounts: Account[] }) {
             <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 10 }}>
               Tipe Tagihan
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <label className="flex items-center gap-3 cursor-pointer p-4 active-scale" style={{
-                borderRadius: 14, border: billType === 'MONTHLY' ? '0.5px solid rgba(255,159,10,0.5)' : '0.5px solid rgba(255,255,255,0.08)',
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex items-center gap-2 cursor-pointer p-3 active-scale" style={{
+                borderRadius: 12, border: billType === 'MONTHLY' ? '0.5px solid rgba(255,159,10,0.5)' : '0.5px solid rgba(255,255,255,0.08)',
                 background: billType === 'MONTHLY' ? 'rgba(255,159,10,0.1)' : 'rgba(255,255,255,0.04)',
               }}>
                 <input type="radio" value="MONTHLY" {...register('billType')} style={{ accentColor: '#FF9F0A' }} />
-                <div className="flex items-center gap-2">
-                  <Receipt size={16} style={{ color: '#FF9F0A' }} />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>Bulanan</span>
-                </div>
+                <Receipt size={14} style={{ color: '#FF9F0A', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#fff' }}>Bulanan</span>
               </label>
-              <label className="flex items-center gap-3 cursor-pointer p-4 active-scale" style={{
-                borderRadius: 14, border: billType === 'INSTALLMENT' ? '0.5px solid rgba(10,132,255,0.5)' : '0.5px solid rgba(255,255,255,0.08)',
+              <label className="flex items-center gap-2 cursor-pointer p-3 active-scale" style={{
+                borderRadius: 12, border: billType === 'INSTALLMENT' ? '0.5px solid rgba(10,132,255,0.5)' : '0.5px solid rgba(255,255,255,0.08)',
                 background: billType === 'INSTALLMENT' ? 'rgba(10,132,255,0.1)' : 'rgba(255,255,255,0.04)',
               }}>
                 <input type="radio" value="INSTALLMENT" {...register('billType')} style={{ accentColor: '#0A84FF' }} />
-                <div className="flex items-center gap-2">
-                  <CalendarClock size={16} style={{ color: '#0A84FF' }} />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>Cicilan</span>
-                </div>
+                <CalendarClock size={14} style={{ color: '#0A84FF', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#fff' }}>Cicilan</span>
               </label>
             </div>
           </div>
