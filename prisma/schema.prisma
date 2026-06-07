@@ -45,6 +45,11 @@ enum BillStatus {
   PAID
 }
 
+enum BillType {
+  MONTHLY
+  INSTALLMENT
+}
+
 model User {
   id             String               @id @default(cuid())
   email          String               @unique
@@ -217,16 +222,23 @@ model DebtPayment {
 }
 
 model RecurringBill {
-  id         String     @id @default(cuid())
-  userId     String
-  accountId  String
-  name       String
-  amount     Decimal    @db.Decimal(18, 2)
-  dueDay     Int
-  status     BillStatus @default(UNPAID)
-  lastPaidAt DateTime?
-  notes      String?
-  createdAt  DateTime   @default(now())
+  id             String      @id @default(cuid())
+  userId         String
+  accountId      String
+  name           String
+  amount         Decimal     @db.Decimal(18, 2)
+  dueDay         Int
+  status         BillStatus  @default(UNPAID)
+  lastPaidAt     DateTime?
+  notes          String?
+  createdAt      DateTime    @default(now())
+
+  billType       BillType    @default(MONTHLY)
+  totalAmount    Decimal?    @db.Decimal(18, 2)
+  totalMonths    Int?
+  paidMonths     Int         @default(0)
+  startDate      DateTime?
+
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   account    Account    @relation(fields: [accountId], references: [id])
 
