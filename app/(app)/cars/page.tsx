@@ -25,7 +25,7 @@ export default async function Cars() {
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 900, color: '#FFFFFF', margin: 0 }}>Stok Mobil</h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4, marginBottom: 0 }}>
-            Modal, biaya, foto URL, profit/rugi, dan jual mobil otomatis masuk rekening.
+            Beli mobil = aset. Saat jual, profit (harga jual − modal) otomatis masuk kategori "Jual Mobil" & rekening.
           </p>
         </div>
         <CarFormModal accounts={accounts} />
