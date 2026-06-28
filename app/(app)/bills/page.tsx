@@ -4,6 +4,7 @@ import { rupiah } from '@/lib/utils';
 import { Receipt, Clock, AlertCircle, CheckCircle2, CalendarClock } from 'lucide-react';
 import { BillFormModal } from '@/components/bill-form-modal';
 import { BillPaymentModal } from '@/components/bill-payment-modal';
+import { DeleteBillButton } from '@/components/delete-bill-button';
 
 export default async function Bills() {
   const u = await requireUser();
@@ -89,6 +90,7 @@ export default async function Bills() {
                       bill={{ id: bill.id, name: bill.name, amount: Number(bill.amount), dueDay: bill.dueDay, accountId: bill.accountId }}
                       accounts={accounts.map(a => ({ id: a.id, name: a.name, type: a.type }))}
                     />
+                    <DeleteBillButton billId={bill.id} name={bill.name} />
                   </div>
                   {/* Progress bar */}
                   <div className="mt-3">
@@ -145,6 +147,7 @@ export default async function Bills() {
                     bill={{ id: bill.id, name: bill.name, amount: Number(bill.amount), dueDay: bill.dueDay, accountId: bill.accountId }}
                     accounts={accounts.map(a => ({ id: a.id, name: a.name, type: a.type }))}
                   />
+                  <DeleteBillButton billId={bill.id} name={bill.name} />
                 </div>
               );
             })}
@@ -171,6 +174,7 @@ export default async function Bills() {
                 <div className="text-right shrink-0">
                   <p className="text-[15px] font-semibold" style={{ color: '#30D158' }}>{rupiah(Number(bill.totalAmount || 0))}</p>
                 </div>
+                <DeleteBillButton billId={bill.id} name={bill.name} />
               </div>
             ))}
           </div>
@@ -196,6 +200,7 @@ export default async function Bills() {
                 <div className="text-right shrink-0">
                   <p className="text-[15px] font-semibold" style={{ color: '#30D158' }}>{rupiah(Number(bill.amount))}</p>
                 </div>
+                <DeleteBillButton billId={bill.id} name={bill.name} />
               </div>
             ))}
           </div>

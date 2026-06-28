@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
-import { deleteAccount } from '@/lib/actions';
 import { rupiah } from '@/lib/utils';
-import { Wallet, Building2, Smartphone, Banknote, Package, Star, Trash2, ArrowDownRight, PiggyBank } from 'lucide-react';
+import { Wallet, Building2, Smartphone, Banknote, Package, Star, ArrowDownRight, PiggyBank } from 'lucide-react';
 import { AccountFormModal } from '@/components/account-form-modal';
+import { AccountAdjustModal } from '@/components/account-adjust-modal';
+import { AccountDeleteModal } from '@/components/account-delete-modal';
 
 const typeConfig = {
   BANK:    { label: 'Akun Bank',     icon: Building2,   color: '#0A84FF', bg: 'rgba(10,132,255,0.15)' },
@@ -108,13 +109,9 @@ export default async function Accounts() {
                       <p className="text-[11px] text-white/40 mb-0.5">Saldo Saat Ini</p>
                       <p className="text-[15px] font-semibold" style={{ color: '#30D158' }}>{rupiah(Number(a.balance))}</p>
                     </div>
-                    {/* Delete */}
-                    <form action={deleteAccount}>
-                      <input type="hidden" name="id" value={a.id} />
-                      <button type="submit" className="shrink-0 grid h-8 w-8 place-items-center rounded-xl active-scale text-white/40 hover:text-[#FF453A] transition" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                        <Trash2 size={14} />
-                      </button>
-                    </form>
+                    {/* Actions */}
+                    <AccountAdjustModal account={{ id: a.id, name: a.name, balance: Number(a.balance) }} />
+                    <AccountDeleteModal account={{ id: a.id, name: a.name, balance: Number(a.balance) }} otherAccounts={rows.filter(r => r.id !== a.id).map(r => ({ id: r.id, name: r.name }))} />
                   </div>
                 ))}
               </div>
