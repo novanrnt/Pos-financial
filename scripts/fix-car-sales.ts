@@ -44,7 +44,7 @@ async function main() {
   }
 
   const report: string[] = [];
-  let fixedCount = 0, skipClosed = 0, skipAlreadyNew = 0, skipNoSale = 0;
+  let fixedCount = 0, skipClosed = 0, skipAlreadyNew = 0, skipNoSale = 0, skipOrphan = 0;
 
   for (const car of cars) {
     const costIds = car.costs.map(k => k.id);
@@ -107,6 +107,7 @@ async function main() {
   console.log(`Skip closing: ${skipClosed}`);
   console.log(`Skip sudah baru: ${skipAlreadyNew}`);
   console.log(`Skip tanpa tx jual: ${skipNoSale}`);
+  console.log(`Skip orphan : ${skipOrphan}`);
   console.log('-----------------------------------------');
   console.log(report.length ? report.join('\n') : '(tidak ada mobil yang perlu diperbaiki)');
   console.log('-----------------------------------------');
