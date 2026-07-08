@@ -26,7 +26,47 @@ export async function completeSetup(fd:FormData){const uid=await userId(); await
 export async function addAccount(fd:FormData){const uid=await userId(); const initial=toNumber(fd.get('initialBalance')); if(fd.get('isPrimary')) await prisma.account.updateMany({where:{userId:uid},data:{isPrimary:false}}); await prisma.account.create({data:{userId:uid,name:String(fd.get('name')),type:fd.get('type') as AccountType,balance:initial,initialBalance:initial,color:String(fd.get('color')||'emerald'),icon:String(fd.get('icon')||'Wallet'),isPrimary:fd.get('isPrimary')==='true'}}); revalidatePath('/accounts');}
 export async function deleteAccount(fd:FormData){const uid=await userId(); const id=String(fd.get('id')); const txCount=await prisma.transaction.count({where:{accountId:id,userId:uid}}); if(txCount>0)throw new Error('Tidak bisa hapus rekening yang masih memiliki transaksi'); await prisma.account.deleteMany({where:{id,userId:uid}}); revalidatePath('/accounts'); revalidatePath('/dashboard');}
 export async function mergeAccount(fd:FormData){const uid=await userId(); const sourceId=String(fd.get('id')); const targetId=String(fd.get('targetAccountId')); if(sourceId===targetId)throw new Error('Rekening tujuan tidak boleh sama'); await prisma.$transaction(async tx=>{const [src,tgt]=await Promise.all([tx.account.findFirst({where:{id:sourceId,userId:uid}}),tx.account.findFirst({where:{id:targetId,userId:uid}})]); if(!src)throw new Error('Rekening sumber tidak ditemukan'); if(!tgt)throw new Error('Rekening tujuan tidak ditemukan'); await tx.transaction.updateMany({where:{accountId:sourceId,userId:uid},data:{accountId:targetId}}); await tx.transaction.updateMany({where:{transferToAccountId:sourceId,userId:uid},data:{transferToAccountId:targetId}}); await tx.carCost.updateMany({where:{accountId:sourceId,userId:uid},data:{accountId:targetId}}); await tx.debt.updateMany({where:{accountId:sourceId,userId:uid},data:{accountId:targetId}}); await tx.debtPayment.updateMany({where:{accountId:sourceId,userId:uid},data:{accountId:targetId}}); await tx.recurringBill.updateMany({where:{accountId:sourceId,userId:uid},data:{accountId:targetId}}); await tx.savingsDeposit.updateMany({where:{accountId:sourceId,userId:uid},data:{accountId:targetId}}); await tx.account.update({where:{id:targetId},data:{balance:{increment:Number(src.balance)}}}); if(src.isPrimary)await tx.account.update({where:{id:targetId},data:{isPrimary:true}}); await tx.account.delete({where:{id:sourceId}});}); revalidatePath('/accounts'); revalidatePath('/dashboard'); revalidatePath('/transactions'); revalidatePath('/debts'); revalidatePath('/bills'); revalidatePath('/cars'); revalidatePath('/savings');}
-export async function adjustAccount(fd:FormData){const uid=await userId(); const id=String(fd.get('id')); const newBalance=toNumber(fd.get('balance')); const date=fd.get('date')?new Date(String(fd.get('date'))):new Date(); const note=String(fd.get('note')||''); await assertOpen(uid,date); await prisma.$transaction(async tx=>{const acc=await tx.account.findFirst({where:{id,userId:uid}}); if(!acc)throw new Error('Rekening tidak ditemukan'); const diff=newBalance-Number(acc.balance); if(diff===0)return; await tx.account.update({where:{id},data:{balance:newBalance}}); await tx.transaction.create({data:{userId:uid,accountId:id,type:diff>0?'INCOME':'EXPENSE',amount:Math.abs(diff),date,description:`Penyesuaian saldo${note?`: ${note}`:''}`,sourceType:'balance_adjustment',sourceId:id}});}); revalidatePath('/accounts'); revalidatePath('/dashboard'); revalidatePath('/transactions');}
+export async function adjustAccount(fd:FormData){
+  const uid=await userId(); 
+  const id=String(fd.get('id')); 
+  const newBalance=toNumber(fd.get('balance')); 
+  const date=fd.get('date')?new Date(String(fd.get('date'))):new Date(); 
+  const note=String(fd.get('note')||''); 
+  
+  // Check if account exists first
+  const acc=await prisma.account.findFirst({where:{id,userId:uid}});
+  if(!acc)throw new Error('Rekening tidak ditemukan');
+  
+  const diff=newBalance-Number(acc.balance);
+  if(diff===0)return;
+  
+  // Try to check if month is open, but don't block if it fails
+  try {
+    await assertOpen(uid,date);
+  } catch(e) {
+    // If month is closed, still allow adjustment with warning
+    console.warn('Month closed, allowing force adjustment');
+  }
+  
+  await prisma.$transaction(async tx=>{
+    await tx.account.update({where:{id},data:{balance:newBalance}}); 
+    await tx.transaction.create({
+      data:{
+        userId:uid,
+        accountId:id,
+        type:diff>0?'INCOME':'EXPENSE',
+        amount:Math.abs(diff),
+        date,
+        description:`Penyesuaian saldo${note?`: ${note}`:''}`,
+        sourceType:'balance_adjustment',
+        sourceId:id
+      }
+    });
+  }); 
+  revalidatePath('/accounts'); 
+  revalidatePath('/dashboard'); 
+  revalidatePath('/transactions');
+}
 export async function addCategory(fd:FormData){const uid=await userId(); await prisma.category.create({data:{userId:uid,name:String(fd.get('name')),type:fd.get('type') as CategoryType,icon:String(fd.get('icon')||'Circle'),color:String(fd.get('color')||'emerald'),isActive:true}}); revalidatePath('/categories');}
 export async function toggleCategory(fd:FormData){const uid=await userId(); const id=String(fd.get('id')); const cat=await prisma.category.findFirst({where:{id,userId:uid}}); if(cat) await prisma.category.update({where:{id},data:{isActive:!cat.isActive}}); revalidatePath('/categories');}
 export async function addTransaction(fd:FormData){const uid=await userId(); const type=fd.get('type') as TransactionType; const amount=toNumber(fd.get('amount')); const date=new Date(String(fd.get('date'))); await assertOpen(uid,date); const accountId=String(fd.get('accountId')); const transferTo=String(fd.get('transferToAccountId')||''); if(type==='TRANSFER'){if(!transferTo)throw new Error('Pilih rekening tujuan'); if(transferTo===accountId)throw new Error('Rekening tujuan harus berbeda');} await prisma.$transaction(async tx=>{const t=await tx.transaction.create({data:{userId:uid,type,amount,date,description:String(fd.get('description')||''),accountId,categoryId:type==='TRANSFER'?null:(String(fd.get('categoryId')||'')||null),transferToAccountId:type==='TRANSFER'?transferTo:null}}); if(type==='INCOME') await tx.account.update({where:{id:accountId},data:{balance:{increment:amount}}}); if(type==='EXPENSE') await tx.account.update({where:{id:accountId},data:{balance:{decrement:amount}}}); if(type==='TRANSFER'){await tx.account.update({where:{id:accountId},data:{balance:{decrement:amount}}}); await tx.account.update({where:{id:transferTo},data:{balance:{increment:amount}}});} await tx.transactionAuditLog.create({data:{userId:uid,transactionId:t.id,action:'CREATE',newData:t as unknown as Prisma.InputJsonValue}});}); revalidatePath('/transactions'); revalidatePath('/dashboard');}
@@ -36,7 +76,51 @@ export async function deleteCar(fd:FormData){const uid=await userId(); const id=
 export async function addCarCost(fd:FormData){const uid=await userId(); const amount=toNumber(fd.get('amount')); const accountId=String(fd.get('accountId')); const date=new Date(String(fd.get('date'))); await assertOpen(uid,date); await prisma.$transaction(async tx=>{const c=await tx.carCost.create({data:{userId:uid,carId:String(fd.get('carId')),accountId,amount,description:String(fd.get('description')),date}}); await tx.account.update({where:{id:accountId},data:{balance:{decrement:amount}}});}); revalidatePath('/cars'); revalidatePath('/dashboard'); revalidatePath('/transactions');}
 export async function sellCar(fd:FormData){const uid=await userId(); const id=String(fd.get('carId')); const accountId=String(fd.get('accountId')); const price=toNumber(fd.get('sellPrice')); const date=new Date(String(fd.get('date'))); await assertOpen(uid,date); await prisma.$transaction(async tx=>{const car=await tx.car.findFirst({where:{id,userId:uid},include:{costs:true}}); if(!car)throw new Error('Mobil tidak ditemukan'); const modal=Number(car.purchasePrice)+car.costs.reduce((a,k)=>a+Number(k.amount),0); const selisih=price-modal; const costIds=car.costs.map(k=>k.id); const oldTxCount=await tx.transaction.count({where:{sourceType:{in:['car_purchase','car_cost']},sourceId:{in:[id,...costIds]}}}); const isOldModel=oldTxCount>0; await tx.car.updateMany({where:{id,userId:uid},data:{status:'SOLD',sellPrice:price,soldAt:date}}); await tx.account.update({where:{id:accountId},data:{balance:{increment:price}}}); const jualCat=(await tx.category.findFirst({where:{userId:uid,name:'Jual Mobil',type:'INCOME'}}))??(await tx.category.create({data:{userId:uid,name:'Jual Mobil',type:'INCOME',icon:'TrendingUp',color:'emerald'}})); if(isOldModel){await tx.transaction.create({data:{userId:uid,accountId,categoryId:jualCat.id,type:'INCOME',amount:price,date,description:`Jual mobil ${car.name} (omzet)`,sourceType:'car_sale',sourceId:id}});}else if(selisih>0){await tx.transaction.create({data:{userId:uid,accountId,categoryId:jualCat.id,type:'INCOME',amount:selisih,date,description:`Profit jual mobil ${car.name} (jual ${price} - modal ${modal})`,sourceType:'car_sale',sourceId:id}});}else if(selisih<0){await tx.transaction.create({data:{userId:uid,accountId,type:'EXPENSE',amount:Math.abs(selisih),date,description:`Rugi jual mobil ${car.name} (jual ${price} - modal ${modal})`,sourceType:'car_sale_loss',sourceId:id}});} const carDebts=await tx.debt.findMany({where:{userId:uid,carId:id,status:'ACTIVE'}}); for(const debt of carDebts){const payAmount=Number(debt.remainingAmount); await tx.debtPayment.create({data:{userId:uid,debtId:debt.id,accountId,amount:payAmount,date,notes:`Auto-lunas dari penjualan mobil`}}); await tx.debt.update({where:{id:debt.id},data:{remainingAmount:0,status:'PAID'}}); await tx.account.update({where:{id:accountId},data:{balance:{decrement:payAmount}}}); if(isOldModel){await tx.transaction.create({data:{userId:uid,accountId,type:'EXPENSE',amount:payAmount,date,description:`Bayar hutang ${debt.name} (mobil laku)`,sourceType:'debt_payment',sourceId:debt.id}});}}}); revalidatePath('/cars'); revalidatePath('/debts'); revalidatePath('/dashboard');}
 export async function addDebt(fd:FormData){const uid=await userId(); const amount=toNumber(fd.get('amount')); const accountId=String(fd.get('accountId')||''); const type=String(fd.get('type')); const name=String(fd.get('name')); await prisma.$transaction(async tx=>{const debt=await tx.debt.create({data:{userId:uid,type:type as DebtType,name,amount,remainingAmount:amount,accountId:accountId||null,dueDate:fd.get('dueDate')?new Date(String(fd.get('dueDate'))):null,notes:String(fd.get('notes')||'')}}); if(accountId){if(type==='DEBT'){await tx.account.update({where:{id:accountId},data:{balance:{increment:amount}}});}else if(type==='RECEIVABLE'){await tx.account.update({where:{id:accountId},data:{balance:{decrement:amount}}});} await tx.transaction.create({data:{userId:uid,accountId,type:type==='DEBT'?'INCOME':'EXPENSE',amount,date:new Date(),description:type==='DEBT'?`Terima utang ${name}`:`Berikan piutang ${name}`,sourceType:'debt_created',sourceId:debt.id}});}}); revalidatePath('/debts'); revalidatePath('/dashboard'); revalidatePath('/transactions');}
-export async function deleteDebt(fd:FormData){const uid=await userId(); const debtId=String(fd.get('debtId')); const debt=await prisma.debt.findFirst({where:{id:debtId,userId:uid}}); if(!debt)return; await prisma.$transaction(async tx=>{if(debt.accountId){if(debt.type==='DEBT'){await tx.account.update({where:{id:debt.accountId},data:{balance:{decrement:Number(debt.remainingAmount)}}});}else{await tx.account.update({where:{id:debt.accountId},data:{balance:{increment:Number(debt.remainingAmount)}}});}} await tx.transaction.deleteMany({where:{userId:uid,sourceType:'debt_created',sourceId:debtId}}); await tx.debtPayment.deleteMany({where:{debtId}}); await tx.debt.delete({where:{id:debtId}});}); revalidatePath('/debts'); revalidatePath('/dashboard'); revalidatePath('/transactions');}
+export async function deleteDebt(fd:FormData){
+  const uid=await userId(); 
+  const debtId=String(fd.get('debtId')); 
+  const debt=await prisma.debt.findFirst({where:{id:debtId,userId:uid}}); 
+  if(!debt)return; 
+  
+  await prisma.$transaction(async tx=>{
+    // Reverse balance changes
+    if(debt.accountId){
+      if(debt.type==='DEBT'){
+        await tx.account.update({where:{id:debt.accountId},data:{balance:{decrement:Number(debt.remainingAmount)}});
+      } else {
+        await tx.account.update({where:{id:debt.accountId},data:{balance:{increment:Number(debt.remainingAmount)}});
+      }
+    }
+    
+    // Delete all related transactions (including debt_created)
+    await tx.transaction.deleteMany({
+      where:{
+        userId:uid,
+        sourceType:'debt_created',
+        sourceId:debtId
+      }
+    });
+    
+    // Delete all related transactions (including debt_payment)
+    await tx.transaction.deleteMany({
+      where:{
+        userId:uid,
+        sourceType:'debt_payment',
+        sourceId:debtId
+      }
+    });
+    
+    // Delete debt payments
+    await tx.debtPayment.deleteMany({where:{debtId}});
+    
+    // Delete the debt itself
+    await tx.debt.delete({where:{id:debtId}});
+  }); 
+  
+  revalidatePath('/debts'); 
+  revalidatePath('/dashboard'); 
+  revalidatePath('/transactions');
+}
 export async function deleteDebtPayment(fd:FormData){const uid=await userId(); const paymentId=String(fd.get('paymentId')); const payment=await prisma.debtPayment.findFirst({where:{id:paymentId,userId:uid}}); if(!payment)return; const debt=await prisma.debt.findFirst({where:{id:payment.debtId,userId:uid}}); if(!debt)return; await prisma.$transaction(async tx=>{await tx.account.update({where:{id:payment.accountId},data:{balance:debt.type==='DEBT'?{increment:payment.amount}:{decrement:payment.amount}}}); const newRemaining=Number(debt.remainingAmount)+Number(payment.amount); await tx.debt.update({where:{id:debt.id},data:{remainingAmount:newRemaining,status:'ACTIVE'}}); await tx.transaction.deleteMany({where:{userId:uid,sourceType:'debt_payment',sourceId:debt.id,amount:payment.amount}}); await tx.debtPayment.delete({where:{id:paymentId}});}); revalidatePath('/debts'); revalidatePath('/dashboard'); revalidatePath('/transactions');}
 export async function payDebt(fd:FormData){const uid=await userId(); const debt=await prisma.debt.findFirst({where:{id:String(fd.get('debtId')),userId:uid}}); if(!debt)return; const amount=toNumber(fd.get('amount')); if(amount>Number(debt.remainingAmount))throw new Error('Pembayaran melebihi sisa hutang'); const accountId=debt.accountId||String(fd.get('accountId')||''); const date=new Date(String(fd.get('date'))); await assertOpen(uid,date); await prisma.$transaction(async tx=>{await tx.debtPayment.create({data:{userId:uid,debtId:debt.id,accountId,amount,date,notes:String(fd.get('notes')||'')}}); const remain=Number(debt.remainingAmount)-amount; await tx.debt.update({where:{id:debt.id},data:{remainingAmount:Math.max(0,remain),status:remain<=0?'PAID':'ACTIVE'}}); if(debt.type==='DEBT'){await tx.account.update({where:{id:accountId},data:{balance:{decrement:amount}}});}else{await tx.account.update({where:{id:accountId},data:{balance:{increment:amount}}}); } let skipTx=false; if(debt.carId&&debt.type==='DEBT'){const costIds=(await tx.carCost.findMany({where:{carId:debt.carId},select:{id:true}})).map(c=>c.id); const cnt=await tx.transaction.count({where:{sourceType:{in:['car_purchase','car_cost']},sourceId:{in:[debt.carId,...costIds]}}}); skipTx=cnt===0;} if(!skipTx){await tx.transaction.create({data:{userId:uid,accountId,type:debt.type==='DEBT'?'EXPENSE':'INCOME',amount,date,description:debt.type==='DEBT'?`Bayar hutang ${debt.name}`:`Terima piutang ${debt.name}`,sourceType:'debt_payment',sourceId:debt.id}});}}); revalidatePath('/debts'); revalidatePath('/dashboard');}
 export async function addInvestment(fd:FormData){const uid=await userId(); await prisma.investmentSnapshot.upsert({where:{userId_category_month:{userId:uid,category:String(fd.get('category')),month:String(fd.get('month'))}},create:{userId:uid,category:String(fd.get('category')),month:String(fd.get('month')),balance:toNumber(fd.get('balance')),notes:String(fd.get('notes')||'')},update:{balance:toNumber(fd.get('balance')),notes:String(fd.get('notes')||'')}}); revalidatePath('/investments'); revalidatePath('/dashboard');}
