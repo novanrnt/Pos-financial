@@ -82,33 +82,21 @@ export async function deleteDebt(fd:FormData){
   const debt=await prisma.debt.findFirst({where:{id:debtId,userId:uid}}); 
   if(!debt)return; 
   
+  const remainAmt=Number(debt.remainingAmount);
+  
   await prisma.$transaction(async tx=>{
     // Reverse balance changes
     if(debt.accountId){
       if(debt.type==='DEBT'){
-        await tx.account.update({where:{id:debt.accountId},data:{balance:{decrement:Number(debt.remainingAmount)}});
+        await tx.account.update({where:{id:debt.accountId},data:{balance:{decrement:remainAmt}}});
       } else {
-        await tx.account.update({where:{id:debt.accountId},data:{balance:{increment:Number(debt.remainingAmount)}});
+        await tx.account.update({where:{id:debt.accountId},data:{balance:{increment:remainAmt}}});
       }
     }
     
-    // Delete all related transactions (including debt_created)
-    await tx.transaction.deleteMany({
-      where:{
-        userId:uid,
-        sourceType:'debt_created',
-        sourceId:debtId
-      }
-    });
-    
-    // Delete all related transactions (including debt_payment)
-    await tx.transaction.deleteMany({
-      where:{
-        userId:uid,
-        sourceType:'debt_payment',
-        sourceId:debtId
-      }
-    });
+    // Delete all related transactions
+    await tx.transaction.deleteMany({where:{userId:uid,sourceType:'debt_created',sourceId:debtId}});
+    await tx.transaction.deleteMany({where:{userId:uid,sourceType:'debt_payment',sourceId:debtId}});
     
     // Delete debt payments
     await tx.debtPayment.deleteMany({where:{debtId}});
