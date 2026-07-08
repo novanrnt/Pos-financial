@@ -40,43 +40,9 @@ export async function adjustAccount(fd:FormData){
   const diff=newBalance-Number(acc.balance);
   if(diff===0)return;
   
-  // Try to check if month is open, but don't block if it fails
-  try {
-    await assertOpen(uid,date);
-  } catch(e) {
-    // If month is closed, still allow adjustment with warning
-    console.warn('Month closed, allowing force adjustment');
-  }
+  // Only update balance, no transaction created
+  await prisma.account.update({where:{id},data:{balance:newBalance}}); 
   
-  await prisma.$transaction(async tx=>{
-    await tx.account.update({where:{id},data:{balance:newBalance}}); 
-    
-    // Find or create "Penyesuaian Saldo" category
-    const catName = diff > 0 ? 'Penyesuaian Saldo' : 'Penyesuaian Saldo';
-    const catType = diff > 0 ? 'INCOME' : 'EXPENSE';
-    let category = await tx.category.findFirst({
-      where:{userId:uid, name:catName, type:catType as CategoryType}
-    });
-    if(!category){
-      category = await tx.category.create({
-        data:{userId:uid, name:catName, type:catType as CategoryType, icon:'Scale', color:'orange'}
-      });
-    }
-    
-    await tx.transaction.create({
-      data:{
-        userId:uid,
-        accountId:id,
-        categoryId:category.id,
-        type:diff>0?'INCOME':'EXPENSE',
-        amount:Math.abs(diff),
-        date,
-        description:`Penyesuaian saldo${note?`: ${note}`:''}`,
-        sourceType:'balance_adjustment',
-        sourceId:id
-      }
-    });
-  }); 
   revalidatePath('/accounts'); 
   revalidatePath('/dashboard'); 
   revalidatePath('/transactions');
