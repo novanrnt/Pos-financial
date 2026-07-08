@@ -481,6 +481,7 @@ export default async function Dashboard() {
       <div className="animate-ios-slide-up ios-stagger-8">
         <div className="flex items-center justify-between mb-2.5 px-1">
           <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Pengeluaran per Kategori</span>
+          <span className="text-[15px] font-semibold" style={{ color: '#FF453A' }}>{rupiah(expense)}</span>
         </div>
         <div className="ios-card p-4">
           {expensePie.length > 0 ? (
@@ -515,6 +516,7 @@ export default async function Dashboard() {
       <div>
         <div className="flex items-center justify-between mb-2.5 px-1">
           <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Pemasukan per Kategori</span>
+          <span className="text-[15px] font-semibold" style={{ color: '#30D158' }}>{rupiah(income)}</span>
         </div>
         <div className="ios-card p-4">
           {incomePie.length > 0 ? (
