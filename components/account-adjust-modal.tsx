@@ -40,7 +40,7 @@ export function AccountAdjustModal({ account }: { account: { id: string; name: s
             <input type="hidden" name="id" value={account.id} />
             <div>
               <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Saldo Baru</label>
-              <input name="balance" type="number" defaultValue={account.balance} className="input w-full" />
+              <input name="balance" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={account.balance} className="input w-full" />
             </div>
             <div>
               <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Tanggal</label>
