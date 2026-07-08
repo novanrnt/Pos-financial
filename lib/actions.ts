@@ -50,10 +50,24 @@ export async function adjustAccount(fd:FormData){
   
   await prisma.$transaction(async tx=>{
     await tx.account.update({where:{id},data:{balance:newBalance}}); 
+    
+    // Find or create "Penyesuaian Saldo" category
+    const catName = diff > 0 ? 'Penyesuaian Saldo' : 'Penyesuaian Saldo';
+    const catType = diff > 0 ? 'INCOME' : 'EXPENSE';
+    let category = await tx.category.findFirst({
+      where:{userId:uid, name:catName, type:catType as CategoryType}
+    });
+    if(!category){
+      category = await tx.category.create({
+        data:{userId:uid, name:catName, type:catType as CategoryType, icon:'Scale', color:'orange'}
+      });
+    }
+    
     await tx.transaction.create({
       data:{
         userId:uid,
         accountId:id,
+        categoryId:category.id,
         type:diff>0?'INCOME':'EXPENSE',
         amount:Math.abs(diff),
         date,
