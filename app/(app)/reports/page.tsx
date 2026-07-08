@@ -89,7 +89,10 @@ export default async function Reports() {
                   {/* Pemasukan per Kategori */}
                   {s.incomeByCategory && s.incomeByCategory.length > 0 && (
                     <div className="border-t border-white/[0.07] pt-4">
-                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center gap-2"><TrendingUp size={14} /> Pemasukan per Kategori</p>
+                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center justify-between">
+                        <span className="flex items-center gap-2"><TrendingUp size={14} /> Pemasukan per Kategori</span>
+                        <span className="text-[13px] font-semibold" style={{ color: '#30D158' }}>{rupiah(s.incomeByCategory.reduce((a: number, c: any) => a + c.total, 0))}</span>
+                      </p>
                       <div className="space-y-1.5">
                         {s.incomeByCategory.map((c: any, i: number) => (
                           <div key={i} className="flex items-center justify-between py-1.5">
@@ -104,7 +107,10 @@ export default async function Reports() {
                   {/* Pengeluaran per Kategori */}
                   {s.expenseByCategory && s.expenseByCategory.length > 0 && (
                     <div className="border-t border-white/[0.07] pt-4">
-                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center gap-2"><TrendingDown size={14} /> Pengeluaran per Kategori</p>
+                      <p className="text-[11px] font-medium text-white/50 uppercase mb-3 flex items-center justify-between">
+                        <span className="flex items-center gap-2"><TrendingDown size={14} /> Pengeluaran per Kategori</span>
+                        <span className="text-[13px] font-semibold" style={{ color: '#FF453A' }}>{rupiah(s.expenseByCategory.reduce((a: number, c: any) => a + c.total, 0))}</span>
+                      </p>
                       <div className="space-y-1.5">
                         {s.expenseByCategory.map((c: any, i: number) => (
                           <div key={i} className="flex items-center justify-between py-1.5">
