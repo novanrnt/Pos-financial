@@ -69,7 +69,7 @@ export default async function Dashboard() {
 
   const [accounts, cars, debts, invest, allYear, bills, savingsGoals, recentTx, categories, compareTx] = await Promise.all([
     prisma.account.findMany({ where: { userId: uid }, orderBy: { isPrimary: 'desc' } }),
-    prisma.car.findMany({ where: { userId: uid, status: 'AVAILABLE' }, include: { costs: true }, orderBy: { createdAt: 'desc' } }),
+    prisma.car.findMany({ where: { userId: uid, status: 'AVAILABLE' }, include: { costs: true, debts: true }, orderBy: { createdAt: 'desc' } }),
     prisma.debt.findMany({ where: { userId: uid, status: 'ACTIVE' }, orderBy: { dueDate: 'asc' }, take: 6 }),
     prisma.investmentSnapshot.findMany({ where: { userId: uid, month } }),
     prisma.transaction.findMany({ where: { userId: uid, date: { gte: startYear, lte: endYear } }, include: { category: true }, orderBy: { date: 'asc' } }),
@@ -81,7 +81,14 @@ export default async function Dashboard() {
   ]);
 
   const cash = accounts.reduce((a, x) => a + Number(x.balance), 0);
-  const carAsset = cars.reduce((a, c) => a + Number(c.purchasePrice) + c.costs.reduce((s, k) => s + Number(k.amount), 0), 0);
+  
+  // Calculate car asset: only count what's actually paid
+  const carAsset = cars.reduce((a, c) => {
+    const totalCosts = c.costs.reduce((s, k) => s + Number(k.amount), 0);
+    const totalDebtAmount = c.debts.filter(d => d.status === 'ACTIVE').reduce((s, d) => s + Number(d.remainingAmount), 0);
+    const paidAmount = Number(c.purchasePrice) - totalDebtAmount;
+    return a + paidAmount + totalCosts;
+  }, 0);
   const debt = debts.filter(d => d.type === 'DEBT').reduce((a, d) => a + Number(d.remainingAmount), 0);
   const rec = debts.filter(d => d.type === 'RECEIVABLE').reduce((a, d) => a + Number(d.remainingAmount), 0);
   const inv = invest.reduce((a, i) => a + Number(i.balance), 0);
