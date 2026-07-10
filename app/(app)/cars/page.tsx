@@ -184,9 +184,15 @@ export default async function Cars() {
                         }}>Jual Mobil</button>
                       </form>
 
-                      {/* Delete */}
+                      {/* Delete / Cancel */}
                       <div style={{ paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.08)' }}>
-                        <DeleteCarButton carId={c.id} />
+                        <DeleteCarButton car={{
+                          id: c.id,
+                          name: c.name,
+                          accountId: c.debts?.[0]?.accountId || '',
+                          dpAmount: c.debts?.[0]?.accountId ? Number(c.purchasePrice) - (c.debts?.reduce((a: number, d: any) => a + Number(d.amount), 0) || 0) : 0,
+                          debts: c.debts?.map((d: any) => ({ id: d.id, remainingAmount: Number(d.remainingAmount) })) || [],
+                        }} />
                       </div>
                     </div>
                   </details>
