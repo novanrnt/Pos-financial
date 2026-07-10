@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import './stripe-tokens.css';
-
 :root{
   color-scheme:dark;
   --safe-area-inset-top: env(safe-area-inset-top, 0);
@@ -11,18 +9,18 @@
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
   --safe-area-inset-left: env(safe-area-inset-left, 0);
 
-  /* iOS 26 Liquid Glass Design Tokens */
-  --ios-bg: #000000;
-  --ios-surface: rgba(255, 255, 255, 0.08);
-  --ios-surface-strong: rgba(255, 255, 255, 0.12);
-  --ios-border: rgba(255, 255, 255, 0.15);
-  --ios-border-thin: rgba(255, 255, 255, 0.08);
-  --ios-text: #FFFFFF;
-  --ios-text-secondary: rgba(255, 255, 255, 0.5);
-  --ios-text-tertiary: rgba(255, 255, 255, 0.3);
-  --ios-green: #30D158;
-  --ios-red: #FF453A;
-  --ios-blue: #0A84FF;
+  /* iOS 26 Liquid Glass Design Tokens - Updated with Stripe Colors */
+  --ios-bg: #0e0f2e;
+  --ios-surface: rgba(255, 255, 255, 0.03);
+  --ios-surface-strong: rgba(255, 255, 255, 0.05);
+  --ios-border: rgba(255, 255, 255, 0.12);
+  --ios-border-thin: rgba(255, 255, 255, 0.1);
+  --ios-text: #e8ecf0;
+  --ios-text-secondary: #8a95a8;
+  --ios-text-tertiary: #5a6a7e;
+  --ios-green: #15be53;
+  --ios-red: #ea2261;
+  --ios-blue: #533afd;
   --ios-orange: #FF9F0A;
   --ios-purple: #BF5AF2;
   --ios-teal: #64D2FF;
@@ -46,7 +44,7 @@ body{
   min-height:100dvh;
   background:var(--ios-bg);
   color:var(--ios-text);
-  font-family:-apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+  font-family:'sohne-var', 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
   font-feature-settings:'cv02','cv03','cv04','cv11';
   letter-spacing:-0.01em;
   padding-bottom:var(--safe-area-inset-bottom);
