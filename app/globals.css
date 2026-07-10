@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './stripe-tokens.css';
+
 :root{
   color-scheme:dark;
   --safe-area-inset-top: env(safe-area-inset-top, 0);
