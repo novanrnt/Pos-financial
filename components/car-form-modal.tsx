@@ -2,26 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Plus, X, Car } from 'lucide-react';
 import { addCar } from '@/lib/actions';
 
-const carSchema = z.object({
-  name: z.string().min(1, 'Nama mobil wajib diisi'),
-  brand: z.string().optional(), model: z.string().optional(),
-  year: z.coerce.number().optional(), color: z.string().optional(),
-  transmission: z.string().optional(), licensePlate: z.string().optional(),
-  purchasePrice: z.coerce.number().positive('Harga beli harus lebih dari 0'),
-  estimatedSellPrice: z.coerce.number().optional(),
-  accountId: z.string().min(1, 'Pilih rekening'),
-  myMoney: z.coerce.number().optional(),
-  debtName: z.string().optional(), debtAmount: z.coerce.number().optional(),
-  notes: z.string().optional(),
-});
-
-type CarFormData = z.infer<typeof carSchema>;
 type Account = { id: string; name: string };
 
 export function CarFormModal({ accounts }: { accounts: Account[] }) {
@@ -30,20 +13,66 @@ export function CarFormModal({ accounts }: { accounts: Account[] }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CarFormData>({
-    resolver: zodResolver(carSchema),
-  });
+  // Form state
+  const [name, setName] = useState('');
+  const [brand, setBrand] = useState('');
+  const [model, setModel] = useState('');
+  const [year, setYear] = useState('');
+  const [color, setColor] = useState('');
+  const [transmission, setTransmission] = useState('');
+  const [licensePlate, setLicensePlate] = useState('');
+  const [purchasePrice, setPurchasePrice] = useState('');
+  const [estimatedSellPrice, setEstimatedSellPrice] = useState('');
+  const [accountId, setAccountId] = useState('');
+  const [dpAmount, setDpAmount] = useState('');
+  const [notes, setNotes] = useState('');
 
-  const onSubmit = async (data: CarFormData) => {
+  // Calculate sisa pelunasan
+  const harga = Number(purchasePrice) || 0;
+  const dp = Number(dpAmount) || 0;
+  const sisaPelunasan = harga - dp;
+  const isDP = dp > 0 && dp < harga;
+
+  const reset = () => {
+    setName(''); setBrand(''); setModel(''); setYear(''); setColor('');
+    setTransmission(''); setLicensePlate(''); setPurchasePrice('');
+    setEstimatedSellPrice(''); setAccountId(''); setDpAmount(''); setNotes('');
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !purchasePrice || !accountId) return;
+    
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const formData = new FormData();
-      Object.entries(data).forEach(([k, v]) => { if (v !== undefined && v !== '' && v !== null) formData.append(k, String(v)); });
+      formData.append('name', name);
+      formData.append('brand', brand);
+      formData.append('model', model);
+      formData.append('year', year);
+      formData.append('color', color);
+      formData.append('transmission', transmission);
+      formData.append('licensePlate', licensePlate);
+      formData.append('purchasePrice', purchasePrice);
+      formData.append('estimatedSellPrice', estimatedSellPrice);
+      formData.append('accountId', accountId);
+      formData.append('myMoney', isDP ? dpAmount : purchasePrice);
+      formData.append('notes', notes);
+      
+      // If DP, create debt for remaining amount
+      if (isDP && sisaPelunasan > 0) {
+        formData.append('debtName', `Sisa pelunasan ${name}`);
+        formData.append('debtAmount', String(sisaPelunasan));
+      }
+      
       await addCar(formData);
-      reset(); setIsOpen(false);
+      reset();
+      setIsOpen(false);
     } catch (error) {
       console.error('Error adding car:', error);
-    } finally { setIsLoading(false); }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const modal = isOpen ? (
@@ -67,57 +96,104 @@ export function CarFormModal({ accounts }: { accounts: Account[] }) {
             }}><X size={18} /></button>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
             <div>
               <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Nama Mobil</label>
-              <input {...register('name')} placeholder="Honda CR-V 2.4 AT 2010" className="input w-full" />
-              {errors.name && <p style={{ fontSize: 12, color: '#FF453A', marginTop: 4 }}>{errors.name.message}</p>}
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="Honda CR-V 2.4 AT 2010" className="input w-full" required />
             </div>
+            
             <div>
               <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Spesifikasi</label>
               <div className="grid grid-cols-2 gap-2">
-                <input {...register('brand')} placeholder="Merek" className="input w-full text-sm" />
-                <input {...register('model')} placeholder="Tipe" className="input w-full text-sm" />
-                <input {...register('year')} placeholder="Tahun" type="number" className="input w-full text-sm" />
-                <input {...register('color')} placeholder="Warna" className="input w-full text-sm" />
-                <input {...register('transmission')} placeholder="Transmisi" className="input w-full text-sm" />
-                <input {...register('licensePlate')} placeholder="Nopol" className="input w-full text-sm" />
+                <input value={brand} onChange={e => setBrand(e.target.value)} placeholder="Merek" className="input w-full text-sm" />
+                <input value={model} onChange={e => setModel(e.target.value)} placeholder="Tipe" className="input w-full text-sm" />
+                <input value={year} onChange={e => setYear(e.target.value)} placeholder="Tahun" type="number" className="input w-full text-sm" />
+                <input value={color} onChange={e => setColor(e.target.value)} placeholder="Warna" className="input w-full text-sm" />
+                <input value={transmission} onChange={e => setTransmission(e.target.value)} placeholder="Transmisi" className="input w-full text-sm" />
+                <input value={licensePlate} onChange={e => setLicensePlate(e.target.value)} placeholder="Nopol" className="input w-full text-sm" />
               </div>
             </div>
+            
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Harga Beli</label>
-                <input {...register('purchasePrice')} placeholder="0" type="number" className="input w-full" />
-                {errors.purchasePrice && <p style={{ fontSize: 12, color: '#FF453A', marginTop: 4 }}>{errors.purchasePrice.message}</p>}
+                <input value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} placeholder="0" type="number" className="input w-full" required />
               </div>
               <div>
                 <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Est. Harga Jual</label>
-                <input {...register('estimatedSellPrice')} placeholder="0" type="number" className="input w-full" />
+                <input value={estimatedSellPrice} onChange={e => setEstimatedSellPrice(e.target.value)} placeholder="0" type="number" className="input w-full" />
               </div>
             </div>
+            
             <div>
               <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Rekening Pembayaran</label>
-              <select {...register('accountId')} className="input w-full">
+              <select value={accountId} onChange={e => setAccountId(e.target.value)} className="input w-full" required>
                 <option value="">Pilih rekening</option>
                 {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
-              {errors.accountId && <p style={{ fontSize: 12, color: '#FF453A', marginTop: 4 }}>{errors.accountId.message}</p>}
             </div>
+            
+            {/* DP Section */}
             <div style={{ padding: 14, borderRadius: 14, background: 'rgba(48,209,88,0.1)', border: '0.5px solid rgba(48,209,88,0.2)' }}>
-              <p style={{ fontSize: 11, fontWeight: 500, color: '#30D158', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 6, margin: '0 0 6px 0' }}>Modal Saya</p>
-              <input {...register('myMoney')} placeholder="Uang saya untuk beli mobil" type="number" className="input w-full text-sm" />
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 6, margin: '6px 0 0 0' }}>Nominal ini akan dipotong dari rekening</p>
+              <p style={{ fontSize: 11, fontWeight: 500, color: '#30D158', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 6, margin: '0 0 6px 0' }}>DP / Uang Muka</p>
+              <input 
+                value={dpAmount} 
+                onChange={e => setDpAmount(e.target.value)} 
+                placeholder="Isi jika bayar DP dulu" 
+                type="number" 
+                className="input w-full text-sm" 
+              />
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 6, margin: '6px 0 0 0' }}>
+                Kosongkan jika bayar lunas
+              </p>
             </div>
-            <div style={{ padding: 14, borderRadius: 14, background: 'rgba(255,69,58,0.1)', border: '0.5px solid rgba(255,69,58,0.2)' }}>
-              <p style={{ fontSize: 11, fontWeight: 500, color: '#FF453A', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 6, margin: '0 0 6px 0' }}>Pinjaman (Opsional)</p>
-              <input {...register('debtName')} placeholder="Nama pemberi pinjaman" className="input w-full text-sm" />
-              <input {...register('debtAmount')} placeholder="Nominal pinjaman" type="number" className="input w-full text-sm mt-2" />
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 6, margin: '6px 0 0 0' }}>Total modal = Uang saya + Pinjaman</p>
-            </div>
+
+            {/* Sisa Pelunasan - Auto calculated */}
+            {isDP && (
+              <div style={{ padding: 14, borderRadius: 14, background: 'rgba(255,159,10,0.1)', border: '0.5px solid rgba(255,159,10,0.2)' }}>
+                <div className="flex justify-between items-center">
+                  <p style={{ fontSize: 11, fontWeight: 500, color: '#FF9F0A', letterSpacing: '0.5px', textTransform: 'uppercase', margin: 0 }}>Sisa Pelunasan</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#FF9F0A', margin: 0 }}>
+                    Rp {new Intl.NumberFormat('id-ID').format(sisaPelunasan)}
+                  </p>
+                </div>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 6, margin: '6px 0 0 0' }}>
+                  Akan tercatat sebagai hutang & bisa dibayar kapan saja
+                </p>
+              </div>
+            )}
+
+            {/* Summary */}
+            {harga > 0 && (
+              <div style={{ padding: 14, borderRadius: 14, background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)' }}>
+                <p style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 8, margin: '0 0 8px 0' }}>Ringkasan</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Harga Mobil</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>Rp {new Intl.NumberFormat('id-ID').format(harga)}</span>
+                  </div>
+                  {isDP && (
+                    <>
+                      <div className="flex justify-between">
+                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>DP</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#30D158' }}>- Rp {new Intl.NumberFormat('id-ID').format(dp)}</span>
+                      </div>
+                      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '4px 0' }} />
+                      <div className="flex justify-between">
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#FF9F0A' }}>Sisa Pelunasan</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#FF9F0A' }}>Rp {new Intl.NumberFormat('id-ID').format(sisaPelunasan)}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div>
               <label style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Catatan (Opsional)</label>
-              <textarea {...register('notes')} placeholder="Catatan tambahan" className="input w-full" rows={3} />
+              <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Catatan tambahan" className="input w-full" rows={3} />
             </div>
+            
             <div className="flex gap-3 pt-4">
               <button type="button" onClick={() => setIsOpen(false)} className="active-scale" style={{
                 flex: 1, padding: '12px 16px', borderRadius: 14,
