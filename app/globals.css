@@ -9,22 +9,22 @@
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
   --safe-area-inset-left: env(safe-area-inset-left, 0);
 
-  /* iOS 26 Liquid Glass Design Tokens - Updated with Wise Colors */
-  --ios-bg: #0e0f0c;
-  --ios-surface: rgba(255, 255, 255, 0.03);
-  --ios-surface-strong: rgba(255, 255, 255, 0.05);
-  --ios-border: rgba(255, 255, 255, 0.12);
-  --ios-border-thin: rgba(232, 235, 230, 0.03);
-  --ios-text: #e8ebe6;
-  --ios-text-secondary: #898989;
-  --ios-text-tertiary: #686868;
-  --ios-green: #9fe870;
-  --ios-red: #d03238;
-  --ios-blue: #9fe870;
-  --ios-orange: #ffd11a;
+  /* iOS 26 Liquid Glass Design Tokens - Stripe Light */
+  --ios-bg: #f8fafc;
+  --ios-surface: rgba(255, 255, 255, 0.8);
+  --ios-surface-strong: #ffffff;
+  --ios-border: rgba(0, 0, 0, 0.08);
+  --ios-border-thin: rgba(0, 0, 0, 0.04);
+  --ios-text: #061b31;
+  --ios-text-secondary: #64748d;
+  --ios-text-tertiary: #a0aec0;
+  --ios-green: #15be53;
+  --ios-red: #ea2261;
+  --ios-blue: #533afd;
+  --ios-orange: #FF9F0A;
   --ios-purple: #BF5AF2;
-  --ios-teal: #38c8ff;
-  --ios-yellow: #ffd11a;
+  --ios-teal: #64D2FF;
+  --ios-yellow: #FFD60A;
   --ios-pink: #FF375F;
 }
 
@@ -44,7 +44,7 @@ body{
   min-height:100dvh;
   background:var(--ios-bg);
   color:var(--ios-text);
-  font-family:'Geist', 'Inter', 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+  font-family:'Inter', 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
   font-feature-settings:'cv02','cv03','cv04','cv11';
   letter-spacing:-0.01em;
   padding-bottom:var(--safe-area-inset-bottom);
@@ -60,8 +60,8 @@ body:before{
   z-index:-2;
   pointer-events:none;
   background:
-    radial-gradient(ellipse 600px 400px at 80% 10%, rgba(48,209,88,0.06), transparent 60%),
-    radial-gradient(ellipse 500px 350px at 20% 15%, rgba(10,132,255,0.05), transparent 55%);
+    radial-gradient(ellipse 600px 400px at 80% 10%, rgba(83,58,253,0.04), transparent 60%),
+    radial-gradient(ellipse 500px 350px at 20% 15%, rgba(83,58,253,0.03), transparent 55%);
 }
 
 body:after{
