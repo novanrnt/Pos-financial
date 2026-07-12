@@ -32,13 +32,13 @@ export function DeleteCarButton({ car, accounts }: { car: CarData; accounts: Acc
   }
 
   return (
-    <form action={deleteCar} onSubmit={() => {
+    <form action={deleteCar} onSubmit={(e) => {
       let msg = `Batal beli ${car.name}?\n\n`;
       const amt = Number(returnAmount);
       if (amt > 0) msg += `Rp ${new Intl.NumberFormat('id-ID').format(amt)} akan dikembalikan ke rekening terpilih.\n`;
       if (hasDebts) msg += `Hutang Rp ${new Intl.NumberFormat('id-ID').format(totalDebt)} akan dihapus.\n`;
       msg += `\nMobil akan dihapus dari daftar.`;
-      if (!confirm(msg)) return;
+      if (!confirm(msg)) { e.preventDefault(); return; }
     }}>
       <input type="hidden" name="id" value={car.id} />
       
