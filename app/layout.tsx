@@ -41,7 +41,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="msapplication-TileColor" content="#090C12" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
       </head>
-      <body>{children}</body>
+      <body>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            document.addEventListener('submit', function(e) {
+              const f = e.target;
+              setTimeout(() => {
+                const btns = f.querySelectorAll('button[type="submit"]');
+                btns.forEach(b => { b.disabled = true; b.textContent = 'Memproses...'; b.style.opacity = '0.5'; });
+              }, 10);
+            });
+            document.addEventListener('click', function(e) {
+              const btn = e.target.closest('button[type="submit"]');
+              if (btn && !btn.disabled && btn.closest('form')) {
+                setTimeout(() => {
+                  btn.disabled = true;
+                  btn.textContent = 'Memproses...';
+                  btn.style.opacity = '0.5';
+                }, 10);
+              }
+            });
+          `
+        }} />
+        {children}
+      </body>
     </html>
   );
 }
