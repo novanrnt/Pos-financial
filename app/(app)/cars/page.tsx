@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
-import { addCarCost, sellCar, payDebt } from '@/lib/actions';
+import { addCarCost, payDebt } from '@/lib/actions';
 import { SubmitButton } from '@/components/ui';
 import { DeleteCarButton } from '@/components/delete-car-button';
+import { PayDebtForm, SellCarForm } from '@/components/car-actions';
 import { rupiah, todayInput } from '@/lib/utils';
 import { Car, TrendingUp, TrendingDown, AlertCircle, Plus, Settings, CheckCircle } from 'lucide-react';
 import { CarFormModal } from '@/components/car-form-modal';
@@ -157,76 +158,11 @@ export default async function Cars() {
 
                       {/* Bayar DP / Pelunasan */}
                       {c.debts && c.debts.filter(d => d.status !== 'PAID').map(debt => (
-                        <form key={debt.id} action={payDebt} style={{
-                          display: 'flex', flexDirection: 'column', gap: 8,
-                          paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.08)'
-                        }} onSubmit={(e) => {
-                          // Prevent double submit
-                          const btn = e.currentTarget.querySelector('button[type="submit"]') as HTMLElement;
-                          if (btn) { btn.setAttribute('disabled', 'true'); btn.style.opacity = '0.5'; }
-                        }}>
-                          <input type="hidden" name="debtId" value={debt.id} />
-                          <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>
-                            Bayar DP / Pelunasan
-                          </p>
-                          <p style={{ fontSize: 12, color: '#FF9F0A', margin: 0 }}>
-                            Sisa: <strong>{rupiah(debt.remainingAmount)}</strong>
-                          </p>
-                          <select name="accountId" style={{
-                            background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
-                            borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
-                          }}>
-                            {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                          </select>
-                          <input name="amount" placeholder="Nominal bayar" type="number" style={{
-                            background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
-                            borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
-                          }} required />
-                          <input name="date" type="date" defaultValue={todayInput()} style={{
-                            background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
-                            borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
-                          }} />
-                          <input name="notes" placeholder="Catatan (DP 1, DP 2, dll)" style={{
-                            background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
-                            borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
-                          }} />
-                          <button type="submit" className="active-scale" style={{
-                            width: '100%', padding: '10px 16px',
-                            background: 'rgba(255,159,10,0.2)', border: '0.5px solid rgba(255,159,10,0.3)',
-                            borderRadius: 14, color: '#FF9F0A', fontSize: 13,
-                            fontWeight: 600, cursor: 'pointer'
-                          }}>Bayar Rp {rupiah(Number(debt.remainingAmount))}</button>
-                        </form>
+                        <PayDebtForm key={debt.id} debt={{id:debt.id, remainingAmount:Number(debt.remainingAmount)}} accounts={accounts} />
                       ))}
 
                       {/* Sell Car */}
-                      <form action={sellCar} style={{
-                        display: 'flex', flexDirection: 'column', gap: 8,
-                        paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.08)'
-                      }}>
-                        <input type="hidden" name="carId" value={c.id} />
-                        <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>Jual Mobil</p>
-                        <select name="accountId" style={{
-                          background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
-                          borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
-                        }}>
-                          {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                        </select>
-                        <input name="sellPrice" placeholder="Harga jual aktual" type="number" style={{
-                          background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
-                          borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
-                        }} />
-                        <input name="date" type="date" defaultValue={todayInput()} style={{
-                          background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.08)',
-                          borderRadius: 12, padding: '10px 12px', color: '#FFFFFF', fontSize: 13, outline: 'none'
-                        }} />
-                        <button type="submit" className="active-scale" style={{
-                          width: '100%', padding: '10px 16px',
-                          background: '#0A84FF', border: 'none',
-                          borderRadius: 14, color: '#FFFFFF', fontSize: 13,
-                          fontWeight: 600, cursor: 'pointer'
-                        }}>Jual Mobil</button>
-                      </form>
+                      <SellCarForm carId={c.id} accounts={accounts} />
 
                       {/* Delete / Cancel */}
                       <div style={{ paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.08)' }}>
