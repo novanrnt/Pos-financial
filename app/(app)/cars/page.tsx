@@ -160,6 +160,10 @@ export default async function Cars() {
                         <form key={debt.id} action={payDebt} style={{
                           display: 'flex', flexDirection: 'column', gap: 8,
                           paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.08)'
+                        }} onSubmit={(e) => {
+                          // Prevent double submit
+                          const btn = e.currentTarget.querySelector('button[type="submit"]');
+                          if (btn) { btn.setAttribute('disabled', 'true'); btn.style.opacity = '0.5'; }
                         }}>
                           <input type="hidden" name="debtId" value={debt.id} />
                           <p style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: 0 }}>
