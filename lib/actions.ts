@@ -55,23 +55,44 @@ export async function addCar(fd:FormData){const uid=await userId(); await assert
 export async function deleteCar(fd:FormData){
   const uid=await userId(); 
   const id=String(fd.get('id')); 
-  const accountId=String(fd.get('accountId')||'');
-  const dpAmount=toNumber(fd.get('dpAmount')||'0');
   
   await prisma.$transaction(async tx=>{
-    // Return DP to account if exists
-    if(accountId && dpAmount > 0){
-      await tx.account.update({where:{id:accountId},data:{balance:{increment:dpAmount}}});
+    const car=await tx.car.findFirst({where:{id,userId:uid},include:{costs:true,debts:true}});
+    if(!car)return;
+    
+    // Calculate total spent: what was actually paid
+    const totalCosts = car.costs.reduce((a, c) => a + Number(c.amount), 0);
+    const activeDebtAmt = car.debts.filter(d => d.status==='ACTIVE').reduce((a, d) => a + Number(d.remainingAmount), 0);
+    const totalPaid = Number(car.purchasePrice) - activeDebtAmt + totalCosts;
+    
+    // Return DP to the account from the car's first cost or debt
+    const firstCostAccount = car.costs[0]?.accountId;
+    const firstDebtAccount = car.debts[0]?.accountId;
+    const returnAccount = firstCostAccount || firstDebtAccount;
+    
+    // Try to return to the account that was used
+    if(returnAccount && totalPaid > 0){
+      try {
+        await tx.account.update({where:{id:returnAccount},data:{balance:{increment:totalPaid}}});
+      } catch(e) {
+        // Account might have been deleted, skip
+      }
     }
     
-    // Delete related debts (sisa pelunasan)
-    const carDebts = await tx.debt.findMany({where:{userId:uid,carId:id}});
-    for(const debt of carDebts){
-      await tx.transaction.deleteMany({where:{userId:uid,sourceType:'debt_created',sourceId:debt.id}});
-      await tx.transaction.deleteMany({where:{userId:uid,sourceType:'debt_payment',sourceId:debt.id}});
+    // Return remaining debt amounts (reverse what was already paid from debts)
+    for(const debt of car.debts){
+      const debtPaid = Number(debt.amount) - Number(debt.remainingAmount);
+      if(debtPaid > 0 && debt.accountId){
+        try {
+          await tx.account.update({where:{id:debt.accountId},data:{balance:{increment:debtPaid}}});
+        } catch(e) {}
+      }
+      // Delete debt related records
+      await tx.transaction.deleteMany({where:{sourceType:'debt_created',sourceId:debt.id}});
+      await tx.transaction.deleteMany({where:{sourceType:'debt_payment',sourceId:debt.id}});
       await tx.debtPayment.deleteMany({where:{debtId:debt.id}});
-      await tx.debt.delete({where:{id:debt.id}});
     }
+    await tx.debt.deleteMany({where:{carId:id}});
     
     // Delete car costs
     await tx.carCost.deleteMany({where:{carId:id}});

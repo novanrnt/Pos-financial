@@ -233,10 +233,8 @@ export default async function Cars() {
                         <DeleteCarButton car={{
                           id: c.id,
                           name: c.name,
-                          accountId: c.debts?.[0]?.accountId || '',
-                          dpAmount: c.debts?.[0]?.accountId ? Number(c.purchasePrice) - (c.debts?.reduce((a: number, d: any) => a + Number(d.amount), 0) || 0) : 0,
                           debts: c.debts?.map((d: any) => ({ id: d.id, remainingAmount: Number(d.remainingAmount) })) || [],
-                        }} accounts={accounts} />
+                        }} />
                       </div>
                     </div>
                   </details>
