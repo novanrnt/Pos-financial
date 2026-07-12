@@ -195,7 +195,7 @@ export default async function Cars() {
                             background: 'rgba(255,159,10,0.2)', border: '0.5px solid rgba(255,159,10,0.3)',
                             borderRadius: 14, color: '#FF9F0A', fontSize: 13,
                             fontWeight: 600, cursor: 'pointer'
-                          }}>Bayar Rp {new Intl.NumberFormat('id-ID').format(Number(debt.remainingAmount))}</button>
+                          }}>Bayar Rp {rupiah(Number(debt.remainingAmount))}</button>
                         </form>
                       ))}
 
