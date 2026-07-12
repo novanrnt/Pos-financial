@@ -393,6 +393,31 @@ export async function closeAnnual(fd:FormData){
 }
 
 export async function addSavingsGoal(fd:FormData){const uid=await userId(); await prisma.savingsGoal.create({data:{userId:uid,name:String(fd.get('name')),targetAmount:toNumber(fd.get('targetAmount')),deadline:fd.get('deadline')?new Date(String(fd.get('deadline'))):null,notes:String(fd.get('notes')||'')}}); revalidatePath('/savings'); revalidatePath('/dashboard');}
-export async function deleteSavingsGoal(fd:FormData){const uid=await userId(); await prisma.savingsGoal.deleteMany({where:{id:String(fd.get('id')),userId:uid}}); revalidatePath('/savings'); revalidatePath('/dashboard');}
+export async function deleteSavingsGoal(fd:FormData){
+  const uid=await userId(); 
+  const id=String(fd.get('id'));
+  
+  await prisma.$transaction(async tx=>{
+    const goal=await tx.savingsGoal.findFirst({where:{id,userId:uid}});
+    if(!goal)return;
+    
+    const savedAmt=Number(goal.savedAmount);
+    
+    // Return balance to the last account used for deposit
+    const lastDeposit=await tx.savingsDeposit.findFirst({where:{goalId:id},orderBy:{createdAt:'desc'}});
+    if(lastDeposit && savedAmt>0){
+      await tx.account.update({where:{id:lastDeposit.accountId},data:{balance:{increment:savedAmt}}});
+    }
+    
+    // Delete all deposits
+    await tx.savingsDeposit.deleteMany({where:{goalId:id}});
+    
+    // Delete the goal
+    await tx.savingsGoal.deleteMany({where:{id,userId:uid}});
+  });
+  
+  revalidatePath('/savings'); 
+  revalidatePath('/dashboard');
+}
 export async function depositSavings(fd:FormData){const uid=await userId(); const goalId=String(fd.get('goalId')); const accountId=String(fd.get('accountId')); const amount=toNumber(fd.get('amount')); const date=new Date(String(fd.get('date'))); await assertOpen(uid,date); await prisma.$transaction(async tx=>{const goal=await tx.savingsGoal.findFirst({where:{id:goalId,userId:uid}}); if(!goal)return; await tx.savingsDeposit.create({data:{userId:uid,goalId,accountId,amount,date,notes:String(fd.get('notes')||'')}}); const newSaved=Number(goal.savedAmount)+amount; const isCompleted=newSaved>=Number(goal.targetAmount); await tx.savingsGoal.update({where:{id:goalId},data:{savedAmount:newSaved,isCompleted}}); await tx.account.update({where:{id:accountId},data:{balance:{decrement:amount}}}); await tx.transaction.create({data:{userId:uid,accountId,type:'EXPENSE',amount,date,description:`Tabungan: ${goal.name}`,sourceType:'savings',sourceId:goalId}});}); revalidatePath('/savings'); revalidatePath('/dashboard');}
 export async function withdrawSavings(fd:FormData){const uid=await userId(); const goalId=String(fd.get('goalId')); const accountId=String(fd.get('accountId')); const amount=toNumber(fd.get('amount')); const date=new Date(String(fd.get('date'))); await assertOpen(uid,date); await prisma.$transaction(async tx=>{const goal=await tx.savingsGoal.findFirst({where:{id:goalId,userId:uid}}); if(!goal)return; const withdrawAmount=Math.min(amount,Number(goal.savedAmount)); await tx.savingsGoal.update({where:{id:goalId},data:{savedAmount:{decrement:withdrawAmount},isCompleted:false}}); await tx.account.update({where:{id:accountId},data:{balance:{increment:withdrawAmount}}}); await tx.transaction.create({data:{userId:uid,accountId,type:'INCOME',amount:withdrawAmount,date,description:`Tarik tabungan: ${goal.name}`,sourceType:'savings_withdraw',sourceId:goalId}});}); revalidatePath('/savings'); revalidatePath('/dashboard');}
