@@ -162,7 +162,7 @@ export default async function Cars() {
                           paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.08)'
                         }} onSubmit={(e) => {
                           // Prevent double submit
-                          const btn = e.currentTarget.querySelector('button[type="submit"]');
+                          const btn = e.currentTarget.querySelector('button[type="submit"]') as HTMLElement;
                           if (btn) { btn.setAttribute('disabled', 'true'); btn.style.opacity = '0.5'; }
                         }}>
                           <input type="hidden" name="debtId" value={debt.id} />
