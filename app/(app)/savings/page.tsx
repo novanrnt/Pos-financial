@@ -204,11 +204,41 @@ export default async function SavingsPage() {
                     <p className="text-[11px] mt-0.5" style={{ color: '#30D158' }}>Tercapai! {rupiah(Number(goal.savedAmount))}</p>
                   </div>
                 </div>
-                <form action={deleteSavingsGoal}>
-                  <input type="hidden" name="id" value={goal.id} />
-                  <button type="submit" className="text-[11px] active-scale transition" style={{ color: '#FF453A' }}>Hapus</button>
-                </form>
               </div>
+              {/* Withdraw from completed goal */}
+              {Number(goal.savedAmount) > 0 && (
+                <div className="border-t border-white/[0.07] pt-4 mt-4">
+                  <p className="text-[11px] font-medium text-white/50 uppercase mb-3">Tarik Tabungan</p>
+                  <form action={withdrawSavings} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input type="hidden" name="goalId" value={goal.id} />
+                    <select name="accountId" required className="input active-scale">
+                      <option value="">Pilih Rekening</option>
+                      {accounts.map(a => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
+                    <input name="amount" type="number" required placeholder="Nominal tarik" className="input" />
+                    <input name="date" type="date" required defaultValue={now.toISOString().split('T')[0]} className="input" />
+                    <div className="sm:col-span-3 flex items-center gap-3">
+                      <button type="submit" className="btn btn-ghost active-scale">Tarik Tabungan</button>
+                    </div>
+                  </form>
+                  <div className="flex justify-end mt-3">
+                    <form action={deleteSavingsGoal}>
+                      <input type="hidden" name="id" value={goal.id} />
+                      <button type="submit" className="text-[11px] active-scale transition" style={{ color: '#FF453A' }}>Hapus</button>
+                    </form>
+                  </div>
+                </div>
+              )}
+              {Number(goal.savedAmount) <= 0 && (
+                <div className="flex justify-end mt-3">
+                  <form action={deleteSavingsGoal}>
+                    <input type="hidden" name="id" value={goal.id} />
+                    <button type="submit" className="text-[11px] active-scale transition" style={{ color: '#FF453A' }}>Hapus</button>
+                  </form>
+                </div>
+              )}
             </div>
           ))}
         </div>
