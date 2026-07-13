@@ -105,6 +105,14 @@ export default async function Bills() {
                       <span className="text-[11px] text-white/30">Sisa {remaining} bulan</span>
                       <span className="text-[11px] text-white/30">Total {rupiah(Number(bill.totalAmount || 0))}</span>
                     </div>
+                    <div className="flex justify-between mt-0.5">
+                      <span className="text-[10px] text-white/20">
+                        Mulai: {bill.startDate ? new Date(bill.startDate).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }) : '-'}
+                      </span>
+                      <span className="text-[10px] text-white/20">
+                        Selesai: {bill.startDate ? new Date(new Date(bill.startDate).setMonth(new Date(bill.startDate).getMonth() + total)).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }) : '-'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
