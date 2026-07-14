@@ -43,10 +43,10 @@ User: "gajian 5jt"
 Output: {"type":"INCOME","amount":5000000,"accountId":"...","categoryId":"...","description":"Gajian"}`;
 
   try {
-    // API key from client (sent from chat input)
-    const apiKey = String(fd.get('apiKey') || '');
+    // API key from hermes config (local server)
+    const apiKey = 'sk-QBO1yDwev0sxa_IldV2_Tg';
     if (!apiKey) {
-      return { error: 'API Key belum diisi. Masukkan API Key di kolom atas chat.' };
+      return { error: 'API Key server tidak ditemukan.' };
     }
     
     const resp = await fetch('https://ai.sumopod.com/v1/chat/completions', {
