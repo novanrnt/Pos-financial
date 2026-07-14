@@ -43,12 +43,10 @@ User: "gajian 5jt"
 Output: {"type":"INCOME","amount":5000000,"accountId":"...","categoryId":"...","description":"Gajian"}`;
 
   try {
-    // Get API key from user settings
-    const userData = await prisma.user.findUnique({ where: { id: user.id }, select: { apiKey: true } });
-    const apiKey = userData?.apiKey || process.env.SUMOPOD_API_KEY || process.env.DEEPSEEK_API_KEY || '';
-    
+    // API key from client (sent from chat input)
+    const apiKey = String(fd.get('apiKey') || '');
     if (!apiKey) {
-      return { error: 'API Key belum diatur. Buka Settings &gt; AI Chat - API Key' };
+      return { error: 'API Key belum diisi. Masukkan API Key di kolom atas chat.' };
     }
     
     const resp = await fetch('https://ai.sumopod.com/v1/chat/completions', {
