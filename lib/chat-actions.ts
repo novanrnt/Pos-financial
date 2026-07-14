@@ -51,6 +51,11 @@ Contoh: "beli bubur 20rb BCA" → {"type":"EXPENSE","amount":20000,"accountId":"
     });
     
     const data = await resp.json();
+    
+    if (!resp.ok) {
+      return { error: `API error: ${resp.status} - ${JSON.stringify(data).slice(0, 100)}` };
+    }
+    
     const content = data.choices?.[0]?.message?.content || '';
     
     if (!content) {
