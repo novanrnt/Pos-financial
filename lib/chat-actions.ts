@@ -43,9 +43,17 @@ User: "gajian 5jt"
 Output: {"type":"INCOME","amount":5000000,"accountId":"...","categoryId":"...","description":"Gajian"}`;
 
   try {
+    // Get API key from user settings
+    const userData = await prisma.user.findUnique({ where: { id: user.id }, select: { apiKey: true } });
+    const apiKey = userData?.apiKey || process.env.SUMOPOD_API_KEY || process.env.DEEPSEEK_API_KEY || '';
+    
+    if (!apiKey) {
+      return { error: 'API Key belum diatur. Buka Settings &gt; AI Chat - API Key' };
+    }
+    
     const resp = await fetch('https://ai.sumopod.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.SUMOPOD_API_KEY || process.env.DEEPSEEK_API_KEY || ''}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
       body: JSON.stringify({
         model: 'deepseek-v4-flash',
         messages: [

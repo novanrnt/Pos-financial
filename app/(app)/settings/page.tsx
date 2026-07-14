@@ -26,6 +26,17 @@ async function linkTelegram(formData: FormData) {
   });
 }
 
+async function saveApiKey(formData: FormData) {
+  'use server';
+  const user = await requireUser();
+  if (!user) return;
+  const apiKey = formData.get('apiKey') as string;
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { apiKey },
+  });
+}
+
 export default async function Settings() {
   const u = await requireUser();
 
@@ -646,6 +657,31 @@ export default async function Settings() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* AI API Key */}
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <Bot size={18} style={{ color: '#BF5AF2' }} />
+            <h2 style={sectionTitleStyle}>AI Chat - API Key</h2>
+          </div>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: 16 }}>
+            Masukkan API Key dari sumopod agar fitur AI Chat bisa jalan.
+          </p>
+          <form action={saveApiKey} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <input
+              name="apiKey"
+              defaultValue={u?.apiKey || ''}
+              placeholder="sk-... (API Key sumopod)"
+              style={{
+                width: '100%', padding: '10px 12px', borderRadius: 12, border: '0.5px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 13, outline: 'none',
+              }}
+            />
+            <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
+              Simpan API Key
+            </button>
+          </form>
         </div>
       </div>
     </div>
