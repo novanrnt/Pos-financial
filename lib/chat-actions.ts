@@ -22,7 +22,7 @@ export async function processChat(fd: FormData) {
   // Call AI via sumopod
   const systemPrompt = `Kamu asisten pencatatan keuangan. Extract data transaksi dari teks user. Balas HANYA JSON, tanpa markdown, tanpa teks lain.
 
-Format: {"type":"INCOME|EXPENSE","amount":number,"accountId":"id","categoryId":"id atau ''","description":"..."}
+Format: {"type":"INCOME|EXPENSE","amount":number,"accountId":"id","categoryId":"nama_kategori","description":"..."}
 
 Akun: ${accountList}
 Kategori: ${catList}
@@ -84,13 +84,19 @@ Contoh: "beli bubur 20rb BCA" → {"type":"EXPENSE","amount":20000,"accountId":"
     }
     
     // Create transaction
-    // Validate categoryId against actual categories
+    // Validate categoryId against actual categories (by ID or name)
     let catId = '';
     if (parsed.categoryId) {
-      const validCat = categories.find(c => c.id === parsed.categoryId);
-      if (validCat) catId = validCat.id;
+      // Try matching by ID first
+      const byId = categories.find(c => c.id === parsed.categoryId);
+      if (byId) catId = byId.id;
+      // Try matching by name (AI might return category name instead of ID)
+      if (!catId) {
+        const byName = categories.find(c => c.name.toLowerCase() === parsed.categoryId.toLowerCase());
+        if (byName) catId = byName.id;
+      }
     }
-    // Fallback to "Lainnya" category if available
+    // Fallback to "Lainnya" category
     if (!catId) {
       const lainnya = categories.find(c => c.name.toLowerCase() === 'lainnya' && c.type === parsed.type);
       if (lainnya) catId = lainnya.id;
