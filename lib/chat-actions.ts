@@ -20,27 +20,14 @@ export async function processChat(fd: FormData) {
   const catList = categories.map(c => `${c.name} (${c.type})`).join(', ');
   
   // Call AI via sumopod
-  const systemPrompt = `Kamu adalah asisten pencatatan keuangan. Kamu menerima teks dari user dalam bahasa Indonesia, lalu meng-extract data transaksi.
+  const systemPrompt = `Kamu asisten pencatatan keuangan. Extract data transaksi dari teks user. Balas HANYA JSON, tanpa markdown, tanpa teks lain.
 
-Format output HARUS persis JSON ini, NO MARKDOWN, NO CODEBLOCK:
-{"type":"INCOME|EXPENSE","amount":number,"accountId":"id rekening","categoryId":"id kategori atau ''","description":"deskripsi singkat"}
+Format: {"type":"INCOME|EXPENSE","amount":number,"accountId":"id","categoryId":"id atau ''","description":"..."}
 
-Aturan:
-- type: INCOME untuk pemasukan (gaji, bonus, komisi, profit, dll), EXPENSE untuk pengeluaran (beli, bayar, makan, dll)
-- amount: sudah dalam angka penuh (20rb → 20000, 5jt → 5000000)
-- accountId: pilih dari daftar rekening yang tersedia
-- categoryId: pilih dari daftar kategori yang tersedia, atau '' jika tidak ada yang cocok
-- description: deskripsi singkat transaksi
+Akun: ${accountList}
+Kategori: ${catList}
 
-Rekening tersedia: ${accountList}
-Kategori tersedia: ${catList}
-
-Contoh:
-User: "beli bubur 20rb BCA"
-Output: {"type":"EXPENSE","amount":20000,"accountId":"...","categoryId":"...","description":"Beli bubur"}
-
-User: "gajian 5jt"
-Output: {"type":"INCOME","amount":5000000,"accountId":"...","categoryId":"...","description":"Gajian"}`;
+Contoh: "beli bubur 20rb BCA" → {"type":"EXPENSE","amount":20000,"accountId":"...","categoryId":"...","description":"Beli bubur"}`;
 
   try {
     // API key from hermes config (local server)
@@ -59,7 +46,7 @@ Output: {"type":"INCOME","amount":5000000,"accountId":"...","categoryId":"...","
           { role: 'user', content: text }
         ],
         temperature: 0.1,
-        max_tokens: 200,
+        max_tokens: 500,
       }),
     });
     
