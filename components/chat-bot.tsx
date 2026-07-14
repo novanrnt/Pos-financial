@@ -5,10 +5,10 @@ import { processChat } from '@/lib/chat-actions';
 import { rupiah } from '@/lib/utils';
 
 export function ChatBot() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('pos_ai_key') || '');
+  const [apiKey, setApiKey] = useState(() => '');
   const [showKey, setShowKey] = useState(false);
   const [messages, setMessages] = useState<{ role: string; text: string; data?: any }[]>([
-    { role: 'bot', text: 'Halo! Masukkan API Key sumopod dulu di atas, lalu ketik transaksi.\n\nContoh:\n• beli bubur 20rb BCA\n• gajian 5jt BCA 2890\n• isi bensin 50rb' },
+    { role: 'bot', text: 'Halo! Gw bisa bantu catat transaksi, adjust saldo, bayar hutang, dan lainnya.\n\nContoh:\n• beli bubur 20rb BCA\n• adjust saldo BCA 2890 jadi 50jt\n• bayar hutang mamah 500rb\n• tambah tagihan listrik 200rb' },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,10 +40,9 @@ export function ChatBot() {
     if (res.error) {
       setMessages(prev => [...prev, { role: 'bot', text: `❌ ${res.error}` }]);
     } else if (res.success) {
-      const typeLabel = res.type === 'INCOME' ? '💰 Pemasukan' : '💸 Pengeluaran';
       setMessages(prev => [...prev, {
         role: 'bot',
-        text: `✅ Berhasil dicatat!\n\n${typeLabel}\nNominal: ${rupiah(res.amount)}\nRekening: ${res.account}\nKeterangan: ${res.description}`,
+        text: res.msg || `✅ Berhasil!`,
         data: res,
       }]);
     }
@@ -52,36 +51,10 @@ export function ChatBot() {
 
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', height: '65vh', maxHeight: 600,
+      display: 'flex', flexDirection: 'column', height: '60vh', maxHeight: 500,
       borderRadius: 16, overflow: 'hidden',
       background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)',
     }}>
-      {/* API Key Input */}
-      <div style={{
-        padding: '10px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.06)',
-        display: 'flex', alignItems: 'center', gap: 8,
-      }}>
-        <Key size={14} style={{ color: '#FF9F0A', flexShrink: 0 }} />
-        <input
-          value={apiKey}
-          onChange={e => setApiKey(e.target.value)}
-          type={showKey ? 'text' : 'password'}
-          placeholder="sk-... (API Key sumopod)"
-          style={{
-            flex: 1, padding: '6px 10px', borderRadius: 8, border: '0.5px solid rgba(255,255,255,0.08)',
-            background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: 12, outline: 'none',
-          }}
-        />
-        <button onClick={() => setShowKey(!showKey)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)' }}>
-          {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
-        </button>
-        <button onClick={saveKey} style={{
-          padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-          background: '#FF9F0A', color: '#fff', fontSize: 11, fontWeight: 600,
-        }}>Simpan</button>
-      </div>
-
-      {/* Messages */}
       <div ref={chatRef} style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>

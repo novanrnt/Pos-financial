@@ -1,133 +1,182 @@
 'use server';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
-import { addTransaction } from '@/lib/actions';
+import { addTransaction, adjustAccount } from '@/lib/actions';
+import { revalidatePath } from 'next/cache';
+
+function cleanJson(content: string) {
+  let s = content.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start === -1 || end === -1) return '';
+  return s.slice(start, end + 1);
+}
 
 export async function processChat(fd: FormData) {
   const user = await requireUser();
   if (!user) return { error: 'Not logged in' };
-  
+
   const text = String(fd.get('text') || '');
   if (!text) return { error: 'Ketik sesuatu' };
-  
-  // Get accounts & categories for AI context
-  const [accounts, categories] = await Promise.all([
+
+  const [accounts, categories, debts] = await Promise.all([
     prisma.account.findMany({ where: { userId: user.id } }),
     prisma.category.findMany({ where: { userId: user.id, isActive: true } }),
+    prisma.debt.findMany({ where: { userId: user.id }, take: 20 }),
   ]);
-  
-  const accountList = accounts.map(a => `${a.name} (${a.id})`).join(', ');
-  const catList = categories.map(c => `${c.name} (${c.type})`).join(', ');
-  
-  // Call AI via sumopod
-  const systemPrompt = `Kamu asisten pencatatan keuangan. Extract data transaksi dari teks user. Balas HANYA JSON, tanpa markdown, tanpa teks lain.
 
-Format: {"type":"INCOME|EXPENSE","amount":number,"accountId":"id","categoryId":"nama_kategori","description":"..."}
+  const sys = `Kamu asisten keuangan. Balas HANYA JSON valid, tanpa teks lain.
 
-Akun: ${accountList}
-Kategori: ${catList}
+AKUN: ${accounts.map(a => `${a.name} (${a.id}, saldo ${Number(a.balance)})`).join('; ')}
+KATEGORI: ${categories.map(c => c.name).join(', ')}
+HUTANG AKTIF: ${debts.filter(d => d.status === 'ACTIVE').map(d => `${d.name} sisa ${Number(d.remainingAmount)}`).join('; ')}
 
-Contoh: "beli bubur 20rb BCA" → {"type":"EXPENSE","amount":20000,"accountId":"...","categoryId":"...","description":"Beli bubur"}`;
+FORMAT RESPON (pilih salah satu):
+
+1. TRANSAKSI biasa: {"action":"transaction","type":"INCOME|EXPENSE","amount":number,"accountId":"id rekening","categoryName":"nama kategori","description":"..."}
+
+2. ADJUST/SESUAIKAN saldo: {"action":"adjust","accountId":"id rekening","newBalance":number}
+
+3. TAGIHAN (bulanan): {"action":"bill","name":"nama","amount":number,"dueDay":1-31,"accountId":"id rekening"}
+
+4. BAYAR HUTANG: {"action":"pay_debt","debtName":"nama hutang","amount":number,"accountId":"id rekening"}
+
+5. HUTANG BARU: {"action":"new_debt","name":"nama","amount":number,"type":"DEBT|RECEIVABLE","accountId":"id rekening"}
+
+CONTOH:
+User: "beli bubur 20rb BCA"
+Respon: {"action":"transaction","type":"EXPENSE","amount":20000,"accountId":"...","categoryName":"Makanan & Minuman","description":"Beli bubur"}
+
+User: "sesuaikan saldo BCA 2890 jadi 50jt"
+Respon: {"action":"adjust","accountId":"...","newBalance":50000000}
+
+User: "bayar hutang mamah 500rb"
+Respon: {"action":"pay_debt","debtName":"Mamah","amount":500000,"accountId":"..."}
+
+User: "tambah tagihan listrik 200rb tgl 5"
+Respon: {"action":"bill","name":"Listrik","amount":200000,"dueDay":5,"accountId":"..."}`;
 
   try {
-    // API key from hermes config (local server)
-    const apiKey = 'sk-QBO1yDwev0sxa_IldV2_Tg';
-    if (!apiKey) {
-      return { error: 'API Key server tidak ditemukan.' };
-    }
-    
+    const apiKey = process.env.SUMOPOD_API_KEY || 'sk-QBO1yDwev0sxa_IldV2_Tg';
     const resp = await fetch('https://ai.sumopod.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
       body: JSON.stringify({
         model: 'gpt-4.1-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: text }
-        ],
+        messages: [{ role: 'system', content: sys }, { role: 'user', content: text }],
         temperature: 0.1,
         max_tokens: 500,
       }),
     });
-    
+
     const data = await resp.json();
-    
-    if (!resp.ok) {
-      return { error: `API error: ${resp.status} - ${JSON.stringify(data).slice(0, 100)}` };
-    }
-    
+    if (!resp.ok) return { error: `API error ${resp.status}` };
+
     const content = data.choices?.[0]?.message?.content || '';
-    
-    if (!content) {
-      return { error: 'AI ga ngasih respons. Coba lagi.' };
-    }
-    
-    // Parse JSON: strip markdown code blocks and find JSON object
-    let jsonStr = content.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
-    // Find first { and last }
-    const start = jsonStr.indexOf('{');
-    const end = jsonStr.lastIndexOf('}');
-    if (start === -1 || end === -1) {
-      return { error: `AI ga ngasih format yang bener. Respons: ${content.slice(0, 100)}` };
-    }
-    jsonStr = jsonStr.slice(start, end + 1);
-    
+    if (!content) return { error: 'AI ga ngasih respons. Coba lagi.' };
+
+    const jsonStr = cleanJson(content);
+    if (!jsonStr) return { error: `AI ga ngasih format JSON yang bener.` };
+
     let parsed;
-    try {
-      parsed = JSON.parse(jsonStr);
-    } catch {
-      return { error: `Gagal parse respons AI. Coba ketik ulang.` };
-    }
-    
-    if (!parsed.amount || parsed.amount <= 0) {
-      return { error: 'AI gak bisa baca nominalnya. Coba tulis ulang.' };
-    }
-    
-    // Create transaction
-    // Validate categoryId against actual categories (by ID or name)
-    let catId = '';
-    if (parsed.categoryId) {
-      // Try matching by ID first
-      const byId = categories.find(c => c.id === parsed.categoryId);
-      if (byId) catId = byId.id;
-      // Try matching by name (AI might return category name instead of ID)
-      if (!catId) {
-        const byName = categories.find(c => c.name.toLowerCase() === parsed.categoryId.toLowerCase());
-        if (byName) catId = byName.id;
+    try { parsed = JSON.parse(jsonStr); } catch { return { error: 'Gagal parse respons AI.' }; }
+
+    const action = parsed.action || 'transaction';
+
+    // === TRANSACTION ===
+    if (action === 'transaction') {
+      const acc = accounts.find(a => a.id === parsed.accountId);
+      if (!acc) return { error: 'Rekening gak ditemukan.' };
+      let catId = '';
+      if (parsed.categoryName) {
+        const cat = categories.find(c => c.name.toLowerCase() === parsed.categoryName.toLowerCase());
+        if (cat) catId = cat.id;
+        if (!catId) {
+          const fallback = categories.find(c => c.name.toLowerCase() === 'lainnya' && c.type === parsed.type);
+          if (fallback) catId = fallback.id;
+        }
       }
+      const fd2 = new FormData();
+      fd2.append('type', parsed.type);
+      fd2.append('amount', String(parsed.amount));
+      fd2.append('accountId', parsed.accountId);
+      fd2.append('categoryId', catId);
+      fd2.append('date', new Date().toISOString().split('T')[0]);
+      fd2.append('description', parsed.description || text);
+      await addTransaction(fd2);
+
+      return {
+        success: true,
+        msg: `✅ ${parsed.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'} Rp ${Number(parsed.amount).toLocaleString('id-ID')} di ${acc.name} tercatat!`,
+      };
     }
-    // Fallback to "Lainnya" category
-    if (!catId) {
-      const lainnya = categories.find(c => c.name.toLowerCase() === 'lainnya' && c.type === parsed.type);
-      if (lainnya) catId = lainnya.id;
+
+    // === ADJUST ACCOUNT ===
+    if (action === 'adjust') {
+      const acc = accounts.find(a => a.id === parsed.accountId);
+      if (!acc) return { error: 'Rekening gak ditemukan.' };
+      const fd2 = new FormData();
+      fd2.append('id', parsed.accountId);
+      fd2.append('balance', String(parsed.newBalance));
+      fd2.append('note', `Sesuaian saldo via chat: ${parsed.newBalance}`);
+      await adjustAccount(fd2);
+      return {
+        success: true,
+        msg: `✅ Saldo ${acc.name} disesuaikan jadi Rp ${Number(parsed.newBalance).toLocaleString('id-ID')}`,
+      };
     }
-    
-    const fd2 = new FormData();
-    fd2.append('type', parsed.type);
-    fd2.append('amount', String(parsed.amount));
-    fd2.append('accountId', String(parsed.accountId));
-    fd2.append('categoryId', catId);
-    fd2.append('date', new Date().toISOString().split('T')[0]);
-    fd2.append('description', String(parsed.description || text));
-    await addTransaction(fd2);
-    
-    // Verify it was created
-    const lastTx = await prisma.transaction.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      select: { id: true }
-    });
-    
-    const acc = accounts.find(a => a.id === parsed.accountId);
-    
-    return {
-      success: true,
-      type: parsed.type,
-      amount: parsed.amount,
-      account: acc?.name || '',
-      description: parsed.description || text,
-      txId: lastTx?.id,
-    };
+
+    // === PAY DEBT ===
+    if (action === 'pay_debt') {
+      const debt = debts.find(d => d.name.toLowerCase().includes((parsed.debtName || '').toLowerCase()) && d.status === 'ACTIVE');
+      if (!debt) return { error: `Hutang "${parsed.debtName}" gak ditemukan.` };
+      const { payDebt } = await import('@/lib/actions');
+      const fd2 = new FormData();
+      fd2.append('debtId', debt.id);
+      fd2.append('amount', String(parsed.amount));
+      fd2.append('accountId', parsed.accountId || debt.accountId || '');
+      fd2.append('date', new Date().toISOString().split('T')[0]);
+      fd2.append('notes', 'Bayar via chat');
+      await payDebt(fd2);
+      return {
+        success: true,
+        msg: `✅ Bayar hutang ${debt.name} Rp ${Number(parsed.amount).toLocaleString('id-ID')}`,
+      };
+    }
+
+    // === NEW DEBT ===
+    if (action === 'new_debt') {
+      const { addDebt } = await import('@/lib/actions');
+      const fd2 = new FormData();
+      fd2.append('name', parsed.name);
+      fd2.append('amount', String(parsed.amount));
+      fd2.append('type', parsed.type || 'DEBT');
+      fd2.append('accountId', parsed.accountId || '');
+      await addDebt(fd2);
+      return {
+        success: true,
+        msg: `✅ ${parsed.type === 'RECEIVABLE' ? 'Piutang' : 'Hutang'} ${parsed.name} Rp ${Number(parsed.amount).toLocaleString('id-ID')} tercatat!`,
+      };
+    }
+
+    // === BILL ===
+    if (action === 'bill') {
+      const { addBill } = await import('@/lib/actions');
+      const fd2 = new FormData();
+      fd2.append('name', parsed.name);
+      fd2.append('amount', String(parsed.amount));
+      fd2.append('dueDay', String(parsed.dueDay || 1));
+      fd2.append('accountId', parsed.accountId || accounts[0]?.id || '');
+      fd2.append('billType', 'MONTHLY');
+      await addBill(fd2);
+      return {
+        success: true,
+        msg: `✅ Tagihan ${parsed.name} Rp ${Number(parsed.amount).toLocaleString('id-ID')} tgl ${parsed.dueDay} tercatat!`,
+      };
+    }
+
+    return { error: 'Aksi gak dikenal.' };
+
   } catch (e: any) {
     return { error: `Error: ${e?.message || e || 'Gagal proses'}` };
   }
