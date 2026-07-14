@@ -97,7 +97,13 @@ Contoh: "beli bubur 20rb BCA" → {"type":"EXPENSE","amount":20000,"accountId":"
     fd2.append('description', String(parsed.description || text));
     await addTransaction(fd2);
     
-    // Get account name for display
+    // Verify it was created
+    const lastTx = await prisma.transaction.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true }
+    });
+    
     const acc = accounts.find(a => a.id === parsed.accountId);
     
     return {
@@ -106,6 +112,7 @@ Contoh: "beli bubur 20rb BCA" → {"type":"EXPENSE","amount":20000,"accountId":"
       amount: parsed.amount,
       account: acc?.name || '',
       description: parsed.description || text,
+      txId: lastTx?.id,
     };
   } catch (e: any) {
     return { error: `Error: ${e?.message || e || 'Gagal proses'}` };
