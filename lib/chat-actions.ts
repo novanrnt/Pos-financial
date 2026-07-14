@@ -40,7 +40,7 @@ Contoh: "beli bubur 20rb BCA" → {"type":"EXPENSE","amount":20000,"accountId":"
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: 'deepseek-v4-pro',
+        model: 'gpt-4.1-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: text }
