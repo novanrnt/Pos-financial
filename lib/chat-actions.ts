@@ -104,6 +104,6 @@ Contoh: "beli bubur 20rb BCA" → {"type":"EXPENSE","amount":20000,"accountId":"
       description: parsed.description || text,
     };
   } catch (e: any) {
-    return { error: e.message || 'Gagal proses AI' };
+    return { error: `Error: ${e?.message || e || 'Gagal proses'}` };
   }
 }
