@@ -66,9 +66,26 @@ Output: {"type":"INCOME","amount":5000000,"accountId":"...","categoryId":"...","
     const data = await resp.json();
     const content = data.choices?.[0]?.message?.content || '';
     
-    // Parse JSON from response (strip code blocks if any)
-    let jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const parsed = JSON.parse(jsonStr);
+    if (!content) {
+      return { error: 'AI ga ngasih respons. Coba lagi.' };
+    }
+    
+    // Parse JSON: strip markdown code blocks and find JSON object
+    let jsonStr = content.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+    // Find first { and last }
+    const start = jsonStr.indexOf('{');
+    const end = jsonStr.lastIndexOf('}');
+    if (start === -1 || end === -1) {
+      return { error: `AI ga ngasih format yang bener. Respons: ${content.slice(0, 100)}` };
+    }
+    jsonStr = jsonStr.slice(start, end + 1);
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch {
+      return { error: `Gagal parse respons AI. Coba ketik ulang.` };
+    }
     
     if (!parsed.amount || parsed.amount <= 0) {
       return { error: 'AI gak bisa baca nominalnya. Coba tulis ulang.' };
