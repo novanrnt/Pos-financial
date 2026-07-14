@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BarChart3, Wallet, Car, User } from 'lucide-react';
+import { Home, BarChart3, Wallet, Car, User, Bot } from 'lucide-react';
 
 const tabs = [
   { label: 'Home', href: '/dashboard', icon: Home },
   { label: 'Stats', href: '/reports', icon: BarChart3 },
   { label: 'Wallet', href: '/accounts', icon: Wallet },
   { label: 'Business', href: '/cars', icon: Car },
+  { label: 'Chat', href: '/chat', icon: Bot },
   { label: 'Profile', href: '/settings', icon: User },
 ];
 
