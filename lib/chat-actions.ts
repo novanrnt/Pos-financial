@@ -84,11 +84,15 @@ Contoh: "beli bubur 20rb BCA" → {"type":"EXPENSE","amount":20000,"accountId":"
     }
     
     // Create transaction
+    // Validate categoryId against actual categories
+    const validCat = categories.find(c => c.id === parsed.categoryId);
+    const catId = validCat?.id || '';
+    
     const fd2 = new FormData();
     fd2.append('type', parsed.type);
     fd2.append('amount', String(parsed.amount));
     fd2.append('accountId', String(parsed.accountId));
-    fd2.append('categoryId', String(parsed.categoryId || ''));
+    fd2.append('categoryId', catId);
     fd2.append('date', new Date().toISOString().split('T')[0]);
     fd2.append('description', String(parsed.description || text));
     await addTransaction(fd2);
