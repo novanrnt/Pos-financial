@@ -54,7 +54,21 @@ User: "bayar hutang mamah 500rb"
 Respon: {"action":"pay_debt","debtName":"Mamah","amount":500000,"accountId":"..."}
 
 User: "tambah tagihan listrik 200rb tgl 5"
-Respon: {"action":"bill","name":"Listrik","amount":200000,"dueDay":5,"accountId":"..."}`;
+Respon: {"action":"bill","name":"Listrik","amount":200000,"dueDay":5,"accountId":"..."}
+
+User: "terima piutang dari dr julian 300rb"
+Respon: {"action":"pay_debt","debtName":"Dr julian","amount":300000,"accountId":"..."}
+
+User: "hutang baru ke budi 2jt"
+Respon: {"action":"new_debt","name":"Budi","amount":2000000,"type":"DEBT","accountId":"..."}
+
+User: "piutang baru dari agus 1,5jt"
+Respon: {"action":"new_debt","name":"Agus","amount":1500000,"type":"RECEIVABLE","accountId":"..."}
+
+CATATAN PENTING:
+- DEBT = hutang (lu punya hutang ke orang lain): bayar hutang = saldo rekening BERKURANG
+- RECEIVABLE = piutang (orang lain punya hutang ke lu): terima piutang = saldo rekening BERTAMBAH
+- Kalau user bilang "bayar piutang" atau "terima piutang" -> itu RECEIVABLE, pake pay_debt`;
 
   try {
     const apiKey = process.env.SUMOPOD_API_KEY || 'sk-QBO1yDwev0sxa_IldV2_Tg';
