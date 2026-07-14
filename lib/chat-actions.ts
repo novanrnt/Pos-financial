@@ -85,8 +85,16 @@ Contoh: "beli bubur 20rb BCA" → {"type":"EXPENSE","amount":20000,"accountId":"
     
     // Create transaction
     // Validate categoryId against actual categories
-    const validCat = categories.find(c => c.id === parsed.categoryId);
-    const catId = validCat?.id || '';
+    let catId = '';
+    if (parsed.categoryId) {
+      const validCat = categories.find(c => c.id === parsed.categoryId);
+      if (validCat) catId = validCat.id;
+    }
+    // Fallback to "Lainnya" category if available
+    if (!catId) {
+      const lainnya = categories.find(c => c.name.toLowerCase() === 'lainnya' && c.type === parsed.type);
+      if (lainnya) catId = lainnya.id;
+    }
     
     const fd2 = new FormData();
     fd2.append('type', parsed.type);
