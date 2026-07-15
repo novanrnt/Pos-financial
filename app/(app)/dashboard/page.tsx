@@ -11,7 +11,6 @@ import {
   Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee
 } from 'lucide-react';
 
-import { TransactionFormButton } from '@/components/transaction-form';
 import { TrendChart } from '@/components/trend-chart';
 
 const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
@@ -632,7 +631,6 @@ export default async function Dashboard() {
       </div>
 
       {/* ========== FAB ========== */}
-      <TransactionFormButton accounts={accounts} categories={categories} variant="fab" />
-    </div>
+      </div>
   );
 }
