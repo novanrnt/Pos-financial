@@ -2,8 +2,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BarChart3, Wallet, Bot, Plus } from 'lucide-react';
+import { Home, BarChart3, Wallet, Bot, Plus, ArrowLeftRight } from 'lucide-react';
 import { addTransaction } from '@/lib/actions';
+
+type Account = { id: string; name: string; balance?: number };
+type Category = { id: string; name: string; type: string };
 
 const tabs = [
   { label: 'Home', href: '/dashboard', icon: Home },
@@ -12,12 +15,12 @@ const tabs = [
   { label: 'Chatbot', href: '/chat', icon: Bot },
 ];
 
-export function BottomNavigation() {
+export function BottomNavigation({ accounts, categories }: { accounts: Account[]; categories: Category[] }) {
   const pathname = usePathname();
   const [showAdd, setShowAdd] = useState(false);
 
   if (showAdd) {
-    return <AddTransactionModal onClose={() => setShowAdd(false)} />;
+    return <AddTransactionModal accounts={accounts} categories={categories} onClose={() => setShowAdd(false)} />;
   }
 
   return (
@@ -34,57 +37,53 @@ export function BottomNavigation() {
           border: '0.5px solid rgba(255,255,255,0.12)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
         }}>
-        {/* Left 2 tabs */}
-        {tabs.slice(0, 2).map(tab => {
-          const active = pathname === tab.href;
-          const Icon = tab.icon;
-          return (
-            <Link key={tab.href} href={tab.href}
-              className="flex flex-col items-center gap-0.5 py-2 px-3 rounded-[16px] transition-all active-scale"
-              style={{ minWidth: 48, background: active ? 'rgba(48,209,88,0.15)' : 'transparent' }}>
-              <Icon size={22} style={{ color: active ? '#30D158' : 'rgba(255,255,255,0.4)' }} />
-              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.3px', color: active ? '#30D158' : 'rgba(255,255,255,0.3)' }}>
-                {tab.label}
-              </span>
-            </Link>
-          );
-        })}
+      {tabs.slice(0, 2).map(tab => {
+        const active = pathname === tab.href;
+        const Icon = tab.icon;
+        return (
+          <Link key={tab.href} href={tab.href}
+            className="flex flex-col items-center gap-0.5 py-2 px-3 rounded-[16px] transition-all active-scale"
+            style={{ minWidth: 48, background: active ? 'rgba(48,209,88,0.15)' : 'transparent' }}>
+            <Icon size={22} style={{ color: active ? '#30D158' : 'rgba(255,255,255,0.4)' }} />
+            <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.3px', color: active ? '#30D158' : 'rgba(255,255,255,0.3)' }}>
+              {tab.label}
+            </span>
+          </Link>
+        );
+      })}
 
-        {/* Center FAB */}
-        <button onClick={() => setShowAdd(true)}
-          className="active-scale"
-          style={{
-            width: 54, height: 54, borderRadius: 27,
-            background: '#30D158', border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginTop: -24,
-            boxShadow: '0 4px 16px rgba(48,209,88,0.4)',
-          }}>
-          <Plus size={26} style={{ color: '#FFFFFF' }} />
-        </button>
+      <button onClick={() => setShowAdd(true)}
+        className="active-scale"
+        style={{
+          width: 54, height: 54, borderRadius: 27,
+          background: '#30D158', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          marginTop: -24, boxShadow: '0 4px 16px rgba(48,209,88,0.4)',
+        }}>
+        <Plus size={26} style={{ color: '#FFFFFF' }} />
+      </button>
 
-        {/* Right 2 tabs */}
-        {tabs.slice(2, 4).map(tab => {
-          const active = pathname === tab.href;
-          const Icon = tab.icon;
-          return (
-            <Link key={tab.href} href={tab.href}
-              className="flex flex-col items-center gap-0.5 py-2 px-3 rounded-[16px] transition-all active-scale"
-              style={{ minWidth: 48, background: active ? 'rgba(48,209,88,0.15)' : 'transparent' }}>
-              <Icon size={22} style={{ color: active ? '#30D158' : 'rgba(255,255,255,0.4)' }} />
-              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.3px', color: active ? '#30D158' : 'rgba(255,255,255,0.3)' }}>
-                {tab.label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
+      {tabs.slice(2, 4).map(tab => {
+        const active = pathname === tab.href;
+        const Icon = tab.icon;
+        return (
+          <Link key={tab.href} href={tab.href}
+            className="flex flex-col items-center gap-0.5 py-2 px-3 rounded-[16px] transition-all active-scale"
+            style={{ minWidth: 48, background: active ? 'rgba(48,209,88,0.15)' : 'transparent' }}>
+            <Icon size={22} style={{ color: active ? '#30D158' : 'rgba(255,255,255,0.4)' }} />
+            <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.3px', color: active ? '#30D158' : 'rgba(255,255,255,0.3)' }}>
+              {tab.label}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
     </nav>
   );
 }
 
-function AddTransactionModal({ onClose }: { onClose: () => void }) {
-  const [type, setType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE');
+function AddTransactionModal({ accounts, categories, onClose }: { accounts: Account[]; categories: Category[]; onClose: () => void }) {
+  const [type, setType] = useState<'INCOME' | 'EXPENSE' | 'TRANSFER'>('EXPENSE');
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -94,6 +93,10 @@ function AddTransactionModal({ onClose }: { onClose: () => void }) {
     await addTransaction(fd);
     window.location.reload();
   };
+
+  const expenseCats = categories.filter(c => c.type === 'EXPENSE');
+  const incomeCats = categories.filter(c => c.type === 'INCOME');
+  const showCats = type === 'EXPENSE' ? expenseCats : type === 'INCOME' ? incomeCats : [];
 
   return (
     <div onClick={onClose} style={{
@@ -109,25 +112,72 @@ function AddTransactionModal({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: 18 }}>✕</button>
         </div>
         <form onSubmit={submit} style={{ padding: '16px 20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Type selector */}
           <div style={{ display: 'flex', gap: 8 }}>
-            {['EXPENSE', 'INCOME'].map(t => (
-              <button key={t} type="button" onClick={() => setType(t as any)}
+            {[
+              { key: 'EXPENSE', label: '✕ Pengeluaran', color: '#FF453A' },
+              { key: 'INCOME', label: '✓ Pemasukan', color: '#30D158' },
+              { key: 'TRANSFER', label: '⇄ Transfer', color: '#0A84FF' },
+            ].map(t => (
+              <button key={t.key} type="button" onClick={() => setType(t.key as any)}
                 style={{
                   flex: 1, padding: '10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                  background: type === t ? (t === 'EXPENSE' ? '#FF453A' : '#30D158') : 'rgba(255,255,255,0.08)',
-                  color: type === t ? '#fff' : 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: 600,
+                  background: type === t.key ? t.color : 'rgba(255,255,255,0.08)',
+                  color: type === t.key ? '#fff' : 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: 600,
                 }}>
-                {t === 'EXPENSE' ? '✕ Pengeluaran' : '✓ Pemasukan'}
+                {t.label}
               </button>
             ))}
           </div>
+
           <input type="hidden" name="type" value={type} />
+
+          {/* Amount */}
           <input name="amount" type="number" required placeholder="Nominal"
             style={{ padding: 12, borderRadius: 10, border: '0.5px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 15, outline: 'none' }} />
+
+          {/* Account */}
+          <select name="accountId" required
+            style={{ padding: 12, borderRadius: 10, border: '0.5px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 14, outline: 'none' }}>
+            <option value="" style={{ background: '#1C1C1E' }}>Pilih Rekening</option>
+            {accounts.map(a => (
+              <option key={a.id} value={a.id} style={{ background: '#1C1C1E' }}>
+                {a.name}{a.balance !== undefined ? ` (Rp ${a.balance.toLocaleString('id-ID')})` : ''}
+              </option>
+            ))}
+          </select>
+
+          {/* Transfer to account */}
+          {type === 'TRANSFER' && (
+            <select name="transferToAccountId" required
+              style={{ padding: 12, borderRadius: 10, border: '0.5px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 14, outline: 'none' }}>
+              <option value="" style={{ background: '#1C1C1E' }}>Transfer ke Rekening</option>
+              {accounts.map(a => (
+                <option key={a.id} value={a.id} style={{ background: '#1C1C1E' }}>{a.name}</option>
+              ))}
+            </select>
+          )}
+
+          {/* Category */}
+          {type !== 'TRANSFER' && showCats.length > 0 && (
+            <select name="categoryId"
+              style={{ padding: 12, borderRadius: 10, border: '0.5px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 14, outline: 'none' }}>
+              <option value="" style={{ background: '#1C1C1E' }}>Pilih Kategori (opsional)</option>
+              {showCats.map(c => (
+                <option key={c.id} value={c.id} style={{ background: '#1C1C1E' }}>{c.name}</option>
+              ))}
+            </select>
+          )}
+
+          {/* Description */}
           <input name="description" placeholder="Keterangan"
             style={{ padding: 12, borderRadius: 10, border: '0.5px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 15, outline: 'none' }} />
+
+          {/* Date */}
           <input name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]}
             style={{ padding: 12, borderRadius: 10, border: '0.5px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 15, outline: 'none' }} />
+
+          {/* Submit */}
           <button type="submit" disabled={loading}
             style={{
               width: '100%', padding: 14, borderRadius: 12, border: 'none', cursor: 'pointer',
