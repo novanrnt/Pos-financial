@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth';
-import { rupiah, ym } from '@/lib/utils';
+import { rupiah, ym, todayInput } from '@/lib/utils';
 import {
   Bell, ShoppingCart, Receipt, ArrowUpRight, ArrowDownRight,
   ChevronRight, Clock, MoreHorizontal, TrendingUp,
@@ -11,7 +11,6 @@ import {
   Smartphone, Gamepad2, BookOpen, Heart, Plane, Gift, Music, Coffee
 } from 'lucide-react';
 
-import { TrendChart } from '@/components/trend-chart';
 
 const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const monthLong = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -48,6 +47,88 @@ async function MiniBarChart({ data, height = 40 }: { data: { value: number; labe
       </div>;
     })}
   </div>;
+}
+
+// ───── Calendar View ─────
+function CalendarView({ allYear, currentMonth, currentYear }: { allYear: any[]; currentMonth: number; currentYear: number }) {
+  const days = ['SN', 'SL', 'RB', 'KM', 'JM', 'SB', 'MG'];
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const today = new Date();
+  
+  // Map transactions by day
+  const txByDay: Record<number, { income: number; expense: number }> = {};
+  allYear.filter(t => t.date.getMonth() === currentMonth && t.date.getFullYear() === currentYear).forEach(t => {
+    const d = t.date.getDate();
+    if (!txByDay[d]) txByDay[d] = { income: 0, expense: 0 };
+    if (t.type === 'INCOME') txByDay[d].income += Number(t.amount);
+    else if (t.type === 'EXPENSE') txByDay[d].expense += Number(t.amount);
+  });
+  
+  // Convert day index to Mon-based (1=Mon, 0=Sun)
+  const startOffset = firstDay === 0 ? 6 : firstDay - 1; // Mon=0
+  
+  const cells: { day: number; income: number; expense: number }[] = [];
+  for (let i = 0; i < startOffset; i++) cells.push({ day: 0, income: 0, expense: 0 });
+  for (let d = 1; d <= daysInMonth; d++) {
+    const tx = txByDay[d] || { income: 0, expense: 0 };
+    cells.push({ day: d, income: tx.income, expense: tx.expense });
+  }
+  
+  const fmt = (v: number) => {
+    if (v >= 1000000) return `${(v / 1000000).toFixed(v % 1000000 === 0 ? 0 : 1)}JT`;
+    if (v >= 1000) return `${Math.round(v / 1000)}RB`;
+    return String(v);
+  };
+  
+  const weeks: typeof cells[] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  
+  return (
+    <div className="ios-card p-4">
+      {/* Day headers */}
+      <div className="grid grid-cols-7 mb-2" style={{ gap: 2 }}>
+        {days.map((d, i) => (
+          <div key={i} className="text-center text-[10px] font-medium py-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{d}</div>
+        ))}
+      </div>
+      {/* Calendar grid */}
+      {weeks.map((week, wi) => (
+        <div key={wi} className="grid grid-cols-7" style={{ gap: 2 }}>
+          {week.map((cell, ci) => {
+            if (cell.day === 0) return <div key={ci} />;
+            const hasActivity = cell.income > 0 || cell.expense > 0;
+            const isToday = cell.day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
+            const net = cell.income - cell.expense;
+            return (
+              <div key={ci} className="rounded-lg p-1.5 text-center relative"
+                style={{
+                  background: hasActivity ? 'rgba(255,69,58,0.06)' : 'transparent',
+                  border: isToday ? '1px solid rgba(255,69,58,0.3)' : '1px solid transparent',
+                  minHeight: 48,
+                }}>
+                <div className="text-[10px] font-medium mb-0.5" style={{ color: isToday ? '#FF453A' : 'rgba(255,255,255,0.5)' }}>{cell.day}</div>
+                {hasActivity && (
+                  <div className="space-y-[1px]">
+                    {cell.income > 0 && (
+                      <div className="text-[8px] font-semibold leading-tight" style={{ color: 'rgba(48,209,88,0.8)' }}>
+                        +{fmt(cell.income)}
+                      </div>
+                    )}
+                    {cell.expense > 0 && (
+                      <div className="text-[8px] font-semibold leading-tight" style={{ color: 'rgba(255,69,58,0.8)' }}>
+                        -{fmt(cell.expense)}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 // ───── Bar data for trend (weekly) ─────
@@ -469,18 +550,13 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      {/* ========== 7. TREND PENGELUARAN ========== */}
+      {/* ========== 7. AKTIVITAS BULAN INI (Calendar) ========== */}
       <div className="animate-ios-slide-up ios-stagger-7">
         <div className="flex items-center justify-between mb-2.5 px-1">
-          <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Trend</span>
+          <span className="text-[17px] font-semibold" style={{ letterSpacing: '-0.2px' }}>Aktivitas Bulan Ini</span>
+          <span className="text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{months[now.getMonth()].toUpperCase()} {now.getFullYear()}</span>
         </div>
-        <TrendChart
-          dailyData={weeklyCashflowData}
-          monthlyData={chartData}
-          weeklyExpense={weeklyExpense}
-          prevWeeklyExpense={prev7Expense}
-          changePct={last7Pct}
-        />
+        <CalendarView allYear={allYear} currentMonth={now.getMonth()} currentYear={now.getFullYear()} />
       </div>
 
       {/* ========== 8. PENGELUARAN PER KATEGORI ========== */}
