@@ -2,13 +2,13 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
-  title: 'POS Finance',
-  description: 'Dashboard keuangan pribadi dan tracking bisnis mobil dengan fitur lengkap',
+  title: 'POS Finance - RNT',
+  description: 'Catat, atur, pantau, dan kendalikan keuangan Anda',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'POS Finance',
+    title: 'RNT Finance',
   },
   formatDetection: {
     telephone: false,
@@ -25,7 +25,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#090C12',
+  themeColor: '#0e0f0c',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
