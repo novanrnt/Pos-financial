@@ -1,14 +1,11 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { Bot, Send, Key, Eye, EyeOff } from 'lucide-react';
+import { Bot, Send } from 'lucide-react';
 import { processChat } from '@/lib/chat-actions';
-import { rupiah } from '@/lib/utils';
 
 export function ChatBot() {
-  const [apiKey, setApiKey] = useState(() => '');
-  const [showKey, setShowKey] = useState(false);
   const [messages, setMessages] = useState<{ role: string; text: string; data?: any }[]>([
-    { role: 'bot', text: 'Halo! Gw bisa bantu catat transaksi, adjust saldo, bayar hutang, dan lainnya.\n\nContoh:\n• beli bubur 20rb BCA\n• adjust saldo BCA 2890 jadi 50jt\n• bayar hutang mamah 500rb\n• tambah tagihan listrik 200rb' },
+    { role: 'bot', text: 'Halo! Gw bisa bantu catat transaksi, adjust saldo, bayar hutang, dan lainnya.\n\nContoh:\n• beli bubur 20rb BCA\n• adjust saldo BCA 2890 jadi 50jt\n• bayar hutang dr julian 500rb\n• terima piutang dr ortu 2jt\n• tambah tagihan listrik 200rb' },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,14 +15,8 @@ export function ChatBot() {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [messages]);
 
-  const saveKey = () => {
-    localStorage.setItem('pos_ai_key', apiKey);
-    setMessages(prev => [...prev, { role: 'bot', text: '✅ API Key tersimpan! Sekarang coba chat.' }]);
-  };
-
   const send = async () => {
     if (!input.trim() || loading) return;
-    if (!apiKey) { setMessages(prev => [...prev, { role: 'bot', text: '❌ Isi API Key dulu di atas!' }]); return; }
     
     const userText = input;
     setInput('');
@@ -34,7 +25,6 @@ export function ChatBot() {
 
     const fd = new FormData();
     fd.append('text', userText);
-    fd.append('apiKey', apiKey);
     const res = await processChat(fd);
 
     if (res.error) {
