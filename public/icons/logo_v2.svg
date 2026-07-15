@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D4AF37"/>
+      <stop offset="30%" style="stop-color:#FFD700"/>
+      <stop offset="70%" style="stop-color:#D4AF37"/>
+      <stop offset="100%" style="stop-color:#B8860B"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B0B0B0"/>
+      <stop offset="40%" style="stop-color:#E8E8E8"/>
+      <stop offset="60%" style="stop-color:#D0D0D0"/>
+      <stop offset="100%" style="stop-color:#909090"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0e0f0c"/>
+      <stop offset="100%" style="stop-color:#1a1b17"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="64" fill="url(#bg)"/>
+  
+  <!-- R letter shape (gold) -->
+  <g fill="url(#gold)">
+    <rect x="80" y="100" width="30" height="160" rx="5"/>
+    <path d="M110 100 Q185 100 185 155 Q185 195 145 205 L195 260 L165 260 L120 205 L110 205 L110 260 L80 260 Z"/>
+  </g>
+  
+  <!-- Bar chart inside R -->
+  <g fill="url(#silver)">
+    <rect x="115" y="130" width="14" height="30" rx="2"/>
+    <rect x="133" y="115" width="14" height="45" rx="2"/>
+    <rect x="151" y="100" width="14" height="60" rx="2"/>
+  </g>
+  
+  <!-- N letter (silver) -->
+  <g fill="url(#silver)">
+    <rect x="210" y="100" width="28" height="160" rx="5"/>
+    <path d="M238 100 L310 100 L310 125 L266 230 L310 230 L310 260 L238 260 L238 235 L282 130 L238 130 Z"/>
+  </g>
+  
+  <!-- T letter (gold) -->
+  <g fill="url(#gold)">
+    <rect x="350" y="100" width="28" height="40" rx="5"/>
+    <rect x="330" y="100" width="80" height="30" rx="5"/>
+    <rect x="362" y="140" width="28" height="120" rx="5"/>
+  </g>
+  
+  <!-- Upward arrow (gold) -->
+  <g fill="url(#gold)">
+    <path d="M292 155 Q310 115 340 100 L360 90 L358 110 Q345 100 330 110 Q312 120 300 150 Z"/>
+  </g>
+  
+  <!-- RNT FINANCE text -->
+  <g font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="26" letter-spacing="3">
+    <text x="256" y="330" text-anchor="middle" fill="url(#gold)">RNT</text>
+    <text x="342" y="330" text-anchor="middle" fill="url(#silver)">FINANCE</text>
+  </g>
+  
+  <!-- Divider lines -->
+  <line x1="140" y1="365" x2="200" y2="365" stroke="#D4AF37" stroke-width="0.8" opacity="0.6"/>
+  <line x1="312" y1="365" x2="372" y2="365" stroke="#D4AF37" stroke-width="0.8" opacity="0.6"/>
+  
+  <!-- Tagline -->
+  <text x="256" y="390" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="300" font-size="12" fill="#D4AF37" letter-spacing="2" opacity="0.8">
+    CATAT • ATUR • PANTAU • KENDALIKAN
+  </text>
+  
+  <!-- Bottom icons -->
+  <g transform="translate(256, 430)" fill="none" stroke="#D4AF37" stroke-width="1.5" opacity="0.7">
+    <rect x="-145" y="-10" width="22" height="18" rx="3"/>
+    <rect x="-143" y="-6" width="5" height="5" rx="1.5"/>
+    
+    <rect x="-88" y="-7" width="5" height="15" rx="1.5"/>
+    <rect x="-80" y="-12" width="5" height="20" rx="1.5"/>
+    <rect x="-72" y="-3" width="5" height="11" rx="1.5"/>
+    
+    <rect x="-20" y="-8" width="32" height="14" rx="5"/>
+    <circle cx="-12" cy="6" r="4"/>
+    <circle cx="8" cy="6" r="4"/>
+    
+    <circle cx="42" cy="0" r="10"/>
+    <line x1="42" y1="0" x2="42" y2="-10"/>
+    <line x1="42" y1="0" x2="50" y2="4"/>
+    
+    <rect x="85" y="-10" width="16" height="18" rx="3"/>
+    <line x1="88" y1="-4" x2="97" y2="-4"/>
+    <line x1="88" y1="0" x2="97" y2="0"/>
+    <circle cx="93" cy="5" r="3.5"/>
+    <path d="M91 5 L93 7 L96 3"/>
+  </g>
+</svg>

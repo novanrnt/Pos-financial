@@ -1,65 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#D4AF37"/>
-      <stop offset="30%" style="stop-color:#FFD700"/>
-      <stop offset="60%" style="stop-color:#D4AF37"/>
-      <stop offset="100%" style="stop-color:#B8860B"/>
+    <linearGradient id="g" x1="0" y1="0" x2="512" y2="512">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="40%" stop-color="#D4AF37"/>
+      <stop offset="80%" stop-color="#B8960C"/>
     </linearGradient>
-    <linearGradient id="silver" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#C0C0C0"/>
-      <stop offset="30%" style="stop-color:#E8E8E8"/>
-      <stop offset="60%" style="stop-color:#C0C0C0"/>
-      <stop offset="100%" style="stop-color:#A0A0A0"/>
+    <linearGradient id="s" x1="0" y1="0" x2="512" y2="512">
+      <stop offset="0%" stop-color="#ECECEC"/>
+      <stop offset="50%" stop-color="#C8C8C8"/>
+      <stop offset="100%" stop-color="#A0A0A0"/>
     </linearGradient>
   </defs>
-  <!-- Background -->
-  <rect width="512" height="512" rx="64" fill="#0e0f0c"/>
-  <!-- RNT Logo -->
-  <text x="256" y="200" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="120">
-    <tspan fill="url(#gold)">R</tspan>
-    <tspan fill="url(#silver)">N</tspan>
-    <tspan fill="url(#gold)">T</tspan>
-  </text>
-  <!-- Bar chart (3 bars) behind N -->
-  <rect x="205" y="145" width="12" height="25" rx="2" fill="url(#silver)"/>
-  <rect x="222" y="132" width="12" height="38" rx="2" fill="url(#silver)"/>
-  <rect x="239" y="118" width="12" height="52" rx="2" fill="url(#silver)"/>
-  <!-- Arrow -->
-  <path d="M270 155 Q300 100 350 90 L380 85 L370 110 Q355 95 340 100 Q310 108 280 145 Z" fill="url(#gold)"/>
-  <!-- RNTFINANCE -->
-  <text x="256" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="28" letter-spacing="3">
-    <tspan fill="url(#gold)">RNT</tspan>
-    <tspan fill="url(#silver)">FINANCE</tspan>
-  </text>
+  <rect width="512" height="512" rx="80" fill="#0e0f0c"/>
+
+  <!-- R (gold) -->
+  <path d="M70,80 L115,80 L115,180 L180,120 L215,120 L155,188 L220,270 L185,270 L130,200 L115,200 L115,270 L70,270 Z" fill="url(#g)"/>
+  <rect x="100" y="95" width="12" height="30" rx="2" fill="url(#s)"/>
+  <rect x="114" y="82" width="12" height="43" rx="2" fill="url(#s)"/>
+
+  <!-- N (silver) -->
+  <path d="M250,80 L285,80 L285,270 L250,270 Z" fill="url(#s)"/>
+  <path d="M345,80 L380,80 L380,270 L345,270 Z" fill="url(#s)"/>
+  <path d="M285,80 L345,270 L345,245 L285,80 Z" fill="url(#s)"/>
+
+  <!-- T (gold) -->
+  <path d="M400,80 L490,80 L490,112 L400,112 Z" fill="url(#g)"/>
+  <path d="M433,112 L462,112 L462,270 L433,270 Z" fill="url(#g)"/>
+
+  <!-- Arrow (gold) -->
+  <path d="M340,155 Q365,105 395,92 L425,82 L420,110 Q400,100 385,110 Q360,125 348,152 Z" fill="url(#g)"/>
+
+  <!-- RNTFINANCE text using DejaVu Sans -->
+  <text x="256" y="345" text-anchor="middle" font-family="DejaVu Sans" font-weight="bold" font-size="36" fill="url(#g)">RNT</text>
+  <text x="335" y="345" text-anchor="middle" font-family="DejaVu Sans" font-weight="bold" font-size="36" fill="url(#s)">FINANCE</text>
+
+  <!-- Divider -->
+  <line x1="130" y1="380" x2="200" y2="380" stroke="#D4AF37" stroke-width="0.8" opacity="0.4"/>
+  <line x1="312" y1="380" x2="382" y2="380" stroke="#D4AF37" stroke-width="0.8" opacity="0.4"/>
+
   <!-- Tagline -->
-  <line x1="130" y1="310" x2="190" y2="310" stroke="#D4AF37" stroke-width="0.5"/>
-  <text x="256" y="325" text-anchor="middle" font-family="Arial, sans-serif" font-weight="300" font-size="14" fill="#D4AF37" letter-spacing="2">
-    CATAT • ATUR • PANTAU • KENDALIKAN
-  </text>
-  <line x1="322" y1="310" x2="382" y2="310" stroke="#D4AF37" stroke-width="0.5"/>
-  <!-- Bottom icons row -->
-  <g transform="translate(256, 390)" fill="none" stroke="#D4AF37" stroke-width="1.5">
-    <!-- Wallet -->
-    <rect x="-140" y="-12" width="20" height="16" rx="2"/>
-    <rect x="-138" y="-8" width="4" height="4" rx="1"/>
-    <!-- Bar chart -->
-    <rect x="-85" y="-8" width="4" height="14" rx="1"/>
-    <rect x="-78" y="-12" width="4" height="18" rx="1"/>
-    <rect x="-71" y="-4" width="4" height="10" rx="1"/>
-    <!-- Car -->
-    <rect x="-25" y="-10" width="35" height="12" rx="4"/>
-    <circle cx="-18" cy="4" r="4"/>
-    <circle cx="8" cy="4" r="4"/>
-    <!-- Pie chart -->
-    <circle cx="38" cy="0" r="9"/>
-    <line x1="38" y1="0" x2="38" y2="-9"/>
-    <line x1="38" y1="0" x2="45" y2="3"/>
-    <!-- Document -->
-    <rect x="75" y="-12" width="14" height="16" rx="2"/>
-    <line x1="78" y1="-6" x2="86" y2="-6"/>
-    <line x1="78" y1="-2" x2="86" y2="-2"/>
-    <circle cx="82" cy="2" r="3"/>
-    <path d="M80 2 L82 4 L85 -1" stroke-width="1"/>
+  <text x="256" y="405" text-anchor="middle" font-family="DejaVu Sans" font-weight="normal" font-size="14" fill="#D4AF37" letter-spacing="2" opacity="0.6">CATAT • ATUR • PANTAU • KENDALIKAN</text>
+
+  <!-- Icons -->
+  <g transform="translate(256, 448)" fill="none" stroke="#D4AF37" stroke-width="1.5" opacity="0.5">
+    <rect x="-142" y="-8" width="20" height="16" rx="3"/>
+    <rect x="-140" y="-5" width="4" height="4" rx="1"/>
+    <rect x="-85" y="-6" width="5" height="14" rx="2"/>
+    <rect x="-78" y="-10" width="5" height="18" rx="2"/>
+    <rect x="-71" y="-2" width="5" height="10" rx="2"/>
+    <rect x="-20" y="-7" width="30" height="13" rx="5"/>
+    <circle cx="-12" cy="6" r="4"/>
+    <circle cx="8" cy="6" r="4"/>
+    <circle cx="42" cy="0" r="9"/>
+    <line x1="42" y1="0" x2="42" y2="-9"/>
+    <line x1="42" y1="0" x2="49" y2="4"/>
+    <rect x="82" y="-8" width="14" height="16" rx="3"/>
+    <line x1="85" y1="-3" x2="94" y2="-3"/>
+    <line x1="85" y1="1" x2="94" y2="1"/>
+    <circle cx="89" cy="5" r="3"/>
+    <path d="M87 4 L89 6 L92 3"/>
   </g>
 </svg>
